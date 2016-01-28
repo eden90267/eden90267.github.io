@@ -1,0 +1,50 @@
+---
+layout: post
+title:  "JSF1095 問題處理"
+date:   2016-01-28 15:55:33 +0800
+categories: jekyll update
+---
+完整錯誤:
+JSF1095: The response was already committed by the time we tried to set the outgoing cookie for the flash. Any values stored to the flash will not be available on the next request.
+
+這會造成FlashScope不穩定甚而無法keep與get, 解決方法為掛filter設置bufferSize處理, 以下為code:
+
+{% highlight ruby %}
+package com.cy.financial.asset.web.utils.filters;
+
+import java.io.IOException;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+
+/**
+ *
+ * @author Eden Liu <eden90267@gmail.com>
+ */
+@WebFilter("*.xhtml")
+public class ResponseBufferSizeFilter implements Filter {
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+    }
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        HttpServletResponseWrapper wrapper
+                = new HttpServletResponseWrapper((HttpServletResponse) response);
+        wrapper.setBufferSize(10000000);
+        chain.doFilter(request, wrapper);
+    }
+
+    @Override
+    public void destroy() {
+    }
+
+}
+{% endhighlight %}
