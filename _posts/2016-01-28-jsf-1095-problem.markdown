@@ -9,7 +9,7 @@ JSF1095: The response was already committed by the time we tried to set the outg
 
 這會造成FlashScope不穩定甚而無法keep與get, 解決方法為掛filter設置bufferSize處理, 以下為code:
 
-{% highlight ruby %}
+~~~ java
 package com.cy.financial.asset.web.utils.filters;
 
 import java.io.IOException;
@@ -47,4 +47,4 @@ public class ResponseBufferSizeFilter implements Filter {
     }
 
 }
-{% endhighlight %}
+~~~
