@@ -3,7 +3,7 @@ layout: post
 title:  "EclipseLink lazy loading settings"
 date:   2015-09-03 11:00:00 +0800
 categories: [java, eclipseLink, spring, lazy loading]
------------------------------------------------------
+---
 EclipseLink預設啟用lazy, 但須透由LoadTimeWeaver lib來代理集成才有其效用, 本篇是透由Container的loadTimeWeaver進行配置, 以下為啟用範例(spring-data-jpa + eclipseLink):
 
 1.spring configuration, 必須透由標注啟用LoadTimeWeaving, 並實作LoadTimeWeavingConfigurer interfaces來配置container的loadTimeWeaver:
