@@ -2,14 +2,16 @@
 layout: post
 title:  "Used Google Guava Cache to Spring"
 date:   2016-02-24 11:21:00 +0800
-categories: jekyll update
+categories: [java, spring, guava]
 ---
 因工作需求有用到快取機制, 但可能因Multiple Cache Container相互衝突關係(與EhCache), 造成無法使用Google Guava Cache整合Spring, 所以記錄在此方便以後使用:
 
 以下為Java Config方式:
 
 1. Add dependency to Maven pom.xml file:
-```xml
+
+~~~ java
+
 <dependency>
     <groupId>com.google.guava</groupId>
     <artifactId>guava</artifactId>
@@ -20,11 +22,13 @@ categories: jekyll update
     <artifactId>spring-context-support</artifactId>
     <version>4.1.7.RELEASE</version>
 </dependency>
-```
+
+~~~
 
 2. Create CacheConfig file:
 
 ~~~ java
+
 @EnableCaching
 @Configuration
 public class CacheConfig implements CachingConfigurer {
@@ -50,11 +54,13 @@ public class CacheConfig implements CachingConfigurer {
     }
 
 }
+
 ~~~
 
 3. Add @Cacheable, @CacheEvict annotation to method to be cached:
 
 ~~~ java
+
 @Service
 public class TypeManager extends AbstractManager<Type, Long> {
 
@@ -140,12 +146,15 @@ public class TypeManager extends AbstractManager<Type, Long> {
     }
     ...
 }
+
 ~~~
 
 4. enjoy~~~
 
+----
 Reference:
-[spring-4-guava-cache-integration-example-with-guavacachemanager-and-guavacache](http://www.concretepage.com/spring-4/spring-4-guava-cache-integration-example-with-guavacachemanager-and-guavacache)
-[add-guava-cache-to-spring-boot-to-cache](http://codedevstuff.blogspot.tw/2015/07/add-guava-cache-to-spring-boot-to-cache.html)
-[spring-31-caching-and-0](https://dzone.com/articles/spring-31-caching-and-0)
-[CacheEvict example](http://www.programcreek.com/java-api-examples/index.php?api=org.springframework.cache.annotation.CacheEvict)
+
+* [spring-4-guava-cache-integration-example-with-guavacachemanager-and-guavacache](http://www.concretepage.com/spring-4/spring-4-guava-cache-integration-example-with-guavacachemanager-and-guavacache)
+* [add-guava-cache-to-spring-boot-to-cache](http://codedevstuff.blogspot.tw/2015/07/add-guava-cache-to-spring-boot-to-cache.html)
+* [spring-31-caching-and-0](https://dzone.com/articles/spring-31-caching-and-0)
+* [CacheEvict example](http://www.programcreek.com/java-api-examples/index.php?api=org.springframework.cache.annotation.CacheEvict)
