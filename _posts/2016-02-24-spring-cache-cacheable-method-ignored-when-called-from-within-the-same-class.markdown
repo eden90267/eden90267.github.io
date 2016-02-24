@@ -27,9 +27,9 @@ public List<Type> getListByOrgMappingAndStatusOrderBySortAsc(OrgMapping orgMappi
 ~~~
 
 折騰了很久, 也發現到網路很多類似的問題：  
-* [Spring cache @Cacheable method ignored when called from within the same class](http://stackoverflow.com/questions/12115996/spring-cache-cacheable-method-ignored-when-called-from-within-the-same-class)
-* [Spring Cache @Cacheable - not working while calling from another method of the same bean](http://stackoverflow.com/questions/16899604/spring-cache-cacheable-not-working-while-calling-from-another-method-of-the-s)
-* [@Cacheable method ignored when called from within the same class](http://forum.spring.io/forum/spring-projects/container/120387-cacheable-method-ignored-when-called-from-within-the-same-class)
+[Spring cache @Cacheable method ignored when called from within the same class](http://stackoverflow.com/questions/12115996/spring-cache-cacheable-method-ignored-when-called-from-within-the-same-class)  
+[Spring Cache @Cacheable - not working while calling from another method of the same bean](http://stackoverflow.com/questions/16899604/spring-cache-cacheable-not-working-while-calling-from-another-method-of-the-s)  
+[@Cacheable method ignored when called from within the same class](http://forum.spring.io/forum/spring-projects/container/120387-cacheable-method-ignored-when-called-from-within-the-same-class)
 
 其中讓我看到了一段文字恍然大悟！！！
 
