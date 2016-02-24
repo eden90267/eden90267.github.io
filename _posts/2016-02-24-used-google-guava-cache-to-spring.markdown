@@ -4,7 +4,6 @@ title:  "Used Google Guava Cache to Spring"
 date:   2016-02-24 11:21:00 +0800
 categories: jekyll update
 ---
-
 因工作需求有用到快取機制, 但可能因Multiple Cache Container相互衝突關係(與EhCache), 造成無法使用Google Guava Cache整合Spring, 所以記錄在此方便以後使用:
 
 以下為Java Config方式:
@@ -24,6 +23,7 @@ categories: jekyll update
 ```
 
 2. Create CacheConfig file:
+
 ~~~ java
 @EnableCaching
 @Configuration
@@ -52,7 +52,8 @@ public class CacheConfig implements CachingConfigurer {
 }
 ~~~
 
-3. Add @Cacheable, @CacheEvict annotation to method to be cached
+3. Add @Cacheable, @CacheEvict annotation to method to be cached:
+
 ~~~ java
 @Service
 public class TypeManager extends AbstractManager<Type, Long> {
