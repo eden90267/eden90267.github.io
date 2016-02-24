@@ -224,7 +224,7 @@ public class AppConfig {
 
 4.註冊自定義ViewMapListener(於faces-config.xml上):
 
-~~~ java
+```xml
 
 <faces-config
     xmlns="http://java.sun.com/xml/ns/javaee"
@@ -252,12 +252,28 @@ public class AppConfig {
 
 </faces-config>
 
-~~~
+```
 
 5.如何使用?
 
 ~~~ java
 
-讓Spring提供JSF可以使用的ViewScope的backing beans, 可享受到Spring容器提供的好處, 同時也可以使用這個很方便的scope。對於JSF2中的FlashScope也可以以同樣方式來實現。
+@Scope("view")
+@Controller
+public class Adm02Bean implements Serializable {
+
+    @Autowired
+    private PaymentAccountSetManager manager;
+    @Autowired
+    private OrgManager orgManager;
+    @Autowired
+    private AccountManager accountManager;
+
+    ...
+
+}
 
 ~~~
+
+結語:  
+讓Spring提供JSF可以使用的ViewScope的backing beans, 可享受到Spring容器提供的好處, 同時也可以使用這個很方便的scope。對於JSF2中的FlashScope也可以以同樣方式來實現。
