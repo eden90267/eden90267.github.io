@@ -3,7 +3,7 @@ layout: post
 title:  "JSF ViewScope: Loss queryString with some initial value in the browser by clicking back"
 date:   2015-05-29 21:00:00 +0800
 categories: [java, jsf, viewScope, queryString]
------------------------------------------------
+---
 瀏覽器針對JSF ViewScope返回上一頁自身遇到的案例是QueryString會無法取得, 造成參數後的初始欄位出現問題, 解決方法為掛Clear cache Filter, 如下:
 
 ~~~ java
