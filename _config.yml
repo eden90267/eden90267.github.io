@@ -9,7 +9,7 @@
 title: Eden Liu's Note
 email: eden90267@gmail.com
 description: > # this means to ignore newlines until "baseurl:"
-  Casual node, other blog:[Eden的IT背離人世間之路](https://dzone.com/articles/spring-31-caching-and-0)
+  Casual node, other blog:(http://eden90267.blogspot.tw/)
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://yourdomain.com" # the base hostname & protocol for your site
 twitter_username: eden90267
