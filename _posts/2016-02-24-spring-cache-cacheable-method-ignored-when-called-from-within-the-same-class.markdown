@@ -35,7 +35,7 @@ public List<Type> getListByOrgMappingAndStatusOrderBySortAsc(OrgMapping orgMappi
 
 Only external method calls coming in through the proxy are intercepted. This means that self-invocation, in effect, a method within the target object calling another method of the target object, will not lead to an actual cache interception at runtime even if the invoked method is marked with @Cacheable.
 
-(https://code.google.com/p/ehcache-spring-annotations/wiki/UsingCacheable)
+[Wiki: Using Cacheable](https://code.google.com/p/ehcache-spring-annotations/wiki/UsingCacheable)
 
 ---
 
