@@ -10,19 +10,19 @@ categories: [java, spring, cache, ehcache]
 
 ~~~ java
 
-    @Cacheable(value = CacheConstants.FIND_ALL_TYPE)
-    @Override
-    public List<Type> getList() {
-        return super.getList();
-    }
+@Cacheable(value = CacheConstants.FIND_ALL_TYPE)
+@Override
+public List<Type> getList() {
+    return super.getList();
+}
     
-    public List<Type> getListByOrgMappingAndStatusOrderBySortAsc(OrgMapping orgMapping, Activation status) {
-        return getList().stream()
-                .filter(type -> type.getOrgMapping().equals(orgMapping))
-                .filter(type -> type.getStatus().equals(Activation.ACTIVE))
-                .sorted((t1, t2) -> t1.getSort().compareTo(t2.getSort()))
-                .collect(Collectors.toList());
-    }
+public List<Type> getListByOrgMappingAndStatusOrderBySortAsc(OrgMapping orgMapping, Activation status) {
+    return getList().stream()
+            .filter(type -> type.getOrgMapping().equals(orgMapping))
+            .filter(type -> type.getStatus().equals(Activation.ACTIVE))
+            .sorted((t1, t2) -> t1.getSort().compareTo(t2.getSort()))
+            .collect(Collectors.toList());
+}
 
 ~~~
 
@@ -47,16 +47,16 @@ Only external method calls coming in through the proxy are intercepted. This mea
 
 ~~~ java
 
-    public List<Type> getListByOrgMappingOrderBySortAsc(OrgMapping orgMapping) {
-        return getProxyManager().getList().stream()
-                .filter(type -> type.getOrgMapping().equals(orgMapping))
-                .sorted(comparator)
-                .collect(Collectors.toList());
-    }
+public List<Type> getListByOrgMappingOrderBySortAsc(OrgMapping orgMapping) {
+    return getProxyManager().getList().stream()
+            .filter(type -> type.getOrgMapping().equals(orgMapping))
+            .sorted(comparator)
+            .collect(Collectors.toList());
+}
     
-    private TypeManager getProxyManager() {
-        return (TypeManager) AopContext.currentProxy();
-    }
+private TypeManager getProxyManager() {
+    return (TypeManager) AopContext.currentProxy();
+}
 
 ~~~
 
