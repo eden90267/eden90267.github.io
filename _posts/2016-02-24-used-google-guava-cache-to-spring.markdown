@@ -8,9 +8,9 @@ categories: [java, spring, guava]
 
 以下為Java Config方式:
 
-1. Add dependency to Maven pom.xml file:
+1.Add dependency to Maven pom.xml file:
 
-~~~ java
+```xml
 
 <dependency>
     <groupId>com.google.guava</groupId>
@@ -23,9 +23,9 @@ categories: [java, spring, guava]
     <version>4.1.7.RELEASE</version>
 </dependency>
 
-~~~
+```
 
-2. Create CacheConfig file:
+2.Create CacheConfig file:
 
 ~~~ java
 
@@ -57,7 +57,7 @@ public class CacheConfig implements CachingConfigurer {
 
 ~~~
 
-3. Add @Cacheable, @CacheEvict annotation to method to be cached:
+3.Add @Cacheable, @CacheEvict annotation to method to be cached:
 
 ~~~ java
 
@@ -149,7 +149,7 @@ public class TypeManager extends AbstractManager<Type, Long> {
 
 ~~~
 
-4. enjoy~~~
+4.enjoy~~~
 
 ----
 Reference:
