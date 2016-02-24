@@ -153,7 +153,7 @@ public class TypeManager extends AbstractManager<Type, Long> {
 
 ----
 Reference:  
-* [spring-4-guava-cache-integration-example-with-guavacachemanager-and-guavacache](http://www.concretepage.com/spring-4/spring-4-guava-cache-integration-example-with-guavacachemanager-and-guavacache)
-* [add-guava-cache-to-spring-boot-to-cache](http://codedevstuff.blogspot.tw/2015/07/add-guava-cache-to-spring-boot-to-cache.html)
-* [spring-31-caching-and-0](https://dzone.com/articles/spring-31-caching-and-0)
-* [CacheEvict example](http://www.programcreek.com/java-api-examples/index.php?api=org.springframework.cache.annotation.CacheEvict)
+*[spring-4-guava-cache-integration-example-with-guavacachemanager-and-guavacache](http://www.concretepage.com/spring-4/spring-4-guava-cache-integration-example-with-guavacachemanager-and-guavacache)
+*[add-guava-cache-to-spring-boot-to-cache](http://codedevstuff.blogspot.tw/2015/07/add-guava-cache-to-spring-boot-to-cache.html)
+*[spring-31-caching-and-0](https://dzone.com/articles/spring-31-caching-and-0)
+*[CacheEvict example](http://www.programcreek.com/java-api-examples/index.php?api=org.springframework.cache.annotation.CacheEvict)
