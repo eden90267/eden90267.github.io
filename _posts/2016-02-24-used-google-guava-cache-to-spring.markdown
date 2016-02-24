@@ -2,7 +2,7 @@
 layout: post
 title:  "Used Google Guava Cache to Spring"
 date:   2016-02-24 11:21:00 +0800
-categories: [java, spring, guava]
+categories: [java, spring, guava, cache]
 ---
 因工作需求有用到快取機制, 但可能因Multiple Cache Container相互衝突關係(與EhCache), 造成無法使用Google Guava Cache整合Spring, 所以記錄在此方便以後使用:
 
