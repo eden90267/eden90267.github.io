@@ -4,7 +4,7 @@ title:  "Spring cache @Cacheable method ignored when called from within the same
 date:   2016-02-24 22:46:00 +0800
 categories: [java, spring, cache, ehcache]
 ---
-因工作需要使用Spring Cache整合EhCache時, 意外發現@Cacheable annotation的method在same class呼叫發揮不了效用
+因工作需要使用Spring Cache整合EhCache時, 意外發現標注@Cacheable annotation的method在same class呼叫發揮不了效用
 
 以下為範例Code:
 
