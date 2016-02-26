@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Spring JdbcTemplate advanced usage"
+title:  "Spring JdbcTemplate Advanced Usage"
 date:   2015-10-14 14:00:00 +0800
 categories: [java, jdbcTemplate, spring]
 ---

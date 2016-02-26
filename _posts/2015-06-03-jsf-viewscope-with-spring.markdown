@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "JSF2 View Scope with Spring"
+title:  "JSF2 ViewScope with Spring"
 date:   2015-06-03 21:00:00 +0800
 categories: [java, jsf, viewScope, spring]
 ---

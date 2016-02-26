@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "JSF ViewScope: Loss queryString with some initial value in the browser by clicking back"
+title:  "JSF ViewScope: Loss QueryString with Some Initial Value in The Browser by Clicking Back"
 date:   2015-05-29 21:00:00 +0800
 categories: [java, jsf, viewScope, queryString]
 ---

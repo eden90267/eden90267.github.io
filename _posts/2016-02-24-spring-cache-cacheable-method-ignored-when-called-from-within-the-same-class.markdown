@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Spring cache @Cacheable method ignored when called from within the same class"
+title:  "Spring Cache @Cacheable Method Ignored When Called from Within The Same Class"
 date:   2016-02-24 22:46:00 +0800
 categories: [java, spring, cache, ehcache]
 ---
