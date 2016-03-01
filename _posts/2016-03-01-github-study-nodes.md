@@ -10,6 +10,7 @@ categories: [git, github]
 # Day 1 #
 
 ## 前言 ##
+---
 
 Git是一套分散式控管版本系統(DVCS;Distributed Version Control System)。
 
@@ -17,6 +18,7 @@ Github平台整合性高, 有完整的**Git版控支援**、**議題追蹤與管
 
 
 ## 認識Git版本控管 ##
+---
 
 Git出現來自Linux之父"Linus Torvalds"開發Linux kernel時候, 進行集中式版本控管出現許多問題, 所以基於BitKeeper與Monotone的使用經驗, 設計出更棒的Git版控系統。
 
@@ -53,7 +55,7 @@ Git有幾個重要設計:
   - Git照理說會自動執行重新封裝等動作, 但依然可下達指令執行。ex: git gc
   - 如果要檢查Git維護的檔案系統是否完整, 可執行指令: git fsck。
 
-----------
+---
 
 - Git完全不需要Server site支援就可運作版本控制, 因每個仁都有一份完整的儲存庫副本。
 - 因每個人都有一份完整的儲存庫版本, 所以每次提交版本變更, 都僅提交到本地的儲存庫而已, 因此提交速度非常快, 也不須網路連線, 節省開發時間
@@ -61,10 +63,11 @@ Git有幾個重要設計:
 - 如果需要跟別人交換變更後版本, 隨時可透過「合併」方式進行, Git有非常強悍的merge tracing能力。
 - 要合併多人的版本, 只要有存取共用版本庫(shared repository)的權限或管道即可。ex: 在同台Server可透過資料夾權限進行共用, 或透過SSH遠端存取另一台伺服器的Git儲存庫, 也可透過Web Server等方式來共用Git儲存庫。
 
-----------
+---
 
 # Day 2 #
 
 ## Git工具 ##
+---
 
 
