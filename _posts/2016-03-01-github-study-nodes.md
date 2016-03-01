@@ -10,7 +10,6 @@ categories: [git, github]
 # Day 1 #
 
 ## 前言 ##
----
 
 Git是一套分散式控管版本系統(DVCS;Distributed Version Control System)。
 
@@ -18,7 +17,6 @@ Github平台整合性高, 有完整的**Git版控支援**、**議題追蹤與管
 
 
 ## 認識Git版本控管 ##
----
 
 Git出現來自Linux之父"Linus Torvalds"開發Linux kernel時候, 進行集中式版本控管出現許多問題, 所以基於BitKeeper與Monotone的使用經驗, 設計出更棒的Git版控系統。
 
@@ -68,6 +66,5 @@ Git有幾個重要設計:
 # Day 2 #
 
 ## Git工具 ##
----
 
 
