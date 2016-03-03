@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 1)"
+title:  "GitHub Study Notes(Day 3)"
 date:   2016-02-26 14:06:00 +0800
 categories: [git, github]
 ---
@@ -11,7 +11,7 @@ categories: [git, github]
 
 ## 前言 ##
 
-Git是一套分散式控管版本系統(DVCS;Distributed Version Control System)。
+Git是一套分散式控管版本系統(DVCS;Distributed Version Control System)。帶來許多版本控管上的各種優勢與解決傳統集中式版本控管上的缺失, 例如: 支援本地操作、備份容易、功能強大且彈性的分支與合併等等。
 
 Github平台整合性高, 有完整的**Git版控支援**、**議題追蹤與管理**、**線上Wiki文件管理**、**友善的Code Review介面**。
 
@@ -67,4 +67,51 @@ Git有幾個重要設計:
 
 ## Git工具 ##
 
+- Git for Windows
 
+- GitHub for Windows
+  - Git Shell
+  - GitHub(GUI)
+  
+- SourceTree
+
+- TortoiseGit
+
+
+# Day 3 #
+
+建立儲存庫:
+- 本機建立本地儲存庫(local repository)
+- 本機建立共用儲存庫(shared repository)
+- GitHub或其他Git平台建立遠端的儲存庫(remote repository)
+
+## local repository ##
+
+建立儲存庫: git init指令把儲存庫給建立起來
+- path: %USERPROFILE%\Documents\GitHub
+- mkdir git-demo
+- cd git-demo
+- git init
+
+[master]: 為工作目錄的狀態, 可少打git status指令查詢。
+
+## shared repository ##
+
+指建立一個Git儲存庫但不包含工作目錄, 這種狀況較常發生在Linux作業系統下, 因Linux作業系統通常都是多人使用同一台Linux主機。
+
+git init --bare指令建立共用儲存庫, 會在當前目錄建立所有Git儲存庫的相關檔案與資料夾, 此資料夾不能作為開發用途, 只能用來儲存Git相關資訊, 大多數情況下不應該手動編輯此資料夾的任何檔案, 最好透過git指令進行操作。
+
+由於這是一個沒有工作目錄的純儲存庫, 所以共用儲存庫有個別名是「裸儲存庫」。
+
+git clone [REPO_URI]指令: clone一份, 不但自動建立工作目錄, 還會直接把「裸儲存庫」完整的複製回來。似完整備份, 將所有版本紀錄、所有版本檔案、...等等, 所有資料全部複製回來。
+
+實務上會使用「共用儲存庫」或「裸儲存庫」的方式可能有幾種:
+
+- 在一台多人使用的機器上進行協同開發, 可開放大部分人對「裸儲存庫的資料夾」僅唯獨權限, 少數幾人才有寫入權限。
+- 把裸儲存庫放到Dropbox跟自己的多台電腦同步這個裸儲存庫
+
+P.S. 工作目錄下的.get資料夾也是一個「儲存庫」, 不過工作目錄下的儲存庫還包含一些工作目錄下的索引資訊, 記錄著工作目錄下的狀態資訊, 這些狀態資訊不會出現在「共用儲存庫」裡面, 這裡只有版本資訊而已(Git物件資訊)。
+
+## remote repository ##
+
+「遠端儲存庫」與「共用儲存庫」差別僅在於「共用儲存庫」大多使用直接的檔案存取, 而「遠端儲存庫」通常使用SSH, Git protocol, HTTP等協定可「遠端」存取Git儲存庫, 其他的使用方式基本上一樣。
