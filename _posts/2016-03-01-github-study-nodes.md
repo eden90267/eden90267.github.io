@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 8)"
+title:  "GitHub Study Notes(Day 9)"
 date:   2016-03-01 10:00:00 +0800
 categories: [git, github]
 ---
@@ -554,3 +554,103 @@ git rm --cached a.txt
 
 
 # Day 8: 關於分支的基本觀念與使用方式 #
+
+在Git裡面 `分支`(Branch)是個非常重要的機制, 專案不會無限制「分支」下去, 最終還是要「合併」的, 使用上須特別小心。
+
+## 關於分支的基本概念 ##
+
+版本控管中使用「分支」機制, 主要目的就是用來解決開發過程中版本衝突的問題。
+
+由於Git屬於「分散式版本控管機制」, 在分散式版本管理的使用情境, 最不想做的就是「管理」, 所以Git很少有所謂的管理機制或權限控管機制, 他唯一想做的就是讓大家可以順利的「分支」與「合併」而已。
+
+remote repository, 從我們使用`git clone`指令開始, 其實就是「分支」的開始, 你從remote repository clone一份完整的repository下來, 然後開始在自己的本地端建立版本, 等軟體修訂到一定程度後再「合併」回去,只是這時合併指令叫做`git push`。
+
+這種分支與合併的情形, 在Git版本控管的過程無所不在, 遠端儲存庫可以有分支, 本地儲存庫可以有分支, 遠端儲存庫任何一分支合併(pull)到本地分支, 也可將本地分支推向(push)遠端分支, 當然也可從本地任何一分支合併(merge)到本地的另一分支。所以如果「分支」沒有一套良好的控管邏輯, 可以組出各種極其複雜的版本控管使用情境, 非大家所樂見。
+
+`git-flow`是一套廣受歡迎的分支管理模式, 這不是一套工具, 而是一種管理分支的邏輯, 之後會再說明。
+
+Git分散式版控機制, 每個人都有完整的版本, 版本散出去後, 大家必須控管好自己的版本, 然後遵照團隊的要求合併回來。然而, 在合併回來之前, 這套機制確保每個人都能夠順利地開發, 不受任何其他開發人員的版本影響, Git作到這點, 同時降低版本控管的複雜度。
+
+如果參與軟體開發的團隊只有兩三人, 且都還聚在一起, 那確實不一定要使用Git版控, 使用Subversion也是很好選擇, 簡單又直覺, 開發過程遇到問題, 前後左右協調一下就能解決, 遠比讓整個團隊來了解Git來的方便很多。
+
+`git branch`指令得知我們已經擁有一個名為`master`分支, 這是在Git儲存庫中的預設分支。若嘗試透過`git branch -d master`刪除, 會得到`error: Cannot delete the branch'master' which you are currently on.`的錯誤訊息, 代表「目前工作目錄分支設定在master, 不能刪除目前這個分支」, 必須先切換到「其他分支」才能刪除這個分支 。
+
+## 建立分支 ##
+
+常見有兩種方法, 分別是:
+
+1. 建立分支, 但目前工作目錄維持在自己的分支: `git branch [BranchName]`
+2. 建立分支, 並將目前工作目錄切換到新的分支: `git checkout -b [BranchName]`
+
+詳細指令與參數說明, 可以輸入`git help branch`查詢完整的文件。
+
+## 切換分支 ##
+
+~~~ java
+
+git checkout [branch_name]
+
+~~~
+
+## 刪除分支 ##
+
+~~~ java
+
+git branch -d [branch_name]
+
+~~~
+
+刪除前必須先切換到其他分支。
+
+## 查看工作目錄在哪個分支 ##
+
+可透過`git status`命令, 查看目前所在分支。
+
+## 查看Git儲存庫的完整分支圖 ##
+
+使用SourceTree工具顯示目前Git儲存庫的分支圖。
+
+~~~ java
+
+git log
+
+# git checkout [commit_id]
+git checkout b917758c0f2f347a895ee5bbb5e5c8228f66335a
+
+~~~
+
+若執行`git checkout b917758c0f2f347a895ee5bbb5e5c8228f66335a`時會出現一對訊息, 這些訊息很重要:
+
+~~~ java
+
+'detached HEAD'
+
+git checkout -b new_branch_name
+
+~~~
+
+首先, 由於你將工作目錄的版本切換到「舊的」版本, 所以你會被提示這個工作目錄已經進入所謂的**detached HEAD**狀態, 這是一種「目前工作目錄不在最新版」的提示, 可隨時切換到Git儲存庫的任一版本, 但由於這個版本已有「下一版」, 所以如果你在目前「舊版」執行`git commit`的話, 就會導致這個新版本無法被追蹤變更, 所以建議不要這麼做。
+
+若要在**detached HEAD**狀態建立一個可被追蹤的版本, 正確方法是透過「**建立分支**」的方式來追蹤:
+
+~~~ java
+
+git checkout -b newbranch1
+
+~~~
+
+## 今日小結 ##
+
+分支可把它想像成一種「快照」功能, 把某個commit版本與歷史版本建立出一個快照, 然後複製一份出來, 並給予一個分支名稱, 你可以在這些分支上建立版本, 等待日後進行合併。
+
+本日學到的Git指令與參數:
+
+- git branch
+- git branch [branch_name]
+- git checkout -b [branch_name]
+- git checkout [branch_name]
+- git branch -d [branch_name]
+- git log
+
+
+# Day 9: 比對檔案與版本差異 #
