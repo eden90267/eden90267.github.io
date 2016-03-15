@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 6)"
+title:  "GitHub Study Notes(Day 8)"
 date:   2016-03-01 10:00:00 +0800
 categories: [git, github]
 ---
@@ -415,3 +415,142 @@ Git會將每一個版本中的檔案建立一個對應的blob物件, 一樣的, 
   - 那些新增的檔案還是會以單檔方式存在著, 也代表一個Git版本庫中的「檔案」就是一個Git「物件」, 但每隔一段時間就會需要重新封裝(repacking)。
   - 照理Git會自動執行重新封裝等動作, 但依然可自行下達指令。ex: `git gc`
   - 要檢查Git維護的檔案系統是否完整, 可執行: `git fsck`
+
+# Day 7: 解析Git資訊結構 - 索引結構 #
+
+Git有兩個重要資料結構, 分別是「物件」與「索引」。這篇主要解說「索引」的細節。
+
+Linus Torvalds在郵件清單(Mailing List)中提到:「在使用者了解索引的意義前, 是無法完整了解Git的能力的」, 因此了解「索引」的用途十分重要。
+
+## 關於索引 ##
+
+「索引」的目的主要用來記錄「有哪些檔案即將要被提交到下一個commit版本中」。
+
+換句話說, 「如果想要提交一個版本到Git儲存庫, 那麼得先更新索引狀態, 變更才會被提交出去。」
+
+相關單字:
+
+- Index
+- Cache
+- Directory cache
+- Current directory cache
+- Staging area(等待被commit的地方)
+- Staged files(等待被commit的檔案)
+
+ex: `git diff --cached`與`git diff --staged`是相同的
+
+## 操作索引的指令 ##
+
+由於「索引」對Git十分重要, 在大多數的指令中都會有跟Git索引相關的參數可用。
+
+透過指令改變狀態的生命週期, 改變的過程, 都是在更新「**索引檔**」的過程。
+
+untracked -> unmodified -> modified -> staged
+
+1. untracked -> unmodified: add the file
+2. unmodified -> modified: edit the file
+3. modified -> staged: stage the file
+4. staged -> modified: commit
+5. modified -> unmodified: commit
+6. unmodified -> untracked: remove the file
+
+四種狀態:
+
+- untracked(未追蹤, 代表尚未被加入Git儲存庫的檔案狀態)
+- unmodified(未修改, 代表檔案第一次被加入, 或是檔案內容與HEAD內容一致的狀態)
+- modified(已修改的, 代表檔案已經被編輯過, 或是檔案內容與HEAD內容不一致的狀態)
+- staged(等待被commit的, 代表下次執行`git commit`會將這些檔案全部送入版本庫)
+
+## git status ##
+
+取得 **工作目錄**(working tree) 下的狀態
+
+一句話形容儲存庫、工作目錄、物件與索引關係:
+
+~~~ java
+
+Git 儲存庫的運作, 是將工作目錄裡的變化, 透過更新索引的方式, 將資料寫入成Git物件。
+
+~~~
+
+git status指令, 目的是顯示出 **目前最新版** 與 **索引檔** 之間的差異，這當中的差異包含了一些微妙的關係, 以下是執行`git status`結果:
+
+~~~ java
+
+G:\git-demo>git status
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   c.txt
+#
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#       modified:   a.txt
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       b.txt
+
+~~~
+
+有三種不同分組, 分別是:
+
+- Changes to be committed(準備提交的變更)
+  - 這區有個`new file: c.txt`檔案, 代表c.txt是一個新檔案, 而且已經被標示可提交。
+  - 這代表幾件事:
+     1. **目前最新版** 並沒有c.txt這檔案
+     2. **索引檔** 已經加入了這個
+     3. 該檔案會在執行`git commit`之後被存入下一個版本
+- Changes not staged for commit(尚未準備提交的變更)
+  - 這區有個`modified: a.txt`檔案, 代表a.txt已經被變更, 但尚未標示可提交。(not staged)
+  - 這代表幾件事:
+     1. **目前最新版** 也有a.txt這個檔案 
+     2. **索引檔** 尚未加入a.txt.這個檔案
+     3. 該檔案就算執行了`git commit`也不會在下一版中出現
+- Untracked files(未追蹤的變更)
+  - 這區有個`b.txt`檔案, 代表b.txt尚未被追蹤。(untracked)
+  - 這代表幾件事
+     1. **目前最新版** 沒有b.txt這個檔案
+     2. **索引檔** 也沒有b.txt這個檔案
+     3. 所以該檔案就算執行了git commit也不會在下一版中出現
+
+執行git status就是為了查出 **目前最新版** 與 **索引檔** 之間的差異, 最終只有 **目前最新版** 與 **索引檔** 之間有差異的變更, 才會真正儲存到下一個commit物件裡。
+
+## git add ##
+
+`git add`指令, 是為了將目前「工作目錄」的變更寫入到「索引檔」裡。
+
+使用`git add -u`則可以僅將「更新」或「刪除」的檔案變更寫入到「索引檔」中。
+
+## git rm ##
+
+直接在檔案系統中刪除一個檔案, 這只是從「工作目錄」中刪除而已, 並沒有更新到索引檔, 可利用`git status`看到這層改變,不過若真正把「刪除」狀態寫進索引檔, 要靠`git rm filename`更新索引檔。
+
+執行`git rm filename`, 除更新索引檔外, 連工作目錄下的檔案也會一併刪除。
+
+若只想刪除索引檔中的該檔, 又要保留工作目錄下的實體檔案, 可在指令列加上`--cached`參數, 就能做到:
+
+~~~ java
+
+git rm --cached a.txt
+
+~~~
+
+## git mv ##
+
+使用`git mv oldname newname`可以將檔案更名, 執行此命令會同時更新索引與變更工作目錄下的實體檔案。
+
+## git commit ##
+
+把「索引檔」與「目前最新版」中的資料比對出差異, 然後把差異部分提交變成一個commit物件。
+
+## git ls-files ##
+
+在索引檔中, 預設就包含了 **目前最新版** 的所有檔案, 外加在工作目錄中新增檔案且透過`git add`更新索引檔後的那些檔案。透過`git ls-files`命令, 可以列出所有目前已經儲存在「索引檔」中的那些檔案路徑。
+
+
+# Day 8: 關於分支的基本觀念與使用方式 #
