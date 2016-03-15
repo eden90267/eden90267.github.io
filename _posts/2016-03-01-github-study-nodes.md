@@ -654,3 +654,12 @@ git checkout -b newbranch1
 
 
 # Day 9: 比對檔案與版本差異 #
+
+使用任何版本控管軟體的過程中, 經常會需要查看歷史紀錄與比對版本之間的差異。Git使用如何進行比對, 將是本文重點。
+
+## 關於git diff的基本概念 ##
+
+在Git中比對兩個版本之間的差異, 通常會用`git diff`命令:
+
+1. 先執行`git log`取得版本資訊, 並取得最近兩個commit物件的id
+2. 再執行`git diff commit1 commit2`指令, 比對兩個版本間的差異, 其中commit1請用較舊的版本, commit2則用較新的版本
