@@ -697,7 +697,7 @@ git diff --text <commit1> <commit2>
 
 ~~~
 
-[Why does Git treat this text file as a binary file?](http://stackoverflow.com/questions/6855712/why-does-git-treat-this-text-file-as-a-binary-file)
+Reference: [Why does Git treat this text file as a binary file?](http://stackoverflow.com/questions/6855712/why-does-git-treat-this-text-file-as-a-binary-file)
 
 `git diff --text <commit1> <commit2>`的result:
 
