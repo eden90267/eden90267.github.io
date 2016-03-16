@@ -800,7 +800,7 @@ index c7250cb..b1b10c2 100644
 git diff				=> 工作目錄	vs	索引
 git diff HEAD			=> 工作目錄	vs	HEAD(當前分支最新版)
 git diff --cached HEAD	=> 索引		vs HEAD(當前分支最新版)
-git diff --cache			=> 索引		vs HEAD(當前分支最新版)
+git diff --cache		=> 索引		vs HEAD(當前分支最新版)
 git diff HEAD^ HEAD		=> HEAD^(前分支一版) vs HEAD(當前分支最新版)
 
 ~~~
