@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 9)"
+title:  "GitHub Study Notes(Day 10)"
 date:   2016-03-01 10:00:00 +0800
 categories: [git, github]
 ---
@@ -663,3 +663,157 @@ git checkout -b newbranch1
 
 1. 先執行`git log`取得版本資訊, 並取得最近兩個commit物件的id
 2. 再執行`git diff commit1 commit2`指令, 比對兩個版本間的差異, 其中commit1請用較舊的版本, commit2則用較新的版本
+
+~~~ java
+
+git diff 53c1f 8adec
+
+~~~
+
+result:
+
+~~~ java
+
+diff --git a/a.txt b/a.txt
+index ca90535..00b30ed 100644
+Binary files a/a.txt and b/a.txt differ
+diff --git a/b.txt b/b.txt
+index c7250cb..b1b10c2 100644
+Binary files a/b.txt and b/b.txt differ
+
+~~~
+
+因Binary問題比對所以可以採用下列兩種方式:
+
+~~~ java
+
+git difftool <commit1> <commit2>
+
+~~~
+
+~~~ java
+
+git diff --text <commit1> <commit2>
+
+~~~
+
+[Why does Git treat this text file as a binary file?](http://stackoverflow.com/questions/6855712/why-does-git-treat-this-text-file-as-a-binary-file)
+
+`git diff --text <commit1> <commit2>`的result:
+
+~~~ java
+
+diff --git a/a.txt b/a.txt
+index ca90535..00b30ed 100644
+--- a/a.txt
++++ b/a.txt
+@@ -1,2 +1,2 @@
+-<FF><FE>1^@^M^@
++<FF><FE>3^@^M^@
+ ^@
+\ No newline at end of file
+diff --git a/b.txt b/b.txt
+index c7250cb..b1b10c2 100644
+--- a/b.txt
++++ b/b.txt
+@@ -1,2 +1,2 @@
+-<FF><FE>2^@^M^@
++<FF><FE>4^@^M^@
+ ^@
+\ No newline at end of file
+
+~~~
+
+可看到每一段都是以`diff --git`開頭, 代表git對哪兩個檔案進行比對。
+
+第二行的`index ca90535..00b30ed 100644`則是代表git在作這次比對時的「標頭資訊」(Header Line), 這裡可能會有好幾行, 資訊不一定只有這些。這裡會標示許多關於此次差異比對的額外資訊。例如index這行, 後面兩個hash id(`ca90535..00b30ed`)就代表在Git物件儲存庫(object storage)中的兩個blob物件id, 用來比較這兩個blob物件。後面的`100644`則是git屬性, 有點類似Linux環境下的檔案屬性, 例如宣告這是個檔案、目錄、可讀、可寫、可執行之類的。以下是幾個常見的git屬性範例:
+
+~~~ java
+
+0100000000000000 (040000): Directory
+1000000110100100 (100644): Regular non-executable file
+1000000110110100 (100664): Regular non-executable group-writeable file
+1000000111101101 (100755): Regular executable file
+1010000000000000 (120000): Symbolic link
+1110000000000000 (160000): Gitlink
+
+~~~
+
+第三行的 `--- a/a.txt` 則代表兩個比對的版本中「比較舊的」那個版本。
+
+第四行的 `+++ b/a.txt` 則代表兩個比對的版本中「比較新的」那個版本。
+
+第五行的 `@@ -1 +1 @@` 則代表這個檔案在舊版的總行數與新版的總行數, -1代表舊版只有1行, +1代表新版也只有1行。
+
+最後則是列出所有變更的內容, 有三個可能的表示法:
+
+- 以減號- 號開頭, 代表從舊版到新版的過程中, 此行被刪除了。
+- 以加號+ 號開頭, 代表從舊版到新版的過程中, 此行是被新增上去的。
+- 以空白字元開頭, 則代表這一行在兩個版本中都有出現, 沒有任何變更。
+
+如此一來就完成第一個blob物件的差異比對, 第二個blob以此類推。
+
+在Git中使用`git diff`的時候, 事實上是以tree物件為比較的單位, 在【Day 6: 解析Git資料結構 - 物件結構】有學到, 其實每一個commit物件都會包括一個根目錄的tree物件。所以剛利用`git diff`比對兩個commit物件, 其實比對是commit物件下的那個tree物件, 而比對的過程又會遞迴的一直比下去。可感受到Git的強大, 可以很快速的比對出任意兩個版本之間的異動比較。
+
+使用`git diff`命令時, 主要有三種tree物件的來源, 分別是:
+
+- 在所有commit graph中存在的tree object, 也就是任意版本中任意一個tree物件的意思。
+- 索引(index), 代表你已經將檔案狀態送進「索引資料庫」中哪些資訊, 此時透過`git add`命令時, 其實tree物件已經被建立。
+- 你目前的工作目錄(working directory), 雖然工作目錄的改變還沒變成tree物件, 但透過`git diff`是可以這樣用的。
+
+## 四種基本的比較方式 ##
+
+要透過`git diff`命令比對任意兩個版本, 通常會有以下四種指令的用法:
+
+1.  git diff
+    
+    在什麼參數都不加的使用情況, 比對的是「工作目錄」與「索引」之間的差異。這是很常用指令, 當執行`git add .`指令之前, 先透過`git diff`查看自己到底改了哪些東西。
+
+	註: 事實上, 使用Git版本控管的過程中, 在執行`git commit`之前, 的確有可能會執行`git add`指令好幾次, 用以確認到底哪些檔案要加入到索引之中, 最後才會commit進版本。
+
+2.  git diff commit
+
+	如果只在`git diff`之後加上一個commit id, 比對的是「工作目錄」與「指定commit物件裡的那個tree物件」。
+
+	最常用的指令是`git diff HEAD`, 因為這代表你要拿「工作目錄」與「當前分支的最新版」進行比對。這種比對方法, 不會去比對「索引」的狀態, 所以需區分清楚, 到底比對的是什麼tree物件的來源。
+
+3.  git diff --cached commit
+
+	在執行`git commit`之前, 索引狀態應該已經都準備好了。所以要比對「當前的索引狀態」與「指定commit物件裡的那個tree物件」, 就可用此指令完成比對任務。
+
+	最常用指令一樣是`git diff --cached HEAD`, 這語法代表的是「當前的索引狀態」與「當前分支最新版」進行比對。這種比對方法, 不會去比對「工作目錄」的檔案內容, 而是直接去比對「索引」與「目前最新版」之間的差異, 這有助於你在執行`git commit`之前找出那些變更的內容, 也就是將會有那些變更被建立版本的意思。
+
+	**註1**: `git diff --cached`與`git diff --staged`是完全一樣的結果。
+
+	**註2**: `git diff --cached`與`git diff --cached HEAD`執行也是完全一樣, HEAD可省略。
+
+4.  git diff commit1 commit2
+
+	最後一種則是透過兩個不同的版本(commit id)來比對其差異, 這命令可以跳過「索引」與「工作目錄」的任何變更, 而是直接比對特定的兩個版本。事實上Git是比對特定兩個版本commit物件內的那個tree物件。
+
+	最常用指令則是`git diff HEAD^ HEAD`命令, 這代表要比較【最新版的前一版】與【最新版】之間的差異。
+
+## 今日小結 ##
+
+~~~ java
+
+git diff				=> 工作目錄	vs	索引
+git diff HEAD			=> 工作目錄	vs	HEAD(當前分支最新版)
+git diff --cached HEAD	=> 索引		vs HEAD(當前分支最新版)
+git diff --cache			=> 索引		vs HEAD(當前分支最新版)
+git diff HEAD^ HEAD		=> HEAD^(前分支一版) vs HEAD(當前分支最新版)
+
+~~~
+
+重新整理本日學到的Git指令與參數:
+
+- git log
+- git diff
+- git diff HEAD
+- git diff --cached HEAD
+- git diff --cached
+- git diff --staged
+- git diff HEAD^ HEAD
+
+
+# Day 10: 認識Git物件的絕對名稱 #
