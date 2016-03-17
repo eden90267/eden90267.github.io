@@ -800,7 +800,7 @@ index c7250cb..b1b10c2 100644
 git diff				=> 工作目錄 vs 索引
 git diff HEAD			=> 工作目錄 vs HEAD(當前分支最新版)
 git diff --cached HEAD	=> 索引 vs HEAD(當前分支最新版)
-git diff --cache		=> 索引 vs HEAD(當前分支最新版)
+git diff --cache			=> 索引 vs HEAD(當前分支最新版)
 git diff HEAD^ HEAD		=> HEAD^(前分支一版) vs HEAD(當前分支最新版)
 
 ~~~
@@ -817,3 +817,66 @@ git diff HEAD^ HEAD		=> HEAD^(前分支一版) vs HEAD(當前分支最新版)
 
 
 # Day 10: 認識Git物件的絕對名稱 #
+
+在Git版本控管過程, 每一個版本代表一個commit物件。因版控過程常會建立分支, 最終的commit graph可能會蠻複雜的, 所以如何識別不同版本或快速定位到特定版本已取得資訊, 就變得很重要。所以必須了解其Git裡常用物件名稱概念與使用方法。
+
+## 物件絕對名稱 ##
+
+在Git中, 每個物件都會有一個以SHA雜湊計算過的id, 而這id就是所謂的「絕對名稱」。如果該物件是commit物件, 那這就是commit物件的絕對名稱, 就可隨時取得該版本。
+
+如果想看commit物件的內容, 可利用`git cat-file -p commitId`來取得
+
+~~~ java
+
+C:\Users\eden_liu\Documents\GitHub\git-demo [master]> git cat-file -p 53373b7f55
+82a63abf94da23dc6a34311461ff91
+tree f506a7d239e17ad391e82bdce27afd0793250e49
+parent da449d835641e72438caf73e219a80dcad8f92a0
+author Eden Liu <eden90267@atlassian.com> 1458098483 +0800
+committer Eden Liu <eden90267@atlassian.com> 1458098483 +0800
+
+Update a.txt and b.txt to 3 and 4
+
+~~~
+
+## 物件絕對名稱的簡短語法 ##
+
+Git物件id因是透過SHA1雜湊後的結果, 所以很長, 在Git標示「絕對名稱」時, 可以用前面幾碼代替, 最少不可低於4個字元。也就是說4~40個字元長度的「絕對名稱」都可以用。
+
+~~~ java
+
+C:\Users\eden_liu\Documents\GitHub\git-demo [master]> git cat-file -p f506
+
+~~~
+
+取得版本紀錄會使用`git log`命令, 同時也會輸出每個檔案的變更比較結果, 結果會十分冗長, 可用`git log --pretty=oneline`指令取得較為精簡的歷史紀錄, 同時你也可以取得commit物件完整的「絕對名稱」。
+
+~~~ java
+
+C:\Users\eden_liu\Documents\GitHub\git-demo [master]> git log --pretty=oneline
+53373b7f5582a63abf94da23dc6a34311461ff91 Update a.txt and b.txt to 3 and 4
+da449d835641e72438caf73e219a80dcad8f92a0 Initial commit
+
+~~~
+
+另外一個常用技巧則是僅輸出部分的「絕對名稱」, 透過`git log --pretty=oneline --abbrev-commit`指令執行, 如下:
+
+~~~ java
+
+C:\Users\eden_liu\Documents\GitHub\git-demo [master]> git log --pretty=oneline -
+-abbrev-commit
+53373b7 Update a.txt and b.txt to 3 and 4
+da449d8 Initial commit
+
+~~~
+
+## 今日小結 ##
+
+以上就是絕對名稱用法, 由於Git物件特性, 可透過絕對名稱存取到Git儲存庫中任意物件, 還有很多git指令都會用到絕對名稱, 熟悉了這些概念與表示法, 將更能掌握Git物件
+
+整理一下本日學到的Git指令與參數
+
+- git log
+- git cat-file -p [object_id]
+- git log --pretty=oneline
+- git log --pretty=oneline --abbrev-commit
