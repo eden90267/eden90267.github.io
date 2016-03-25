@@ -465,4 +465,333 @@ drwxr-xr-x  3 eden90267  staff        102  3 24 00:49 ..
 
 ## 小結 ##
 
-這回學會利用vagrant init指令, 叫Vagrant生出Vagrantfile定義檔, 定義想要的vagrant box種類及屬性。之後, 藉由VirtualBox+終端機雙視窗配置, 逐一檢視vagrant up、vagrant halt、vagrant destroy等Vagrant指令, 是如何同時作用在上層Vagrant及底層VirtualBox身上。過程中演穿插介紹實用的vagrant box list, vagrant status查詢指令。
+這回學會利用vagrant init指令, 叫Vagrant生出Vagrantfile定義檔, 定義想要的vagrant box種類及屬性。之後, 藉由VirtualBox+終端機雙視窗配置, 逐一檢視vagrant up、vagrant halt、vagrant destroy等Vagrant指令, 是如何同時作用在上層Vagrant及底層VirtualBox身上。
+
+---
+
+# Vagrant Tutorial (4) 虛擬機, 若即若離的國中之國 #
+
+# 國中之國 #
+
+梵蒂岡這個內陸國, 整個國土都被義大利360°包覆著, 在地理學上, 這種被單獨一個國家包覆的國家, 稱為「國中之國」°
+
+國中之國通常都會與他的外覆國家維持著若即若離的關係, 只要兩國沒有交惡。
+
+某方面來說, 虛擬機也是一種「國中之國」的概念; 在host OS國度中, 挖出一塊相對起來獨立自主的guest OS區域, 且與外面的host OS維持著落即落離的關係。
+
+- 「若離」之處在於：藉由hypervisor之助, 在這國中之國裡, 可以有貌似真實且獨立的CPU、記憶體、儲存空間、網路等資源, 你可以放心在裡面自由大膽實驗, 不必擔心會污染到外面的host OS。
+- 「若即」之處在於：畢竟這一切都是hypervisor的功勞。不管是全虛擬話還是半虛擬化技術, 若host OS不釋出善意分享資源, guest OS也只能含淚被禁行禁運了。
+
+Vagrant提供兩種管道, 讓guest OS可與外界互通。本文就來探討Vagrant是怎麼處理這「國中之國 」、「若即若離」的關係。
+
+## Guest OS與外界溝通的兩個管道 ##
+
+Vagrant執行時輸出的畫面, 常常內含玄機, 草草略過很可惜。像`vagrant up`指令執行, 有三處值得注意：
+
+~~~ java
+
+# port forwarding
+==> default: Forwarding ports...
+    default: 22 (guest) => 2222 (host) (adapter 1)
+
+~~~
+
+~~~ java
+
+    default: SSH address: 127.0.0.1:2222
+    default: SSH username: vagrant
+    default: SSH auth method: private key
+
+~~~
+
+~~~ java
+
+# 共享目錄
+==> default: Mounting shared folders...
+    default: /vagrant => /Users/eden90267/demo-1
+
+~~~
+
+畫面告訴我們, 在用`vagrant up`啟動虛擬機的同時, Vagrant已經偷偷幫我們建好兩條互通管道了, 一個是透過TCP/UDP通訊埠(port forwarding), 另一個是透過共享目錄(shared folder)。畫面也告訴我們, 當我們登入guest OS時, 身份會是一個名為"vagrant"的帳號, 登入至127.0.0.1:2222。
+
+以下帶你逐一細看這兩條互通管道。
+
+## 共享管道之一：Port forwarding ##
+
+`vagrant up`所建立的第一條互通管道port forwarding, 請看這兩行輸出：
+
+~~~ java
+
+# port forwarding
+==> default: Forwarding ports...
+    default: 22 (guest) => 2222 (host) (adapter 1)
+
+~~~
+
+這兩行告訴我們, Vagrant已將以下兩個TCP port連接起來：
+
+- Guest OS 的 22 port(也就是SSH服務預設的TCP port)
+- Host OS 的 2222 port
+
+再用白話文解釋幾遍此處的 port forwarding 有什麼意義：
+
+- Guest OS裡面的 22 port 封包, 會導至host OS的 2222 port;反之亦然。
+- Guest OS裡面的程式, 只要是與 22 port 連線, 其實骨子裡就是在跟host OS裡的 2222 port 連線。
+- Host OS裡面的程式, 只要是與 2222 port 連線, 其實骨子裡就是在跟guest OS裡的 22 port 連線。
+
+當然啦, Vagrant之所以能做到port forwarding這一點, 也是仰賴底層的VirtualBox; 因此, 這件事也可以在VirtualBox裡檢視。請點選該虛擬機的【設定值】->【網路】->【連接埠轉送】。
+
+由此可見, 這台虛擬機, 已經開放 127.0.0.1:2222 給虛擬機之外的「外界」透過SSH方式登入。
+
+如果想再新增其他的port forwarding規則, 請在Vagrantfile裡, 找到以下這行:
+
+~~~ java
+
+# config.vm.network "forwarded_port", guest: 80, host: 8080
+
+~~~
+
+把開頭的註解符號#刪掉, 修改那兩個數字, 再重新啟動此虛擬機box執行個體。
+
+## 共享管道之二：共享目錄 ##
+
+`vagrant up`所建立的第二條互通管道shared folder(共享目錄), 請見這兩行輸出畫面：
+
+~~~ java
+
+==> default: Mounting shared folders...
+    default: /vagrant => /Users/eden90267/demo-1
+
+~~~
+
+這兩行告訴我們, Vagrant已將以下兩個目錄連接起來：
+
+- Guest OS的 /vagrant 目錄
+- Host OS的工作目錄(/User/eden90267/demo-1)
+
+當然啦, Vagrant之所以能做到「共享目錄」這一點, 也是仰賴底層的VirtualBox; 因此這件事也可以在VirtualBox檢視。
+
+如果想再新增其他共享目錄, 請在Vagrantfile裡, 找到以下這一行：
+
+~~~ java
+
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+~~~
+
+把開頭的註解符號#刪掉, 修改那兩個字串, 再重新啟動此虛擬機box執行個體。
+
+## Port forwarding實例：SSH ##
+
+vagrant up輸出畫面也告訴我們, default下, 被它啟動的虛擬機, 會開放127.0.0.1:2222給外界, 以vagrant的身份, 透過SSH方式登入。
+
+我們之前都是用vagrant ssh指令登入這台guest OS：
+
+~~~ java
+
+ryuutekiMacBook-Pro:demo-1 eden90267$ vagrant ssh
+Welcome to Ubuntu 14.04.4 LTS (GNU/Linux 3.13.0-83-generic x86_64)
+[略]
+vagrant@vagrant-ubuntu-trusty-64:~$
+
+~~~
+
+但其實這是Vagrant幫的忙, 幫我們處理掉許多SSH登入的細節。
+
+身為硬漢, 就要嘗試用最原始的ssh方式登入：
+
+手動輸入該guest OS對外開放的IP位址(127.0.0.1)、TCP通訊埠(2222)、登入帳號(vagrant)及密碼(vagrant):
+
+~~~ java
+
+ryuutekiMacBook-Pro:demo-1 eden90267$ ssh -p 2222 vagrant@127.0.0.1
+vagrant@127.0.0.1's password:
+Welcome to Ubuntu 14.04.4 LTS (GNU/Linux 3.13.0-83-generic x86_64)
+[略]
+vagrant@vagrant-ubuntu-trusty-64:~$
+
+~~~
+
+當然啦, 平常我們不會自找麻煩多打那麼多文字及數字。以上只是確認port forwarding的作用, 順便知道vagrant ssh指令背後幫你做了哪些事情。知道隱藏在背後的細節, 將來遇到Vagrant內建工具無法幫你節省力氣的場合（譬如, 用Ansible、Capistrano等外部程式動態操控guest OS的組態及行為）, 就知道該如何餵SSH帳號密碼給外部程式使用。
+
+## Port forwarding實例：Redis ##
+
+實務上, 真實上線主機的OS裡面, 不只會跑SSH Server讓我們從遠端登入進去管理, 還會跑許多像是httpd、MongoDB、MySQL、Nginx、Redis等daemon, 分別綁定80、27017、3306、6379等port作為對外服務端口。
+
+我們研發人員使用Vagrant管理虛擬機的初衷是, 想在本機端就能模擬出真實上線主機的組態, 越逼真越好。因此, 我們也需要學習如何在單獨一台電腦裡, 用Vagrant模擬出上述的組態配置。我們必須設法在Vagrant的遊戲規則中, 妥善安排host OS與guest OS之間的相互關係, 模擬出client、server machine、server service、public port等真實上線系統的組成元素。
+
+不過, guest OS是個獨立自主的國中之國, 有自己獨立的內部網路, 與外界網路隔絕。因此, guest OS裡面的service原先所綁定的port服務端口, 被guest OS完美地包覆起來, 或者說, 被完美的封印私藏起來, 不讓外界直接觸碰, 就像「禁止通行」交通標誌一樣。畢竟這是虛擬機底層hypervisor的重大責任：資源隔離。
+
+因此, 如果有需要把guest OS裡面的服務開放給host OS存取, 就必須請hypervisor網開一面, 個別放水port forwarding, 讓guest OS裡面的port能開放給外面相連。
+
+聽一堆原理, 現在, 讓我們拿Redis當例子, 親手實驗一下port forwarding設定前與設定後, 到底有什麼不同。
+
+1. 從guest OS角度, 設定Redis server組態。
+2. 從host OS角度, 設定Vagrantfile, 並試圖連線至guest OS裡面的Redis server。
+
+[What is the Redis?](http://kejyun.github.io/Laravel-4-Documentation-Traditional-Chinese/docs/redis/)
+
+### Port forwarding設定前 ###
+
+guest OS:
+
+~~~ java
+
+# 安裝 Redis
+sudo apt-get install redis-server -y
+[略]
+
+# 允許Redis bind至全部network interface...
+sudo sed -i -e 's/^bind/#bind/' /etc/redis/redis.conf
+
+# 重啟 Redis, 讓新設定生效
+sudo service redis-server restart
+
+# 用redis-cli工具連線進入Redis server, 查看Redis資訊
+redis-cli
+127.0.0.1:6379> info clients
+# Clients
+connected_clients:1
+client_longest_output_list:0
+client_biggest_input_buf:0
+blocked_clients:0
+127.0.0.1:6379>
+127.0.0.1:6379> exit
+
+~~~
+
+host OS:
+
+~~~ java
+
+brew install redis
+redis-cli
+Could not connect to Redis at 127.0.0.1:6379: Connection refused
+not connected>
+
+~~~
+
+很可惜連不進去, 由此可見, 此刻, guest OS裡面的port 6379, 並沒開放給虛擬機以外的「外界」存取。他已被虛擬機系統完美的保護起來, 隔離起來。
+
+### Port forwarding設定後 ###
+
+為讓虛擬機以外的「外界」能順利碰到裡面的port, 必須針對這個port設定port forwarding規則：
+
+1. 登出guest OS並關機
+2. 修改Vagrantfile裡面的"forwarded_port"規則：
+
+	`config.vm.network "forwarded_port", guest: 6379, host: 6379`
+	
+3. 將guest OS重開機
+
+做完後, guest OS與host OS兩者的6379 port, 就會順利連接起來。
+
+host OS:
+
+~~~ java
+
+# 在 host OS 裡, 用同樣的 redis-cli 工具,
+# 試試看是否連得進去 guest OS 裡面的 Redis...
+redis-cli
+127.0.0.1:6379> info clients
+# Clients
+connected_clients:2
+client_longest_output_list:0
+client_biggest_input_buf:0
+blocked_clients:0
+127.0.0.1:6379>
+
+~~~
+
+## 把Redis塞進Docker吧！ ##
+
+聽說最近Docker很夯, 主流大廠紛紛表態支持。試試把前面的Redis改安裝在Docker裡面？
+
+一個典型的Linux雲端伺服器, 如果有支援所謂「Docker化(**dockerized**)」的Redis, 那麼, 他的軟體層, 通常會由Linux->Docker engine -> Docker container -> 「Docker化的Redis」層層堆疊上去。
+
+某種程度上, Docker號稱是輕量級的虛擬化技術, 所以, Docker這裡也會再次遇到跟前面guest OS類似的「國中之國」老問題, 只不過換了個主場及主角：「Docker container裡面的port, 並沒有開放給該container以外的『外界』存取。他已被Docker engine系統完美地保護起來, 隔離起來。」解決方法也是一樣：port forwarding(在Docker世界裡, 可能會用binding、mapping、publishing等術語來稱呼port forwarding這件事)。
+
+因此, 如果想單獨一台本機電腦裡, 用Vagrant模擬出上述的組態配置, 整個軟體層次就會需要兩個層次的port forwarding, 一次是內側的「Docker container <-> guest OS之間」, 一次是外側的「guest OS <-> host OS之間」：
+
+現在來親手實驗吧！
+
+~~~ java
+
+mkdir demo-2
+cd demo-2
+vagrant init ubuntu/trusty64
+vagrant up
+vagrant ssh
+
+~~~
+
+然後, 參考Docker官方文件, 用以下指令替Ubuntu安裝Docker engine：
+
+~~~ java
+
+$ sudo apt-get install apt-transport-https
+$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+$ sudo bash -c "echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+$ sudo apt-get update
+$ sudo apt-get install -y lxc-docker
+
+~~~
+
+Reference: [透過Docker 套件庫安裝最新版本](https://philipzheng.gitbooks.io/docker_practice/content/install/ubuntu.html)
+
+現在, 讓我們透過Docker的映像檔管理機制, 下載、安裝一份「Docker化(Dockerized)」的Redis server。我們選擇的是Docker官方製作的"redis"映像檔的最新版本(redis:latest):
+
+~~~ java
+
+docker pull redis:latest
+
+~~~
+
+不過沒那麼順利, 會遇到如下問題：
+
+Cannot connect to the Docker daemon. Is the docker daemon running on this host?
+
+要將current user加入到docker group裡, 所以先敲以下指令：
+
+~~~ java
+
+sudo usermod -aG docker vagrant
+
+~~~
+
+then restart the system.
+
+~~~ java
+
+$ exit
+$ vagrant halt
+$ vagrant up
+$ vagrant ssh
+vagrant$ docker pull redis:latest
+
+~~~
+
+安裝好後, 就可以開始啟動它, 不過如果只是這樣執行：
+
+~~~ java
+
+vagrant$ docker run --name my-redis -d redis
+
+~~~
+
+就少設定了在內側的「Docker container <-> guest OS之間」的port forwarding。解決方法是,  只要加上一個-p 6379 6379參數, 就可以讓container外面存取得到這個container裡面的6379 port：
+
+~~~ java
+
+vagrant$ docker run --name my-redis -p 6379:6379 -d redis
+
+~~~
+
+別忘了也要替外側的「guest OS <-> host OS之間」也做一次port forwarding。
+
+host OS連到guest OS裡面的Docker裡面的Redis。整個概念其實蠻一致的, 就是一層一層地包覆著, 一層一層地port forwarding解除封印。以前行之有年的防火牆、NAT、reverse proxy等技術, 不也一樣嗎？
+
+辛辛苦苦把軟體設定好了, 下一步, 就是研究該如何讓這些心血不會因意外就消失不見, 還得從頭來過。下一期將示範如何以“infrastructure as code”角度設定虛擬機組態, 以及儲存、複製增生這些設定好的組態。
+
+---
+
