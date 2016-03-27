@@ -795,3 +795,296 @@ host OS連到guest OS裡面的Docker裡面的Redis。整個概念其實蠻一致
 
 ---
 
+# Vagrant Tutorial (5) 客製化虛擬機內容的幾種方法 #
+
+先前示範在guest OS裡面, 手動設定好Redis server, 以及一份「**Docker化(Dockerized)**」的Redis server。辛辛苦苦把軟體設定好了, 下一步, 就是研究該如何存檔、散佈、自動化管理, 讓這些心血不會因為意外就消失不見, 還得整個重來過。
+
+讓我們先**手動**將虛擬機組態設定、儲存、複製增生虛擬機等流程完整走過一遍, 之後再設法**自動化**整個流程。
+
+依序演練以下任務：
+
+1. 手動設定Guest OS組態
+2. 打包, 存檔
+3. 加進本機端Vagrant repository
+4. 複製增生虛擬機執行個體
+5. 散佈box檔
+6. 加進Vagrant Cloud repository
+7. 自動設定Geust OS組態(Provisioning)
+
+## 手動設定Guest OS組態 ##
+
+仍以「在guest OS中安裝Redis server」當例子。
+
+換新工作目錄：
+
+~~~ java
+
+mkdir demo-redis-1
+cd demo-redis-1
+
+~~~
+
+下一步, 準備一份Vagrantfile定義檔。
+
+以前都是藉由`vagrant init`指令產生一份Vagrantfile供我們差遣, 這回自己硬刻, 手動將以下內容寫進Vagrantfile檔案裡面去：
+
+~~~ java
+
+AGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "ubuntu/trusty64"
+end
+
+~~~
+
+最後, 以下指令安裝Redis server進去：
+
+~~~ java
+
+# 安裝 Redis...
+vagrant@vagrant-ubuntu-trusty-64:~$ sudo apt-get install redis-server -y
+[略]
+
+# 允許 Redis bind 至全部 network interface...
+vagrant@vagrant-ubuntu-trusty-64:~$ sudo sed -i -e 's/^bind/#bind/' /etc/redis/redis.conf
+
+# 重啟Redis, 讓新設定生效。
+vagrant@vagrant-ubuntu-trusty-64:~$ sudo service redis-server restart
+
+~~~
+
+## 打包, 存檔 ##
+
+可用`vagrant package`指令, 叫Vagrant將目前這個虛擬機執行個體打包起來, 整個儲存到外部檔案。依照Vagrant慣例, 儲存的檔案, 副檔名會是.box。如果不特別下 `--output` 參數, 預設的輸出檔名會是package.box
+
+假設我們想存成redis.box檔：
+
+~~~ java
+
+vagrant@vagrant-ubuntu-trusty-64:~$ exit
+logout
+Connection to 127.0.0.1 closed.
+ryuutekiMacBook-Pro:demo-redis-1 eden90267$ vagrant package --output redis.box
+==> default: Attempting graceful shutdown of VM...
+==> default: Clearing any previously set forwarded ports...
+==> default: Exporting VM...
+==> default: Compressing package to: /Users/eden90267/demo-redis-1/redis.box
+
+# 看看存檔的情況
+ryuutekiMacBook-Pro:demo-redis-1 eden90267$ ls -al
+total 837456
+drwxr-xr-x   5 eden90267  staff        170  3 27 00:05 .
+drwxr-xr-x@ 81 eden90267  staff       2754  3 26 23:52 ..
+drwxr-xr-x   3 eden90267  staff        102  3 26 23:52 .vagrant
+-rw-r--r--   1 eden90267  staff        126  3 26 23:52 Vagrantfile
+-rw-r--r--   1 eden90267  staff  428771854  3 27 00:06 redis.box
+
+~~~
+
+有了box檔母體, 就可以據以複製增生新的虛擬機執行個體; 在本機端, 甚至讓別的電腦下載回去安裝。
+
+據Vagrant官方文件"Box File Format"的說法, box檔案會是一個壓縮檔(tag、tag.gz或zip)。以此例而言, 壓縮檔是tag.gz格式。
+
+~~~ java
+
+# 看看這壓縮檔裡面到底塞哪些東西...
+yuutekiMacBook-Pro:demo-redis-1 eden90267$ tar ztvf redis.box
+-rw-------  0 eden90267 staff 441046016  3 27 00:05 ./box-disk1.vmdk
+-rw-------  0 eden90267 staff     10515  3 27 00:04 ./box.ovf
+-rw-------  0 eden90267 staff      1675  3 27 00:05 ./vagrant_private_key
+-rw-r--r--  0 eden90267 staff       630  3 27 00:05 ./Vagrantfile
+
+~~~
+
+解壓縮的內容,  其實就是tutorial (3)提過的這些東西：
+
+Vagrant box檔案本體被Vagrant藏在哪裡？
+	
+如果你沒有改變VAGRANT_HOME環境變數的話, 預設目錄會是：
+	
+- 若host OS是Linux&Mac, 會擺在$HOME/.vagrant.d目錄。
+- 若host OS是windows, 會擺在%USERPROFILE%\.vagrant.d目錄。
+
+可見, 本機端的Vagrant repository, 其實擺的就是box檔案解壓縮後的東西, 再加上一些輔助資訊。
+
+## 加進本機端Vagrant repository ##
+
+可用`vagrant box add`指令, 叫Vagrant將這個虛擬機box檔案, 以指定的名字, 添加、登記到本機端的Vagrant repository。
+
+假設我們想把它取名為my-redis-1:
+
+~~~ java
+
+# 先看看本地端的Vagrant repository已有哪些box:
+ryuutekiMacBook-Pro:demo-redis-1 eden90267$ vagrant box list
+bento/centos-5.11                   (virtualbox, 2.2.3)
+ubuntu/trusty64                     (virtualbox, 20160320.0.0)
+williamyeh/docker-workshop-registry (virtualbox, 5.1)
+williamyeh/ubuntu-trusty64-docker   (virtualbox, 1.10.3.20160314033456)
+
+# 把redis.box這個虛擬機檔案, 添加到本機端的 Vagrant repository, 
+# 並取名為  my-redis-1
+ryuutekiMacBook-Pro:demo-redis-1 eden90267$ vagrant box add --name my-redis-1 redis.box
+==> box: Box file was not detected as metadata. Adding it directly...
+==> box: Adding box 'my-redis-1' (v0) for provider:
+    box: Unpacking necessary files from: file:///Users/eden90267/demo-redis-1/redis.box
+==> box: Successfully added box 'my-redis-1' (v0) for 'virtualbox'!
+
+
+# 現在, 再來看看是否真的已經有一個'my-redis-1' box生出來了
+ryuutekiMacBook-Pro:demo-redis-1 eden90267$ vagrant box list
+bento/centos-5.11                   (virtualbox, 2.2.3)
+my-redis-1                          (virtualbox, 0)
+ubuntu/trusty64                     (virtualbox, 20160320.0.0)
+williamyeh/docker-workshop-registry (virtualbox, 5.1)
+williamyeh/ubuntu-trusty64-docker   (virtualbox, 1.10.3.20160314033456)
+
+
+# 或是, 更深入一點看本機端的Vagrant repository內容
+ryuutekiMacBook-Pro:demo-redis-1 eden90267$ ls -al ~/.vagrant.d/boxes/my-redis-1/0/virtualbox/
+total 861472
+drwxr-xr-x  7 eden90267  staff        238  3 27 00:56 .
+drwxr-xr-x  3 eden90267  staff        102  3 27 00:56 ..
+-rw-r--r--  1 eden90267  staff        630  3 27 00:56 Vagrantfile
+-rw-------  1 eden90267  staff  441046016  3 27 00:56 box-disk1.vmdk
+-rw-------  1 eden90267  staff      10515  3 27 00:56 box.ovf
+-rw-r--r--  1 eden90267  staff         25  3 27 00:56 metadata.json
+-rw-------  1 eden90267  staff       1675  3 27 00:56 vagrant_private_key
+
+
+# 與前面的 redis.box 壓縮檔內容對照看看...
+ryuutekiMacBook-Pro:demo-redis-1 eden90267$ tar ztvf redis.box
+-rw-------  0 eden90267 staff 441046016  3 27 00:05 ./box-disk1.vmdk
+-rw-------  0 eden90267 staff     10515  3 27 00:04 ./box.ovf
+-rw-------  0 eden90267 staff      1675  3 27 00:05 ./vagrant_private_key
+-rw-r--r--  0 eden90267 staff       630  3 27 00:05 ./Vagrantfile
+
+~~~
+
+兩相比對, 顯而易見的, 本機端的Vagrant repository, 其實擺的就是box檔案解壓縮之後的東西, 再加上一些輔助資訊(即此例的 metadata.json)
+
+## 複製增生虛擬機執行個體 ##
+
+只要box檔案有添加登記到本機端的Vagrant repository, 日後就可用這個登記過的名字去vagrant init及vagrant up相同組態的虛擬機執行個體。
+
+~~~ java
+
+ryuutekiMacBook-Pro:~ eden90267$ mkdir demo-redis-2
+ryuutekiMacBook-Pro:~ eden90267$ cd demo-redis-2
+ryuutekiMacBook-Pro:demo-redis-2 eden90267$ vagrant init my-redis-1
+A `Vagrantfile` has been placed in this directory. You are now
+ready to `vagrant up` your first virtual environment! Please read
+the comments in the Vagrantfile as well as documentation on
+`vagrantup.com` for more information on using Vagrant.
+ryuutekiMacBook-Pro:demo-redis-2 eden90267$ vagrant up
+Bringing machine 'default' up with 'virtualbox' provider...
+==> default: Importing base box 'my-redis-1'...
+==> default: Matching MAC address for NAT networking...
+==> default: Setting the name of the VM: demo-redis-2_default_1459093697385_35365
+==> default: Clearing any previously set network interfaces...
+==> default: Preparing network interfaces based on configuration...
+    default: Adapter 1: nat
+==> default: Forwarding ports...
+    default: 22 (guest) => 2222 (host) (adapter 1)
+==> default: Booting VM...
+==> default: Waiting for machine to boot. This may take a few minutes...
+    default: SSH address: 127.0.0.1:2222
+    default: SSH username: vagrant
+    default: SSH auth method: private key
+==> default: Machine booted and ready!
+==> default: Checking for guest additions in VM...
+    default: The guest additions on this VM do not match the installed version of
+    default: VirtualBox! In most cases this is fine, but in rare cases it can
+    default: prevent things such as shared folders from working properly. If you see
+    default: shared folder errors, please make sure the guest additions within the
+    default: virtual machine match the version of VirtualBox you have installed on
+    default: your host and reload your VM.
+    default:
+    default: Guest Additions Version: 4.3.36
+    default: VirtualBox Version: 5.0
+==> default: Mounting shared folders...
+    default: /vagrant => /Users/eden90267/demo-redis-2
+ryuutekiMacBook-Pro:demo-redis-2 eden90267$ vagrant ssh
+Welcome to Ubuntu 14.04.4 LTS (GNU/Linux 3.13.0-83-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com/
+
+  System information as of Sun Mar 27 15:48:34 UTC 2016
+
+  System load:  0.44              Processes:           82
+  Usage of /:   3.5% of 39.34GB   Users logged in:     0
+  Memory usage: 24%               IP address for eth0: 10.0.2.15
+  Swap usage:   0%
+
+  Graph this data and manage this system at:
+    https://landscape.canonical.com/
+
+  Get cloud support with Ubuntu Advantage Cloud Guest:
+    http://www.ubuntu.com/business/services/cloud
+
+
+Last login: Sat Mar 26 15:55:35 2016 from 10.0.2.2
+
+~~~
+
+## 散步box檔 ##
+
+有了box檔, 不只可安裝在本機端的Vagrant repository。只要把它擺在一個可供他人下載的網路空間, 甚至可讓別的電腦安裝回去, 安裝在其他電腦自己的本機端Vagrant repository。
+
+這個所謂「可供他人下載的網路空間」, 簡單一點的, 通常會是像Dropbox、Google Drive之類的網路硬碟、雲端硬碟; 高檔一點的, 可能會是Amazon S3或CDN;有隱私要求的, 則可能放在私有檔案伺服器。
+
+來演練一次吧！
+
+~~~ java
+
+cd ..
+mkdir demo-redis-3
+cd demo-redis-3
+vim Vagrantfile
+
+Vagrant.configure(2) do |config|
+  # 這次, 改取名為 "my-redis-2"
+   config.vm.box = "my-redis-2"
+
+  # 填入該box檔案所在網址
+   config.vm.box_url = "http://bit.ly/vagrantbox-redis"
+end
+
+vagrant up
+
+~~~
+
+途中就有這麼一行：
+
+~~~ java
+
+==> default: Adding box 'my-redis-2' (v0) for provider: virtualbox
+    default: Downloading: http://bit.ly/vagrantbox-redis
+
+~~~
+
+表示Vagrant真的有試著去指定網址下載box檔案。
+
+再往下看, 看到這一行：
+
+~~~ java
+
+==> default: Successfully added box 'my-redis-2' (v0) for 'virtualbox'
+
+~~~
+
+就來看看, 本機端的Vagrant repository是否真的已經新增了my-redis-2這個box:
+
+~~~ java
+
+vagrant box list
+
+~~~
+
+從這例子可看出, 只要別人知道box檔案的網址, 就可以依樣畫葫蘆寫一份Vagrantfile檔, 以將他下載安裝到他們自己的本機端Vagrant repository; 至於他們想替box取什麼名字, 則由他們自己決定。
+
+現在你應該知道, 該怎麼善用像Vagrantbox.es網站所列的box檔案母體了。
+
+## 加進Vagrant Cloud repository ##
+
