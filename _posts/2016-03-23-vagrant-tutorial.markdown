@@ -1088,3 +1088,323 @@ vagrant box list
 
 ## 加進Vagrant Cloud repository ##
 
+到目前為止, 我們所示範的, 都是把box登記到本機端的repository(或其他電腦自己的本機端repository), 取得box名字也是相對於本機端。
+
+「相對於本機端」, 意思是：my-redis-1, my-redis-2這類的box名字, 他們的有效能見範圍(like城程式語言的scope概念), 只限於該機器本身。
+
+那麼, 像ubuntu/trusty64、hashicorp/precise64、chef/centos-6.5這種全域式的box名字, 是怎麼設定出來的？
+
+答案是, 要向Vagrant發明人Mitchell Hashimoto所創辦的HashiCorp公司所經營的Vagrant Cloud服務辦理登記手續, Vagrant Cloud網站才會配置ubuntu/trusty64、hashicorp/precise64、chef/centos-6.5這樣專屬的全域名稱, 供世界各地的Vagrant用戶引用。
+
+所以, Vagrant Cloud就相當於Vagrant世界的中央repository。
+
+1. 先將box檔案上傳到一個可供他人下載的網路空間
+2. 連接Vagrant Cloud homepage, Create Box, 替box取一個名字
+3. 填入該box檔案所在網址
+4. 發佈
+
+發佈完畢, 其他人就可在Vagrant Cloud搜尋到他, 如果希望這是個只限特定人士才搜得到、用得到的box, 就得升級成付費會員。
+
+~~~ java
+
+vagrant init eden90267/ubuntu-trusty64-docker
+vagrant up
+vagrant ssh
+
+~~~
+
+這種方法的好處是, 用戶不必知道box檔案實際擺放的網址, 不必手寫Vagrantfile的config.vm.box_url設定值, 還享有Vagrant cloud網站提供的瀏覽搜尋服務協助你曝光成果。缺點則是, 如果你不是付費會員, 你的成果會被迫公開在全世界人類眼前。
+
+## 自動設定Guest OS組態：Provisioning ##
+
+剛剛我們先**手動**將虛擬機組態設定、儲存、複製增生虛擬機等流程完整走過一遍, 現在該設法**自動化**整個流程了。
+
+回顧一下, 手動演練過哪些任務：
+
+1. 手動設定Guest OS組態
+2. 打包, 存檔
+3. 加進本機端Vagrant repository
+4. 複製增生虛擬機執行個體
+5. 散佈box檔
+6. 加進Vagrant Cloud repository
+
+該怎麼自動化這些任務？
+
+其中(2)~(5)都只是在host OS裡面串接流程而已, 很容易用script語言搞定。
+「(6)加進Vagrant Cloud repository」稍微麻煩點, 需透過Vagrant Cloud API, 但這份API是帶有REST風格的, 用script語言就能串起來, 厲害一點的人, 甚至用bash + curl組合技就能搞定。
+
+剩下「(1)手動設定Guest OS組態」這一點, 還沒介紹該如何自動化。
+
+這段自動化環節, 有一個正規術語, 叫做「provisioning」。據Wikipedia解釋：
+
+Server provisioning is a set of actions to prepare a server with appropriate systems, data and software, and make it ready for network operation.
+
+Typical tasks when provisioning a server are: select a server from a pool of available servers, load the appropriate software (operating system, device drivers, middleware, and applications), appropriately customize and configure the system and the software to create or change a boot image for this server, and then change its parameters […] to find associated network and storage resources […] to audit the system.
+
+[…] This makes the system ready for operation.
+
+- "server provisioning is a set of actions to prepare a server"告訴我們, provisioning往往是一連串的連續動作。
+- "This makes the system ready for operation"告訴我們, provisioning的目的是讓系統組態設定到可上線運作的"I'm READY!"狀態。
+
+Vagrant提供三種自動化provisioning機制。由淺入深, 依序是：
+
+1. inline script(內嵌腳本)
+2. external script file(外部腳本檔)
+3. configuration management software(組態管理軟體)
+
+只要依照各自的語法去修改Vagrantfile, 爾後, 在以下幾種情況, Vagrant都會自動執行我們準備好的一系列自動化provisioning指令：
+
+- vagrant up第一次執行時
+- 每次執行vagrant up --provision時
+- 每次執行vagrant provision時
+- 每次執行vagrant reload --provision時
+
+讓我們逐一嘗試這三種做法。
+
+### Inline script 內嵌腳本 ###
+
+內嵌腳本做法是, 將我們要Vagrant自動執行的一系列自動化provisioning指令, 以shell script語法, 塞入Vagrantfile的config.vm.provision設定值, 譬如說, 如果寫成這樣：
+
+~~~ java
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.provision "shell", inline: "echo Hello, World"
+end
+
+~~~
+
+那麼, 當在此工作目錄下, 第一次執行vagrant up, 會看到輸出畫面的最後面, 在guest OS啟動完畢後, 在port forwarding及shared folder也都配置完畢後, 還多了一行echo Hello, World指令：
+
+~~~ java
+
+ryuutekiMacBook-Pro:demo-test3 eden90267$ vagrant up
+Bringing machine 'default' up with 'virtualbox' provider...
+==> default: Importing base box 'ubuntu/trusty64'...
+==> default: Matching MAC address for NAT networking...
+==> default: Checking if box 'ubuntu/trusty64' is up to date...
+==> default: A newer version of the box 'ubuntu/trusty64' is available! You currently
+==> default: have version '20160320.0.0'. The latest is version '20160323.0.0'. Run
+==> default: `vagrant box update` to update.
+==> default: Setting the name of the VM: demo-test3_default_1459182088540_1347
+==> default: Clearing any previously set forwarded ports...
+==> default: Clearing any previously set network interfaces...
+==> default: Preparing network interfaces based on configuration...
+    default: Adapter 1: nat
+==> default: Forwarding ports...
+    default: 22 (guest) => 2222 (host) (adapter 1)
+==> default: Booting VM...
+==> default: Waiting for machine to boot. This may take a few minutes...
+    default: SSH address: 127.0.0.1:2222
+    default: SSH username: vagrant
+    default: SSH auth method: private key
+    default:
+    default: Vagrant insecure key detected. Vagrant will automatically replace
+    default: this with a newly generated keypair for better security.
+    default:
+    default: Inserting generated public key within guest...
+    default: Removing insecure key from the guest if it's present...
+    default: Key inserted! Disconnecting and reconnecting using new SSH key...
+==> default: Machine booted and ready!
+==> default: Checking for guest additions in VM...
+    default: The guest additions on this VM do not match the installed version of
+    default: VirtualBox! In most cases this is fine, but in rare cases it can
+    default: prevent things such as shared folders from working properly. If you see
+    default: shared folder errors, please make sure the guest additions within the
+    default: virtual machine match the version of VirtualBox you have installed on
+    default: your host and reload your VM.
+    default:
+    default: Guest Additions Version: 4.3.36
+    default: VirtualBox Version: 5.0
+==> default: Mounting shared folders...
+    default: /vagrant => /Users/eden90267/demo-test3
+==> default: Running provisioner: shell...
+    default: Running: inline script
+==> default: stdin: is not a tty
+==> default: Hello, World
+
+~~~
+
+當然啦, 實務上, 我們要塞的自動化指令, 不會只有echo Hello, World這麼一行而已, 萬一想塞多行？
+
+~~~ java
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.provision "shell", 
+    inline: "echo Hello, World\necho World Peace\necho I love Vagrant"
+end
+
+~~~
+
+寫法有點蠢。
+
+漂亮一點做法是, 利用「Vagrant本身也就是一份遵循Ruby DSL規則的Ruby源碼文件」此一事實(Day 3), 再借用Ruby的heredoc語法, 將Vagrantfile改寫成：
+
+~~~ java
+
+$script = <<SCRIPT
+# 安裝 Redis
+sudo apt-get install redis-server -y
+# 允許 Redis bind 至全部 network interface...
+sudo sed -i -e 's/^bind/#bind/' /etc/redis/redis.conf
+# 重啟 Redis, 讓新設定生效
+sudo service redis-server restart
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.provision "shell", inline: $script
+end
+
+~~~
+
+如此一來, 程序式的provisioning指令擺在前面, 宣告式的虛擬機屬性內容擺在後面, 一邊一國明顯區隔成兩塊, 比較好維護。
+
+### External script 外部腳本檔 ###
+
+上述script內容, 還可以更進一步抽離到外部檔案。
+
+譬如說, 如果我們在工作目錄裡, 寫一個install.sh檔
+
+~~~ java
+
+#!/bin/bash
+
+# 安裝 Redis
+sudo apt-get install redis-server -y
+# 允許 Redis bind 至全部 network interface...
+sudo sed -i -e 's/^bind/#bind/' /etc/redis/redis.conf
+# 重啟 Redis, 讓新設定生效
+sudo service redis-server restart
+
+~~~
+
+然後, 修改Vagrantfile的config.vm.provision設定值, 讓它指涉到外部腳本檔install.sh:
+
+~~~ java
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.provision "shell", path: "install.sh"
+end
+
+~~~
+
+如此一來, Vagrant便會在provisioning階段, 載入並執行這個install.sh檔。
+
+這種寫法, 適合有潔癖的人。
+
+### Configuration management 組態管理軟體 ###
+
+如果上線主機早已導入組態管理機制, 也早已運用像Chef、Puppet、Ansible、Salt這類比shell script更合身的軟體, 是否也能套用在Vagrant的provisioning環節？如此一來, 就能"infrastructure as code"一以貫之了。
+
+譬如說, 以下這份Ansible檔案, 可用來將Redis安裝在Ubuntu上：
+
+~~~ java
+
+---
+# file: playbook.yml
+# Ansible playbook for installing Redis on Ubuntu
+ 
+- hosts: all
+  sudo: True
+ 
+  tasks:
+    - name: Install the Redis package
+      apt: name={{ item }} state=present update_cache=yes
+      with_items: redis-server
+ 
+    - name: let Redis bind all network interfaces, if necessary.
+      lineinfile: dest=/etc/redis/redis.conf regexp="^bind 127.0.0.1" line="#bind 127.0.0.1" insertafter="^bind"
+ 
+    - name: restart redis-server
+      service: name=redis-server state=restarted enabled=yes
+
+~~~
+
+該怎樣將它套用在Vagrant身上呢？
+
+有兩種做法, 硬漢法及懶人法。
+
+硬漢法：叫Ansible直接對已經vagrant up之後的guest OS進行SSH連線, 透過此SSH通道設定guest OS組態。想當硬漢的, 就得手動輸入該guest OS對外開放的IP位址(default: 127.0.0.1)、TCP通訊埠(default: 2222), 甚至登入的帳號(vagrant)及密碼(vagrant):
+
+~~~ java
+
+vagrant up
+
+# 將這次Vagrant告訴我們的SSH host:port填入Ansible inventory file
+cat <<EOF > inventory
+[vagrant]
+127.0.0.1 ansible_ssh_port=2222
+EOF
+
+# 叫Ansible透過SSH連線, 將"playbook.yml"組態套用進去
+ansible-playbook -c paramiko -u vagrant -k -vvv -i inventory playbook.yml
+
+~~~
+
+懶人法：首先, 編輯Vagrantfile內容, 加入config.vm.provision一系列設定值：
+
+~~~ java
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/trusty64"
+  
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbook.yml"
+    ansible.sudo = true 
+end
+
+~~~
+
+接著, 直接varant up(或 vagrant up --provision 或 vagrant provision)即可, 不必準備inventory檔案, 也不用手動執行ansible-playbook程式、夾帶一堆命令列參數, Vagrant會替你打理好這些瑣事。
+
+懶人法的確簡單多了, 不過還是得知道, 硬漢法的原理。
+
+不過這只是Sample示範如何將組態管理軟體融入Vagrant provisioning, 實務上組態管理彼此例複雜。
+
+### Docker, again! ###
+
+如果想將某個Docker image自動裝進去, 該怎做？
+
+你可能會利用剛剛學到的inline script來安裝：
+
+~~~ java
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "eden90267/ubuntu-trusty64-docker"
+  
+  config.vm.provision "shell", inline: "docker pull redis:latest"
+end
+
+~~~
+
+或者, 利用Vagrant 1.6新增的"docker" provisioner語法：
+
+~~~ java
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "eden90267/ubuntu-trusty64-docker"
+  
+  config.vm.provision "docker", images: ["redis:latest"]
+end
+
+~~~
+
+Vagrant 1.6對Docker的支援還不僅如此, 有興趣的可參考以下文章：
+
+- [Feature Preview: Docker-Based Development Environments](https://www.hashicorp.com/blog/feature-preview-vagrant-1-6-docker-dev-environments.html)
+- [Docker provisioner 語法](https://www.vagrantup.com/docs/provisioning/docker.html)
+- [Docker provider 完整介紹](https://www.vagrantup.com/docs/docker/)
+
+## 回顧：虛擬機 Wish List ##
+
+Day 2曾經分析過, 軟體研發者需要以下這些「可程式化介面」, 才能將虛擬機納入軟體開發工具鏈中：
+
+1. 自動安裝一台或多台指定版本的guest OS虛擬機。
+2. 自動設定好這些虛擬機叢集的組態, 與上線主機共用同一套組態管理機制。
+3. 儲存虛擬機現有狀態, 可日後回復或快速複製。
+4. 虛擬機層次的repository中央儲存庫。
+
+到目前為止, 我們已利用Vagrant逐一實現各般需求, 只剩下「多台虛擬機叢集」這一招。下回分解。
