@@ -9,76 +9,80 @@ Default:
 
 1. Editor Actions > **Complete Current Statement**
 
-	Ctrl + Shift + Enter
+	`Ctrl + Shift + Enter`
 
 2. Editor Actions > **Delete Line**
 
-	Ctrl + Y
+	`Ctrl + Y`
 
 ------
 
 1. Other > **Show Intention Actions**
 
-	Alt + Enter
+	`Alt + Enter`
 
 ------
 
 1. Main menu > Code > Complete > Basic
 
-	Ctrl+Space, Ctrl + \ (自己加)
+	`Ctrl+Space`, `Ctrl + \` (add yourself)
 
 2. Main menu > Refactor > **Rename**
 
-	Shift + F6
+	`Shift + F6`
 
 3. Main menu > Navigate > **File**
 
-	Ctrl + Shift + N
+	`Ctrl + Shift + N`
 
 4. Main meun > Edit > **Copy**
 
-	Ctrl + C
+	`Ctrl + C`
 
 5. Main menu > Edit > **Paste**
 
-	Ctrl + V
+	`Ctrl + V`
 
 6. Main meun > Edit > **Cut**
 
-	Ctrl + X
+	`Ctrl + X`
 
 7. Main menu > Edit > **Undo**
 
-	Ctrl + Z
+	`Ctrl + Z`
 
 8. Main menu > Edit > **Redo**
 
-	Ctrl + Shift + Z
+	`Ctrl + Shift + Z`
 
 9. Main menu > Code > **Optimize Imports**
 
-	Ctrl + Alt + O
+	`Ctrl + Alt + O`
 
 10. Main menu > **Code Generate**
 
-	Alt + Insert
+	`Alt + Insert`
 
 11. Main menu > Code > **Reformat Code**
 
-	Ctrl + Alt + L
+	`Ctrl + Alt + L`
 
 12. Main menu > Edit > Find > **Find**
 
-	Ctrl + F
+	`Ctrl + F`
 
 13. Main menu > Edit > Find > **Find in Path**
 
-	Ctrl + Shift + F
+	`Ctrl + Shift + F`
 
 14. Main menu > Edit > Find > **Replace**
 
-	Ctrl + R
+	`Ctrl + R`
 
 15. Main menu > Edit > Find > **Replace in Path**
 
-	Ctrl + Shift + R
+	`Ctrl + Shift + R`
+
+16. Main menu > View > Quick Documentation
+
+	`Ctrl + Q`
