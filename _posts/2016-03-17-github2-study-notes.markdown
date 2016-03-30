@@ -1079,17 +1079,16 @@ Linux, Mac與Windows設定, 除了儲存路徑比較不同, 其實指令都是�
 
 	如果要列出所有設定在「系統層級」的「選項」, 可執行 `git config --list --system` 命令, 也就是額外加上 `--system` 即可篩選出關於系統層級的選項設定。
 
-	    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --li
-    	st --system
-    	alias.c=commit
-    	alias.co=checkout
-    	alias.dt=difftool
-    	alias.mt=mergetool
-    	alias.praise=blame
-    	alias.ff=merge --ff-only
-    	alias.st=status
-    	alias.sync=!git pull && git push
-    	apply.whitespace=nowarn
+		C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --list --system
+		alias.c=commit
+		alias.co=checkout
+		alias.dt=difftool
+		alias.mt=mergetool
+		alias.praise=blame
+		alias.ff=merge --ff-only
+		alias.st=status
+		alias.sync=!git pull && git push
+		apply.whitespace=nowarn
     	[略]
 
 	所有「系統層級」的選項設定預設會儲存在 `C:\Program (x86)\Git\etc\gitconfig` 這個檔案裡。Windows Vista以上版本又啟用「使用者帳戶控制(UAC)」, 路徑是 `%LOCALAPPDATA%\VirtualStore\Program Files (x86)\Git\etc\gitconfig`。會有這層改變出在UAC限制一般程式存取「系統資料夾」中的檔案權限, 導致無法使用 `git config` 寫入選項設定到這個檔案裡。在Windows Vista以上版本, 實作一套**VirtualStore**相容性技術, 讓你的程式試圖寫入檔案的同時, 可寫成功, 不過寫入的路徑卻是不同的, 這點要注意。
@@ -1105,22 +1104,21 @@ Linux, Mac與Windows設定, 除了儲存路徑比較不同, 其實指令都是�
 
 	列出「使用者層級」的「選項」: `git config --list --global`
 
-	    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --li
-    	st --global
-    	user.name=Eden Liu
-    	user.email=eden90267@atlassian.com
-    	filter.lfs.clean=git-lfs clean %f
-    	filter.lfs.smudge=git-lfs smudge %f
-    	filter.lfs.required=true
-    	diff.tool=vimdiff
-    	alias.dt=difftool
+		C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --list --global
+		user.name=Eden Liu
+		user.email=eden90267@atlassian.com
+		filter.lfs.clean=git-lfs clean %f
+		filter.lfs.smudge=git-lfs smudge %f
+		filter.lfs.required=true
+		diff.tool=vimdiff
+		alias.dt=difftool
 
 	「使用者層級」的選項設定預設會儲存在 `%USERPROFILE%\.gitconfig` 或 `C:\Users\<使用者帳號>\.gitconfig` 這個檔案裡。由於檔案在自己的使用者資料夾下, 沒有像「系統層級」設定時有權限問題。
 
 	一般會把 `user.name` 與 `user.email` 設定在「使用者層級」:
 
-	    git config --global user.name "Eden_Liu"
-    	git config --global user.email "eden90267@gmail.com"
+		git config --global user.name "Eden_Liu"
+		git config --global user.email "eden90267@gmail.com"
 
 	「個人化」的環境設定都設定在這裡。
 
@@ -1128,15 +1126,14 @@ Linux, Mac與Windows設定, 除了儲存路徑比較不同, 其實指令都是�
 
 	列出「儲存區層級」的「選項」: `git config --list --local`
 
-	    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --li
-    	st --local
-    	core.repositoryformatversion=0
-    	core.filemode=false
-    	core.bare=false
-    	core.logallrefupdates=true
-    	core.symlinks=false
-    	core.ignorecase=true
-    	core.hidedotfiles=dotGitOnly
+		C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --list --local
+		core.repositoryformatversion=0
+		core.filemode=false
+		core.bare=false
+		core.logallrefupdates=true
+		core.symlinks=false
+		core.ignorecase=true
+		core.hidedotfiles=dotGitOnly
 
 	儲存區層級的選項設定預設儲存在你Git工作目錄的 `.git\config` 設定檔中, 這檔案會在你建立本地儲存庫或透過 `git clone` 取得遠端儲存庫時自動建立, 若要定義「特定工作目錄」才要有的選項, 則直接將選項設定儲存在這裡。
 
@@ -1288,18 +1285,18 @@ PATH: C:\Users\eden_liu (**使用者層級**)
 
 - 設定指令別名(Alias)
 
-	    git config --global alias.co   checkout
-    	git config --global alias.ci   commit
-    	git config --global alias.st   status
-    	git config --global alias.sts  "status -s"
-    	git config --global alias.br   branch
-    	git config --global alias.re   remote
-    	git config --global alias.di   diff
-    	git config --global alias.type "cat-file -t"
-    	git config --global alias.dump "cat-file -p"
-    	git config --global alias.lo   "log --oneline"
-    	git config --global alias.ll "log --pretty=format:'%h %ad | %s%d [%Cgreen%an%Creset]' --graph --date=short"
-    	git config --global alias.lg "log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short"
+		git config --global alias.co   checkout
+		git config --global alias.ci   commit
+		git config --global alias.st   status
+		git config --global alias.sts  "status -s"
+		git config --global alias.br   branch
+		git config --global alias.re   remote
+		git config --global alias.di   diff
+		git config --global alias.type "cat-file -t"
+		git config --global alias.dump "cat-file -p"
+		git config --global alias.lo   "log --oneline"
+		git config --global alias.ll "log --pretty=format:'%h %ad | %s%d [%Cgreen%an%Creset]' --graph --date=short"
+		git config --global alias.lg "log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short"
 
 	`git st`, `git sts`, `git lo`, `git ll`或`git lg`就可完成
 
@@ -1346,9 +1343,9 @@ PATH: C:\Users\eden_liu (**使用者層級**)
 	git-commit-template.txt content:
 
 
-	    摘要:
-    	模組:
-    	議題:
+		摘要:
+		模組:
+		議題:
 
 
 	用 `--local` 參數, 原因是「訊息範本」有時候是跟著專案走的, 不同專案可能想套不同的訊息範本。
@@ -1369,4 +1366,3 @@ PATH: C:\Users\eden_liu (**使用者層級**)
 ---
 
 # Day 15: 標籤 - 標記版本控制過程中的重要事件 #
-
