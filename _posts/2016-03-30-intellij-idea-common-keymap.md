@@ -83,6 +83,18 @@ Default:
 
 	`Ctrl + Shift + R`
 
-16. Main menu > View > Quick Documentation
+16. Main menu > View > **Quick Documentation**
 
 	`Ctrl + Q`
+
+17. Main menu > Run > **Step Over**
+
+	`F8`
+
+18. Main menu > Run > **Resume Program**
+
+	`F9`
+
+19. Main menu > **Debugger Actions**
+
+	`F9`
