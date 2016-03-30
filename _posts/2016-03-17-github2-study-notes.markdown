@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 14)"
+title:  "GitHub Study Notes(Day 15)"
 date:   2016-03-17 17:32:00 +0800
 categories: [git, github]
 ---
@@ -982,3 +982,437 @@ stash的核心機制, 其實就是簡單的「分支」與「合併」而已, �
 ---
 
 # Day 14: Git for Windows 選項設定 #
+
+使用Git for Windows指令列工具絕對比透過GUI工具操作來的有效率, 原因就在於你可以把許多重複的版控工作透過指令自動化, 或將複雜的標準作業流程(SOP)轉化成簡單的指令操作。本章會分享幾則使用Git for Windows指令列工具的小技巧。
+
+## 關於 Git 指令列工具的選項設定 ##
+
+Git for Windows有許多「選項」可以設定, 可以微調指令執行的一些行為。 最常見的, 當然是首次使用Git for Windows的時候, 必須設定`user.name`與`user.email`選項, 沒這兩個選項設定, 你連執行`git commit`的權利都沒有。
+
+列出目前設定在Git for Windows工具下的所有選項, `git config --list`:
+
+~~~ java
+
+C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --li
+st
+core.symlinks=false
+core.autocrlf=true
+color.diff=auto
+color.status=auto
+color.branch=auto
+color.interactive=true
+help.format=html
+http.sslcainfo=C:/Program Files/Git/mingw64/ssl/certs/ca-bundle.crt
+diff.astextplain.textconv=astextplain
+rebase.autosquash=true
+alias.c=commit
+alias.co=checkout
+alias.dt=difftool
+alias.mt=mergetool
+alias.praise=blame
+alias.ff=merge --ff-only
+alias.st=status
+alias.sync=!git pull && git push
+apply.whitespace=nowarn
+core.symlinks=false
+core.autocrlf=true
+core.editor=gitpad
+core.preloadindex=true
+core.fscache=true
+color.diff=auto
+color.status=auto
+color.branch=auto
+color.interactive=true
+color.ui=true
+pack.packsizelimit=2g
+help.format=html
+http.sslcainfo=C:\Program Files (x86)\git\bin\curl-ca-bundle.crt
+diff.astextplain.textconv=astextplain
+rebase.autosquash=true
+credential.helper=!github --credentials
+filter.ghcleansmudge.clean=cat
+filter.ghcleansmudge.smudge=cat
+push.default=upstream
+diff.tool=vs2013
+diff.algorithm=histogram
+difftool.prompt=false
+difftool.bc4.cmd="c:/program files (x86)/beyond compare 3/bcomp.exe" "$LOCAL" "$
+REMOTE"
+difftool.p4.cmd="c:/program files/Perforce/p4merge.exe" "$LOCAL" "$REMOTE"
+difftool.vs2012.cmd="c:/program files (x86)/microsoft visual studio 11.0/common7
+/ide/devenv.exe" '//diff' "$LOCAL" "$REMOTE"
+difftool.vs2013.cmd="c:/program files (x86)/microsoft visual studio 12.0/common7
+/ide/devenv.exe" '//diff' "$LOCAL" "$REMOTE"
+merge.tool=bc3
+mergetool.prompt=false
+mergetool.keepbackup=false
+mergetool.bc3.cmd="c:/program files (x86)/beyond compare 3/bcomp.exe" "$LOCAL" "
+$REMOTE" "$BASE" "$MERGED"
+mergetool.bc3.trustexitcode=true
+mergetool.p4.cmd="c:/program files/Perforce/p4merge.exe" "$BASE" "$LOCAL" "$REMO
+TE" "$MERGED"
+mergetool.p4.trustexitcode=false
+user.name=Eden Liu
+user.email=eden90267@atlassian.com
+filter.lfs.clean=git-lfs clean %f
+filter.lfs.smudge=git-lfs smudge %f
+filter.lfs.required=true
+diff.tool=vimdiff
+alias.dt=difftool
+core.repositoryformatversion=0
+core.filemode=false
+core.bare=false
+core.logallrefupdates=true
+core.symlinks=false
+core.ignorecase=true
+core.hidedotfiles=dotGitOnly
+
+~~~
+
+Linux, Mac與Windows設定, 除了儲存路徑比較不同, 其實指令都是相通。
+
+想查詢所有可用的「選項」有哪些: `git help config`。
+
+## 儲存 Git 選項設定的三個地方 ##
+
+1. **系統層級**( `--system` )(System-level configuration)(**設定於整台電腦, 適用本機所有使用者的預設值**)
+
+	如果要列出所有設定在「系統層級」的「選項」, 可執行 `git config --list --system` 命令, 也就是額外加上 `--system` 即可篩選出關於系統層級的選項設定。
+
+	~~~ java
+
+	C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --li
+	st --system
+	alias.c=commit
+	alias.co=checkout
+	alias.dt=difftool
+	alias.mt=mergetool
+	alias.praise=blame
+	alias.ff=merge --ff-only
+	alias.st=status
+	alias.sync=!git pull && git push
+	apply.whitespace=nowarn
+	[略]
+
+	~~~
+
+	所有「系統層級」的選項設定預設會儲存在 `C:\Program (x86)\Git\etc\gitconfig` 這個檔案裡。Windows Vista以上版本又啟用「使用者帳戶控制(UAC)」, 路徑是 `%LOCALAPPDATA%\VirtualStore\Program Files (x86)\Git\etc\gitconfig`。會有這層改變出在UAC限制一般程式存取「系統資料夾」中的檔案權限, 導致無法使用 `git config` 寫入選項設定到這個檔案裡。在Windows Vista以上版本, 實作一套**VirtualStore**相容性技術, 讓你的程式試圖寫入檔案的同時, 可寫成功, 不過寫入的路徑卻是不同的, 這點要注意。
+
+	系統管理員執行cmd:
+	git config --system core.autocrlf = true
+	用戶執行cmd:
+	git config -- system core.autocrlf = 不會就是true, 「一般方式執行命令提示字元」與用「系統管理員身分執行命令提示字元」, 所寫入的「系統層級選項」是不能互通的。
+
+	這代表著, 當你在「一般權限」下執行「命令提示字元」, 並透過 `git config --system` 設定「系統層級」選項, 那麼該設定會變成只有「自己」能套用而已, 不會套用到本機其他使用者身上。
+
+2. **使用者層級**( `--global` )(User-level configuration)(**設定於目前登入的使用者**)
+
+	列出「使用者層級」的「選項」: `git config --list --global`
+
+	~~~ java
+
+	C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --li
+	st --global
+	user.name=Eden Liu
+	user.email=eden90267@atlassian.com
+	filter.lfs.clean=git-lfs clean %f
+	filter.lfs.smudge=git-lfs smudge %f
+	filter.lfs.required=true
+	diff.tool=vimdiff
+	alias.dt=difftool
+
+	~~~
+
+	「使用者層級」的選項設定預設會儲存在 `%USERPROFILE%\.gitconfig` 或 `C:\Users\<使用者帳號>\.gitconfig` 這個檔案裡。由於檔案在自己的使用者資料夾下, 沒有像「系統層級」設定時有權限問題。
+
+	一般會把 `user.name` 與 `user.email` 設定在「使用者層級」:
+
+	~~~ java
+
+	git config --global user.name "Eden_Liu"
+	git config --global user.email "eden90267@gmail.com"
+
+	~~~
+
+	「個人化」的環境設定都設定在這裡。
+
+3. **儲存區層級**( `--local` )(Repository-level configuration)(**設定於工作目錄下的 `.git\config` 設定檔中**)
+
+	列出「儲存區層級」的「選項」: `git config --list --local`
+
+	~~~ java
+
+	C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --li
+	st --local
+	core.repositoryformatversion=0
+	core.filemode=false
+	core.bare=false
+	core.logallrefupdates=true
+	core.symlinks=false
+	core.ignorecase=true
+	core.hidedotfiles=dotGitOnly
+
+	~~~
+
+	儲存區層級的選項設定預設儲存在你Git工作目錄的 `.git\config` 設定檔中, 這檔案會在你建立本地儲存庫或透過 `git clone` 取得遠端儲存庫時自動建立, 若要定義「特定工作目錄」才要有的選項, 則直接將選項設定儲存在這裡。
+
+## Git 選項設定的套用順序 ##
+
+不同層級下可設定相同名稱的選項, 以下為Git指令列工具在執行時會依據以下優先進行套用:
+
+1. 先套用系統層級(優先權最低)
+2. 再套用使用者層級
+3. 再套用儲存區層級(優先權最高)
+
+如果Windows Vista以上並啟用UAC, 會多一個讀取與套用判斷:
+
+1. 套用系統層級 `C:\Program Files (x86)\Git\etc\gitconfig`
+2. 套用系統層級 `%LOCALAPPDATA%\VirtualStore\Program Files (x86)\Git\etc\gitconfig`
+3. 套用使用者層級 `%USERPROFILE%\.gitconfig`
+4. 套用儲存區層級 `.git\config`
+
+若想知道目前工作環境最終套用的選項設定有哪些: `git config --list` , 取得「已設定」的選項設定清單:
+
+~~~ java
+
+C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --li
+st
+core.symlinks=false
+core.autocrlf=true
+color.diff=auto
+color.status=auto
+color.branch=auto
+color.interactive=true
+help.format=html
+http.sslcainfo=C:/Program Files/Git/mingw64/ssl/certs/ca-bundle.crt
+diff.astextplain.textconv=astextplain
+rebase.autosquash=true
+alias.c=commit
+alias.co=checkout
+alias.dt=difftool
+alias.mt=mergetool
+alias.praise=blame
+alias.ff=merge --ff-only
+alias.st=status
+alias.sync=!git pull && git push
+apply.whitespace=nowarn
+core.symlinks=false
+core.autocrlf=true
+core.editor=gitpad
+core.preloadindex=true
+core.fscache=true
+color.diff=auto
+color.status=auto
+color.branch=auto
+color.interactive=true
+color.ui=true
+pack.packsizelimit=2g
+help.format=html
+http.sslcainfo=C:\Program Files (x86)\git\bin\curl-ca-bundle.crt
+diff.astextplain.textconv=astextplain
+rebase.autosquash=true
+credential.helper=!github --credentials
+filter.ghcleansmudge.clean=cat
+filter.ghcleansmudge.smudge=cat
+push.default=upstream
+diff.tool=vs2013
+diff.algorithm=histogram
+difftool.prompt=false
+difftool.bc4.cmd="c:/program files (x86)/beyond compare 3/bcomp.exe" "$LOCAL" "$
+REMOTE"
+difftool.p4.cmd="c:/program files/Perforce/p4merge.exe" "$LOCAL" "$REMOTE"
+difftool.vs2012.cmd="c:/program files (x86)/microsoft visual studio 11.0/common7
+/ide/devenv.exe" '//diff' "$LOCAL" "$REMOTE"
+difftool.vs2013.cmd="c:/program files (x86)/microsoft visual studio 12.0/common7
+/ide/devenv.exe" '//diff' "$LOCAL" "$REMOTE"
+merge.tool=bc3
+mergetool.prompt=false
+mergetool.keepbackup=false
+mergetool.bc3.cmd="c:/program files (x86)/beyond compare 3/bcomp.exe" "$LOCAL" "
+$REMOTE" "$BASE" "$MERGED"
+mergetool.bc3.trustexitcode=true
+mergetool.p4.cmd="c:/program files/Perforce/p4merge.exe" "$BASE" "$LOCAL" "$REMO
+TE" "$MERGED"
+mergetool.p4.trustexitcode=false
+user.name=Eden Liu
+user.email=eden90267@gmail.com
+filter.lfs.clean=git-lfs clean %f
+filter.lfs.smudge=git-lfs smudge %f
+filter.lfs.required=true
+diff.tool=vimdiff
+alias.dt=difftool
+core.repositoryformatversion=0
+core.filemode=false
+core.bare=false
+core.logallrefupdates=true
+core.symlinks=false
+core.ignorecase=true
+core.hidedotfiles=dotGitOnly
+
+~~~
+
+## 選項設定的操作方式 ##
+
+- 取得選項設定清單
+
+	`git config --list`
+
+	`git config --list [--system | --global | --local]`
+
+- 取得特定選項值
+
+	`git config [config_section.config_name]`
+
+	`git config user.name`
+
+	`git config user.email`
+
+- 設定特定選項值
+
+	`git config [config_section.config_name] [config_value]`
+
+	`git config user.name "Eden Liu"`
+
+	`git config user.email "eden90267@gmail.com"`
+
+- 刪除特定的選項值
+
+	`git config --unset [--system | --global | --local] [config_section.config_name]`
+
+## 選項設定檔的內容結構 ##
+
+PATH: C:\Users\eden_liu (**使用者層級**)
+~~~ java
+
+[user]
+	name = Eden Liu
+	email = eden90267@gmail.com
+[filter "lfs"]
+	clean = git-lfs clean %f
+	smudge = git-lfs smudge %f
+	required = true
+[diff]
+	tool = vimdiff
+[alias]
+	dt = difftool
+
+
+~~~
+
+`[`與`]`所包含的是「區段名稱」, 代表某一群設定檔的分類, 其他就是key/value的對應設定。
+
+## 常用選項設定 ##
+
+- 設定指令別名(Alias)
+
+	~~~ java
+
+	git config --global alias.co   checkout
+	git config --global alias.ci   commit
+	git config --global alias.st   status
+	git config --global alias.sts  "status -s"
+	git config --global alias.br   branch
+	git config --global alias.re   remote
+	git config --global alias.di   diff
+	git config --global alias.type "cat-file -t"
+	git config --global alias.dump "cat-file -p"
+	git config --global alias.lo   "log --oneline"
+	git config --global alias.ll "log --pretty=format:'%h %ad | %s%d [%Cgreen%an%Creset]' --graph --date=short"
+	git config --global alias.lg "log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short"
+
+	~~~
+
+	`git st`, `git sts`, `git lo`, `git ll`或`git lg`就可完成
+
+- 指定預設文字編輯器
+
+	預設 Git for Windows 執行 `git commit` 的時候, 會開啟Vim編輯器, 切換成記事本:
+
+	~~~ java
+
+	git config --global core.editor notepad.exe
+
+	~~~
+
+	如果想指定Notepad++:
+
+	~~~ java
+
+	git config --global core.editor "\"C:\Program Files (x86)\Notepad++\notepad++.exe\""
+
+	~~~
+
+- 直接編輯設定檔
+
+	想直接從指令列開啟編輯設定檔的話:
+
+	~~~ java
+
+	git config --edit --system
+	git config --edit --global
+	git config --edit --local
+
+	~~~
+
+	如此一來省去開啟檔案總管, 並找到路徑後再開啟檔案的繁瑣步驟。
+
+- 自動辨識 CRLF 字元
+
+	在Windows底下, 建議打開core.autocrlf選項, 讓Git將檔案儲存進物件儲存區(object storage), 可以自動過濾所有CR字元( `\r` ), 以利Git專案能更容易跨平台, 讓在Linux與Windows平台做開發的人都能順利使用Git版本控管。
+
+	~~~ java
+
+	git config --global core.autocrlf true
+
+	~~~
+
+- 自動訂正打錯的參數
+
+	~~~ java
+
+	git config --system color.ui. auto
+
+	~~~
+
+- 自訂commit訊息範本
+
+	團隊中, 希望大家共用一個「文字範本」, 好讓大家在 `git commit` 的時候能填寫必要的欄位或資訊。
+
+	如果要指令 `commit` 訊息範本, 必須先建立一個文字範本檔案, eg. G:\git-commit-template.txt
+
+	接著透過以下指令, 設定commit訊息範本的路徑:
+
+	~~~ java
+
+	git config --local commit.template "G:\git-commit-template.txt"
+
+	~~~
+
+	git-commit-template.txt content:
+
+	~~~ java
+
+	摘要:
+	模組:
+	議題:
+
+	~~~
+
+	用 `--local` 參數, 原因是「訊息範本」有時候是跟著專案走的, 不同專案可能想套不同的訊息範本。
+
+## 今日小結 ##
+
+整理本日Git指令與參數:
+
+- git config --list
+- git config --list [--system | --global | --local]
+- git config --edit [--system | --global | --local]
+- git config [config_section.config_name]
+- git config [config_section.config_name] "[config_value]"
+- git config --unset [--system | --global | --local] [config_section.config_name]
+- git config [--system | --global | --local] alias.[alias name] [命令]
+- git config --local commit.template "[PATH]"
+
+---
+
+# Day 15: 標籤 - 標記版本控制過程中的重要事件 #
