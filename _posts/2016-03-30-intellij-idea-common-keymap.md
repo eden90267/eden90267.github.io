@@ -15,17 +15,17 @@ Default:
 
 	Ctrl + Y
 
----
+------
 
 1. Other > **Show Intention Actions**
 
 	Alt + Enter
 
----
+------
 
 1. Main menu > Code > Complete > Basic
 
-	Ctrl+Space
+	Ctrl+Space, Ctrl + \(自己加)
 
 2. Main menu > Refactor > **Rename**
 
