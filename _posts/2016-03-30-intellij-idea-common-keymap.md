@@ -23,58 +23,62 @@ Default:
 
 ---
 
-1. Main menu > Refactor > **Rename**
+1. Main menu > Code > Complete > Basic
+
+	Ctrl+Space
+
+2. Main menu > Refactor > **Rename**
 
 	Shift + F6
 
-2. Main menu > Navigate > **File**
+3. Main menu > Navigate > **File**
 
 	Ctrl + Shift + N
 
-3. Main meun > Edit > **Copy**
+4. Main meun > Edit > **Copy**
 
 	Ctrl + C
 
-4. Main menu > Edit > **Paste**
+5. Main menu > Edit > **Paste**
 
 	Ctrl + V
 
-5. Main meun > Edit > **Cut**
+6. Main meun > Edit > **Cut**
 
 	Ctrl + X
 
-6. Main menu > Edit > **Undo**
+7. Main menu > Edit > **Undo**
 
 	Ctrl + Z
 
-7. Main menu > Edit > **Redo**
+8. Main menu > Edit > **Redo**
 
 	Ctrl + Shift + Z
 
-8. Main menu > Code > **Optimize Imports**
+9. Main menu > Code > **Optimize Imports**
 
 	Ctrl + Alt + O
 
-9. Main menu > **Code Generate**
+10. Main menu > **Code Generate**
 
 	Alt + Insert
 
-10. Main menu > Code > **Reformat Code**
+11. Main menu > Code > **Reformat Code**
 
 	Ctrl + Alt + L
 
-11. Main menu > Edit > Find > **Find**
+12. Main menu > Edit > Find > **Find**
 
 	Ctrl + F
 
-12. Main menu > Edit > Find > **Find in Path**
+13. Main menu > Edit > Find > **Find in Path**
 
 	Ctrl + Shift + F
 
-13. Main menu > Edit > Find > **Replace**
+14. Main menu > Edit > Find > **Replace**
 
 	Ctrl + R
 
-14. Main menu > Edit > Find > **Replace in Path**
+15. Main menu > Edit > Find > **Replace in Path**
 
 	Ctrl + Shift + R
