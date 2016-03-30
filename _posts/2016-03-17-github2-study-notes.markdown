@@ -1314,9 +1314,9 @@ PATH: C:\Users\eden_liu (**使用者層級**)
 
 	想直接從指令列開啟編輯設定檔的話:
 
-	    git config --edit --system
-    	git config --edit --global
-    	git config --edit --local
+		git config --edit --system
+		git config --edit --global
+		git config --edit --local
 
 	如此一來省去開啟檔案總管, 並找到路徑後再開啟檔案的繁瑣步驟。
 
