@@ -1366,3 +1366,165 @@ PATH: C:\Users\eden_liu (**使用者層級**)
 ---
 
 # Day 15: 標籤 - 標記版本控制過程中的重要事件 #
+
+在使用Git版本控管的過程中, 會產生大量的版本, 隨寒暑易節、物換星移, 在這眾多版本中, 定有些值得紀錄的幾個重要版本, 這就是「標籤」(Tag)能幫作的事。
+
+## 關於標籤(Tag)的基本概念 ##
+
+基本上標籤的用途就是用來標記某一個「版本」或稱作「commit物件」, 以一個「好記的名稱」來幫助記憶【某個】版本。
+
+Git標籤(Tag)擁有兩種型態:
+
+- 輕量標籤(lightweight tag)
+- 標示標籤(annotated tag)
+
+【Day 11: 認識Git物件的一般參照與符號參照】有提到「一般參照」包含「標籤名稱」, 這就是所謂的「輕量標籤」。 「輕量標籤」可以說是某個commit版本的「別名」而已, 是一種「相對名稱」。
+
+「標示標籤」則是一種Git物件, 【Day 6: 解析Git資料結構-物件結構】提到, Git包含4種物件類型, 分別是Blob, Tree, Commit與Tag物件, 這裡講的「標示標籤」就是Tag物件。Tag物件會儲存在Git的物件儲存區當中(`.git\objects\`目錄下), 並會關聯到另一個commit物件, 建立「標示標籤」時還能像建立commit物件時一樣包含「版本訊息」。 在內建的Git標籤機制中, 甚至還可利用GnuPG金鑰對Tag物件加以簽章, 以確保訊息的「不可否認性」。
+
+這兩種標籤類型, 看來都像某個commit物件的「別名」, 但這兩種標籤在使用上只有些微的差異而已。大部分使用情境, 都會用「標示標籤」來建立「標籤物件」並給予「版本訊息」, 因為這種「標籤」才是Git中「永久的物件」。(儲存到物件儲存庫中的Git物件都是不變的, 只有索引是變動的)
+
+## 了解輕量標籤(lightweight tag)的使用方式 ##
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> dir .git\refs\t
+    ags
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git log -1
+    commit 65f026a35a9e62bb9855cb81b5de265f37b0956c
+    Author: Eden Liu <eden90267@atlassian.com>
+    Date:   Tue Mar 15 17:22:10 2016 +0800
+
+    Add b.txt in newbranch1
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git tag
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git tag 1.0.0-a
+    lpha
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> dir .git\refs\t
+    ags
+
+
+    目錄: C:\Users\eden_liu\Documents\GitHub\git-branch-demo\.git\refs\tags
+
+
+    ModeLastWriteTime Length Name
+    ----------------- ------ ----
+    -a---   2016/3/31  下午 03:37 41 1.0.0-alpha
+
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> type .git\refs\
+    tags\1.0.0-alpha
+    65f026a35a9e62bb9855cb81b5de265f37b0956c
+
+提示: 所有在 `.git\refs\` 下的檔案都是個「參考名稱」。
+
+- 列出所有標籤: git tag
+- 建立輕量標籤: git tag [tagname]
+- 刪除輕量標籤: git tag [tagname] -d
+
+想看「輕量標籤」的內容, 可以透過 `git cat-file -p [tagname]` 取得。想看其物件類型, 可透過 `git cat-file -t [tagname]` 取得。
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git cat-file -p
+     1.0.0-alpha
+    tree dd395ea8ce2ef870e0d451e07e397dce8bf5bd1a
+    parent e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff
+    author Eden Liu <eden90267@atlassian.com> 1458033730 +0800
+    committer Eden Liu <eden90267@atlassian.com> 1458033730 +0800
+
+    Add b.txt in newbranch1
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git cat-file -t
+     1.0.0-alpha
+    commit
+
+**請注意**: 輕量標籤不是個Git物件, 該Tag名稱取得的是commit物件的內容, 而且該名稱所查出的物件類型是commit物件。
+
+## 了解標示標籤(annotated tag)的使用方式 ##
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git log -1
+    commit 65f026a35a9e62bb9855cb81b5de265f37b0956c
+    Author: Eden Liu <eden90267@atlassian.com>
+    Date:   Tue Mar 15 17:22:10 2016 +0800
+
+    Add b.txt in newbranch1
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git tag
+    1.0.0-alpha
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git tag 1.0.0-b
+    eta -a -m "Beta version"
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git tag
+    1.0.0-alpha
+    1.0.0-beta
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git cat-file -p
+     1.0.0-beta
+    object 65f026a35a9e62bb9855cb81b5de265f37b0956c
+    type commit
+    tag 1.0.0-beta
+    tagger Eden Liu <eden90267@gmail.com> 1459410468 +0800
+
+    Beta version
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git cat-file -t
+     1.0.0-beta
+    tag
+
+與「輕量標籤」相異的地方:
+
+1. 執行git tag, 所有標籤都會混在一起, 看不出標籤類型
+2. 建立「標示標籤」要加上 -a 參數
+3. 建立「標示標籤」一定要加上「版本訊息」, 跟執行 `git commit` 一樣都有 `-m` 參數可用。
+4. `git cat-file -p 1.0.0-beta` 時, 可看出此物件內容跟commit物件稍有不同
+5. `git cat-file -p 1.0.0-beta` 時, `type` 講的是上一行的 `object` 的物件類型, 這代表你也可以把任何Git物件建立成一個標籤物件。
+6. `git cat-file -t 1.0.0-beta` 時, 得到的是tag物件類型。
+
+標示標籤的指令用法, 跟輕量標籤一模一樣, 差別只有 `-a` 參數而已。(如果只有使用 `-m` 他會隱含 `-a` 也幫你加上)
+
+※ 預設 `git tag [tagname] -a` 會將當前的 HEAD 版本建立成「標籤物件」, 如果要其他特定物件: `git tag [tagname] [object_id]`。
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git tag
+    1.0.0-alpha
+    1.0.0-beta
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git rev-parse 1
+    .0.0-alpha
+    65f026a35a9e62bb9855cb81b5de265f37b0956c
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git rev-parse 1
+    .0.0-beta
+    2dfc941fa00ee6624540270e51a9058141abbbed
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git cat-file -t
+     65f0
+    commit
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git cat-file -t
+     2dfc
+    tag
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git cat-file -p
+     2dfc
+    object 65f026a35a9e62bb9855cb81b5de265f37b0956c
+    type commit
+    tag 1.0.0-beta
+    tagger Eden Liu <eden90267@gmail.com> 1459410468 +0800
+
+    Beta version
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git cat-file -p
+     65f0
+    tree dd395ea8ce2ef870e0d451e07e397dce8bf5bd1a
+    parent e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff
+    author Eden Liu <eden90267@atlassian.com> 1458033730 +0800
+    committer Eden Liu <eden90267@atlassian.com> 1458033730 +0800
+
+    Add b.txt in newbranch1
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git lg
+    git: 'lg' is not a git command. See 'git --help'.
+
+    Did you mean this?
+    log
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git config --gl
+    obal alias.lg "log --graph --pretty=format:'%Cred%h%Creset %ad |%C(yellow)%d%Cre
+    set %s %Cgreen(%cr)%Creset [%Cgreen%an%Creset]' --abbrev-commit --date=short"
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git lg
+    * 65f026a 2016-03-15 | (HEAD -> newbranch1, tag: 1.0.0-beta, tag: 1.0.0-alpha, f
+    2e, refs/f2e_init2) Add b.txt in newbranch1 (2 weeks ago) [Eden Liu]
+    * e93d0dc 2016-03-15 | a.txt: set 1 as content (2 weeks ago) [Eden Liu]
+    * d7b3014 2016-03-15 | (refs/InitialCommit) Initial commit (2 weeks ago) [Eden L
+    iu]
+
+重新整理本日學到的指令:
+
+- git tag
+- git tag [tagname]
+- git tag [tagname] -a
+- git tag [tagname] -a -m "<commit content>"
+- git tag [tagname] -d
