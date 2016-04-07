@@ -56,6 +56,9 @@ Unit test會自動Generator, 有點媲美NetBeans的unit test generator
 16. **VisualVM Launcher**  
 Profiling用工具, 透過簡單設置即可對選單按鈕做run or debug + virtualVM(會直接選單提供相關按鈕)
 
+17. **InnerBuilder**
+built-in builder pattern generation in IntelliJ
+
 ---
 結語:  
 棄Eclipse, NetBeans, MyEclipse轉投抱IntelliJ IDEA IDE實在是很正確的選擇。
