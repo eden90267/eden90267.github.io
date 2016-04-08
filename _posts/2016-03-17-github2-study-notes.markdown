@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 15)"
+title:  "GitHub Study Notes(Day 16)"
 date:   2016-03-17 17:32:00 +0800
 categories: [git, github]
 ---
@@ -1528,3 +1528,477 @@ Git標籤(Tag)擁有兩種型態:
 - git tag [tagname] -a
 - git tag [tagname] -a -m "<commit content>"
 - git tag [tagname] -d
+
+# Day 16: 善用版本日誌git reflog追蹤變更軌跡 #
+
+學習Git版控的指令不難, 但弄清楚Git到底對我的儲存庫做了什麼事, 還真不容易。當一步步了解Git的核心與運作原理, 自然能有效掌握Git儲存庫中的版本變化。本篇來說說Git如何記錄我們每一版的變更軌跡。
+
+## 了解版本紀錄的過程 ##
+
+清楚理解Git基礎原理與物件結構, 便能了解版本紀錄的過程。我們在版控的過程中盡情commit建立版本, 但如果有天某版本壞掉了, 或因執行一些合併或重置等動作導致版本消失,該如何?
+
+還好Git裡面, 有一套嚴謹的紀錄機制, 且這套機制非常開放, 紀錄的檔案都是文字格式, 還蠻容易了解。接下來說明版本紀錄的過程。
+
+`.git/`有個`logs`目錄, 這個`logs`資料夾下有個`HEAD`檔案, 這檔案紀錄「當前分支」的版本變更紀錄:
+
+開啟該內容:
+
+    0000000000000000000000000000000000000000 d7b3014a945337c214cdbcd0b768be74fa55532e Eden Liu <eden90267@atlassian.com> 1458030902 +0800	commit (initial): Initial commit
+    d7b3014a945337c214cdbcd0b768be74fa55532e e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff Eden Liu <eden90267@atlassian.com> 1458030963 +0800	commit: a.txt: set 1 as content
+    e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff 39b9da78e13bb545893b4b9406df2a6c69bb85d2 Eden Liu <eden90267@atlassian.com> 1458032141 +0800	commit: Create b.txt with content 'master' in the master branch
+    39b9da78e13bb545893b4b9406df2a6c69bb85d2 39b9da78e13bb545893b4b9406df2a6c69bb85d2 Eden Liu <eden90267@atlassian.com> 1458032263 +0800	checkout: moving from master to newbranch2
+    39b9da78e13bb545893b4b9406df2a6c69bb85d2 254922812bf705a9b1eef8f781d56d645ea9f6ff Eden Liu <eden90267@atlassian.com> 1458032332 +0800	commit: Modify b.txt with content 'newbranch2' in the newbranch2 branch
+    254922812bf705a9b1eef8f781d56d645ea9f6ff e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff Eden Liu <eden90267@atlassian.com> 1458032501 +0800	checkout: moving from newbranch2 to newbranch1
+    e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff 39b9da78e13bb545893b4b9406df2a6c69bb85d2 Eden Liu <eden90267@atlassian.com> 1458032596 +0800	checkout: moving from newbranch1 to master
+    39b9da78e13bb545893b4b9406df2a6c69bb85d2 e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff Eden Liu <eden90267@atlassian.com> 1458033168 +0800	checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff
+    e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff Eden Liu <eden90267@atlassian.com> 1458033686 +0800	checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff to newbranch1
+    e93d0dc14653f8b72c1a2fbb3da4327fd06e7cff 65f026a35a9e62bb9855cb81b5de265f37b0956c Eden Liu <eden90267@atlassian.com> 1458033730 +0800	commit: Add b.txt in newbranch1
+    65f026a35a9e62bb9855cb81b5de265f37b0956c 39b9da78e13bb545893b4b9406df2a6c69bb85d2 Eden Liu <eden90267@atlassian.com> 1458034229 +0800	checkout: moving from newbranch1 to master
+    39b9da78e13bb545893b4b9406df2a6c69bb85d2 65f026a35a9e62bb9855cb81b5de265f37b0956c Eden Liu <eden90267@atlassian.com> 1458034272 +0800	checkout: moving from master to newbranch1
+    65f026a35a9e62bb9855cb81b5de265f37b0956c 254922812bf705a9b1eef8f781d56d645ea9f6ff Eden Liu <eden90267@atlassian.com> 1458034286 +0800	checkout: moving from newbranch1 to newbranch2
+    254922812bf705a9b1eef8f781d56d645ea9f6ff 65f026a35a9e62bb9855cb81b5de265f37b0956c Eden Liu <eden90267@atlassian.com> 1458034348 +0800	checkout: moving from newbranch2 to newbranch1
+    65f026a35a9e62bb9855cb81b5de265f37b0956c 254922812bf705a9b1eef8f781d56d645ea9f6ff Eden Liu <eden90267@atlassian.com> 1458034352 +0800	checkout: moving from newbranch1 to newbranch2
+    254922812bf705a9b1eef8f781d56d645ea9f6ff 39b9da78e13bb545893b4b9406df2a6c69bb85d2 Eden Liu <eden90267@atlassian.com> 1458034355 +0800	checkout: moving from newbranch2 to master
+    39b9da78e13bb545893b4b9406df2a6c69bb85d2 65f026a35a9e62bb9855cb81b5de265f37b0956c Eden Liu <eden90267@atlassian.com> 1458540022 +0800	checkout: moving from master to newbranch1
+    65f026a35a9e62bb9855cb81b5de265f37b0956c 65f026a35a9e62bb9855cb81b5de265f37b0956c Eden Liu <eden90267@atlassian.com> 1458547623 +0800	checkout: moving from newbranch1 to f2e
+    65f026a35a9e62bb9855cb81b5de265f37b0956c 65f026a35a9e62bb9855cb81b5de265f37b0956c Eden Liu <eden90267@atlassian.com> 1458636049 +0800	checkout: moving from f2e to newbranch1
+
+此時我們用`git reflog`即可列印出所有「歷史紀錄」的版本變化, 內容一樣, 但順序顛倒:
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog
+    65f026a HEAD@{0}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{1}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{2}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{3}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{4}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{5}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{6}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{7}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{8}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{9}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{10}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{11}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{12}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{13}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{14}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+    39b9da7 HEAD@{15}: checkout: moving from master to newbranch2
+    39b9da7 HEAD@{16}: commit: Create b.txt with content 'master' in the master bran
+    ch
+    e93d0dc HEAD@{17}: commit: a.txt: set 1 as content
+    d7b3014 HEAD@{18}: commit (initial): Initial commit
+
+文字檔, 第一版在最上面; 而git reflog則先顯示「最新版」最後才是「第一版」。
+
+現在試圖建立一個新版本, 看看記錄檔的變化:
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> echo d > d.txt
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git add .
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git commit -m "Add d.txt"
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog
+    195fb18 HEAD@{0}: commit: Add d.txt
+    65f026a HEAD@{1}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{2}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{3}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{4}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{5}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{6}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{7}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{8}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{9}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{10}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{11}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{12}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{13}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{14}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{15}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+    39b9da7 HEAD@{16}: checkout: moving from master to newbranch2
+    39b9da7 HEAD@{17}: commit: Create b.txt with content 'master' in the master bran
+    ch
+    e93d0dc HEAD@{18}: commit: a.txt: set 1 as content
+    d7b3014 HEAD@{19}: commit (initial): Initial commit
+
+上面可發現到, 有個特殊「參考名稱」為`HEAD@{0}`, 每個版本都會有一個歷史紀錄都會有個編號, 代表這個版本的在記錄檔中的順位, 如果是`HEAD@{0}`, 永遠代表目前分支的「最新版」, 換句話說你在這個「分支」中最近一次對Git操作的紀錄。 你對Git所做的任何版本變更, 全部都會被記錄下來。
+
+## 復原意外地變更 ##
+
+初學Git可能不小心指令執行錯誤, ex: `git merge`合併發生衝突, 或透過`git pull`取得遠端儲存庫最新版發生失誤。在這情況下, 可利用`HEAD@{0}`這個特殊「參考名稱」來對此版本「定位」, 並將目前的Git儲存庫版本回復到前一版或前面好幾版。
+
+ex: 「取消」最近一次的變更紀錄, 可透過 `git reset "HEAD@{1}" --hard` 來復原變更。如此一來, 原本 `HEAD@{0}` 的變更, 就會被刪除。不過, 所有變更都會被記錄, 包含 `git reset "HEAD@{1}" --hard` 這個動作。
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git ll
+    * 1060cb0 2016-04-06 | Add d.txt (HEAD -> master) [Eden Liu]
+    * 39b9da7 2016-03-15 | Create b.txt with content 'master' in the master branch [
+    Eden Liu]
+    * e93d0dc 2016-03-15 | a.txt: set 1 as content [Eden Liu]
+    * d7b3014 2016-03-15 | Initial commit (refs/InitialCommit) [Eden Liu]
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git reflog
+    1060cb0 HEAD@{0}: commit: Add d.txt
+    39b9da7 HEAD@{1}: checkout: moving from newbranch1 to master
+    195fb18 HEAD@{2}: commit: Add d.txt
+    65f026a HEAD@{3}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{4}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{5}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{6}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{7}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{8}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{9}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{10}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{11}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{12}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{13}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{14}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{15}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{16}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{17}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+    39b9da7 HEAD@{18}: checkout: moving from master to newbranch2
+    39b9da7 HEAD@{19}: commit: Create b.txt with content 'master' in the master bran
+    ch
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git reset "HEAD@{1}
+    " --hard
+    HEAD is now at 39b9da7 Create b.txt with content 'master' in the master branch
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git ll
+    * 39b9da7 2016-03-15 | Create b.txt with content 'master' in the master branch (
+    HEAD -> master) [Eden Liu]
+    * e93d0dc 2016-03-15 | a.txt: set 1 as content [Eden Liu]
+    * d7b3014 2016-03-15 | Initial commit (refs/InitialCommit) [Eden Liu]
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git reflog
+    39b9da7 HEAD@{0}: reset: moving to HEAD@{1}
+    1060cb0 HEAD@{1}: commit: Add d.txt
+    39b9da7 HEAD@{2}: checkout: moving from newbranch1 to master
+    195fb18 HEAD@{3}: commit: Add d.txt
+    65f026a HEAD@{4}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{5}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{6}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{7}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{8}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{9}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{10}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{11}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{12}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{13}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{14}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{15}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{16}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{17}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{18}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+    39b9da7 HEAD@{19}: checkout: moving from master to newbranch2
+    39b9da7 HEAD@{20}: commit: Create b.txt with content 'master' in the master bran
+
+這代表什麼意義? 這代表你在執行Git命令, 再也不用擔心害怕你的任何資料會遺失, 就算怎樣下錯指令都沒關係, 所有已經在版本庫中的檔案, 全都會保存下來, 完全不會有遺失的機會。這時若想復原剛剛執行的  `git reset "HEAD@{1}" --hard` 動作, 只要再執行一次 git reset "HEAD@{1}" --hard即可。看下面例子, 把剛剛 `1060cb0` 這版本給救回了。
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git ll
+    * 39b9da7 2016-03-15 | Create b.txt with content 'master' in the master branch (
+    HEAD -> master) [Eden Liu]
+    * e93d0dc 2016-03-15 | a.txt: set 1 as content [Eden Liu]
+    * d7b3014 2016-03-15 | Initial commit (refs/InitialCommit) [Eden Liu]
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git reflog
+    39b9da7 HEAD@{0}: reset: moving to HEAD@{1}
+    1060cb0 HEAD@{1}: commit: Add d.txt
+    39b9da7 HEAD@{2}: checkout: moving from newbranch1 to master
+    195fb18 HEAD@{3}: commit: Add d.txt
+    65f026a HEAD@{4}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{5}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{6}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{7}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{8}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{9}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{10}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{11}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{12}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{13}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{14}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{15}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{16}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{17}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{18}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+    39b9da7 HEAD@{19}: checkout: moving from master to newbranch2
+    39b9da7 HEAD@{20}: commit: Create b.txt with content 'master' in the master bran
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git reset "HEAD@{1}
+    " --hard
+    HEAD is now at 1060cb0 Add d.txt
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git ll
+    * 1060cb0 2016-04-06 | Add d.txt (HEAD -> master) [Eden Liu]
+    * 39b9da7 2016-03-15 | Create b.txt with content 'master' in the master branch [
+    Eden Liu]
+    * e93d0dc 2016-03-15 | a.txt: set 1 as content [Eden Liu]
+    * d7b3014 2016-03-15 | Initial commit (refs/InitialCommit) [Eden Liu]
+
+## 記錄版本變更的原則 ##
+
+事實上在使用Git版控的過程中, 有很多機會會產生「版本歷史紀錄」, 我說的並不是單純的 `git log` 顯示版本紀錄, 而是**原始且完整**的變更歷史紀錄。這些紀錄版本變更有個基本原則：【只要透過指令修改任何參照(ref)的內容, 或是變更任何分支的 `HEAD` 參照內容, 就會建立歷史紀錄】。也因為這原則, 所以指令名叫 `reflog`, 因為是改了 `ref` (參照內容)才引發的 `log` (紀錄)。
+
+例如拿 `git checkout` 命令切換不同分支, 這個切換過程由於會修改 `.git\HEAD` 參照內容, 所以也會產生一個歷史紀錄:
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [master]> git checkout newbra
+    nch1
+    Switched to branch 'newbranch1'
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog
+    195fb18 HEAD@{0}: checkout: moving from master to newbranch1
+    1060cb0 HEAD@{1}: reset: moving to HEAD@{1}
+    39b9da7 HEAD@{2}: reset: moving to HEAD@{1}
+    1060cb0 HEAD@{3}: commit: Add d.txt
+    39b9da7 HEAD@{4}: checkout: moving from newbranch1 to master
+    195fb18 HEAD@{5}: commit: Add d.txt
+    65f026a HEAD@{6}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{7}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{8}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{9}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{10}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{11}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{12}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{13}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{14}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{15}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{16}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{17}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{18}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{19}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{20}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+
+還有哪些動作會導致產生新的 `reflog` 紀錄? 不用死記, 記住原則就好:
+
+- commit
+- checkout
+- pull
+- push
+- merge
+- reset
+- clone
+- branch
+- rebase
+- stash
+
+除此之外, 每一個分支、每一個暫存版本(stash), 都會有自己的reflog歷史紀錄, 這些資料也全都會儲存在 `.git\logs\refs\` 資料夾下
+
+## 只顯示特定分支的reflog紀錄 ##
+
+在查詢歷史紀錄, 也可以針對特定分支(Branch)進行查詢, 僅顯示特定分支的變更歷史紀錄:
+
+C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git branch
+  f2e
+  master
+* newbranch1
+  newbranch2
+C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog HEAD
+
+    195fb18 HEAD@{0}: checkout: moving from master to newbranch1
+    1060cb0 HEAD@{1}: reset: moving to HEAD@{1}
+    39b9da7 HEAD@{2}: reset: moving to HEAD@{1}
+    1060cb0 HEAD@{3}: commit: Add d.txt
+    39b9da7 HEAD@{4}: checkout: moving from newbranch1 to master
+    195fb18 HEAD@{5}: commit: Add d.txt
+    65f026a HEAD@{6}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{7}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{8}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{9}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{10}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{11}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{12}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{13}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{14}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{15}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{16}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{17}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{18}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{19}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{20}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog mast
+    er
+    1060cb0 master@{0}: reset: moving to HEAD@{1}
+    39b9da7 master@{1}: reset: moving to HEAD@{1}
+    1060cb0 master@{2}: commit: Add d.txt
+    39b9da7 master@{3}: commit: Create b.txt with content 'master' in the master bra
+    nch
+    e93d0dc master@{4}: commit: a.txt: set 1 as content
+    d7b3014 master@{5}: commit (initial): Initial commit
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog newb
+    ranch1
+    195fb18 newbranch1@{0}: commit: Add d.txt
+    65f026a newbranch1@{1}: commit: Add b.txt in newbranch1
+    e93d0dc newbranch1@{2}: branch: Created from HEAD
+
+## 顯示 reflog 的詳細版本紀錄 ##
+
+`git reflog` 為取出版本歷史紀錄的摘要資訊。但如果想要顯示每一個reflog版本中, 每一個版本的完整 commit 內容, 可用 `git log -g` 指令顯示出來:
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git log -g
+    commit 195fb1883f3f560735db2d0b9190a0dda8792130
+    Reflog: HEAD@{0} (Eden Liu <eden90267@gmail.com>)
+    Reflog message: checkout: moving from master to newbranch1
+    Author: Eden Liu <eden90267@gmail.com>
+    Date:   Wed Apr 6 09:38:55 2016 +0800
+
+    Add d.txt
+
+    commit 1060cb08342af71c50520abcc9c38ab88ef6ca2e
+    Reflog: HEAD@{1} (Eden Liu <eden90267@gmail.com>)
+    Reflog message: reset: moving to HEAD@{1}
+    Author: Eden Liu <eden90267@gmail.com>
+    Date:   Wed Apr 6 16:53:40 2016 +0800
+
+    Add d.txt
+
+    commit 39b9da78e13bb545893b4b9406df2a6c69bb85d2
+    Reflog: HEAD@{2} (Eden Liu <eden90267@gmail.com>)
+    Reflog message: reset: moving to HEAD@{1}
+    Author: Eden Liu <eden90267@atlassian.com>
+    Date:   Tue Mar 15 16:55:41 2016 +0800
+
+    Create b.txt with content 'master' in the master branch
+
+## 刪除特定幾個版本的歷史紀錄 ##
+
+基本上, 版本日誌(reflog)所記錄的只是變更的過程, 而且預設只會儲存在「工作目錄」下的 `.git/` 目錄裡, 這裡所記錄的一樣只是commit物件的指標而已。無論對這些紀錄做任何操作, 不管是竄改、刪除, 都不會影響到目前物件儲存庫的任何內容, 也不會影響版本控管的任何資訊。
+
+如果想刪除之前紀錄的某些紀錄, 可利用 `git reflog delete ref@{specifier}` 來刪除特定歷史紀錄。
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog
+    195fb18 HEAD@{0}: checkout: moving from master to newbranch1
+    1060cb0 HEAD@{1}: reset: moving to HEAD@{1}
+    39b9da7 HEAD@{2}: reset: moving to HEAD@{1}
+    1060cb0 HEAD@{3}: commit: Add d.txt
+    39b9da7 HEAD@{4}: checkout: moving from newbranch1 to master
+    195fb18 HEAD@{5}: commit: Add d.txt
+    65f026a HEAD@{6}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{7}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{8}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{9}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{10}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{11}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{12}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{13}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{14}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{15}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{16}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{17}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{18}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{19}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{20}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog dele
+    te HEAD@{0}
+    error: Not a reflog: HEAD@
+    error: Not a reflog: -encodedCommand
+    error: Not a reflog: MAA=
+    error: Not a reflog: -inputFormat
+    error: Not a reflog: xml
+    error: Not a reflog: -outputFormat
+    error: Not a reflog: text
+
+**註**: 這些版本日誌預設並不會被同步到「遠端儲存庫」, 以免多人開發時大家互相影響, 所以版本日誌算是比較個人的東西。
+
+## 設定歷史紀錄的過期時間 ##
+
+預設Git會幫你保存這些歷史紀錄90天, 如果這些紀錄中已有些commit物件不在分支線上, 則預設會保留30天。
+
+ex: 先前建立一個分支, 然後commit了幾個版本, 最後直接刪除掉該分支, 這時這些曾經commit過的版本(即commit物件)還會儲存在物件儲存區(object storage)中, 但已經無法使用 `git log` 取得該版本, 我們稱這些版本為「不再分支線上的版本」。
+
+想修改預設的過期期限, 可透過 `git config gc.reflogExpire` 與 `git config gc.reflogExpireUnreachable` 修正這兩個過期預設值, 如永遠不想刪除紀錄:
+
+    git config --global gc.reflogExpire "never"
+    git config --global gc.reflogExpireUnreachable "never"
+
+如果只想保存7天
+
+    git config --global gc.reflogExpire "7 days"
+    git config --global gc.reflogExpireUnreachable "7 days"
+
+也可針對特定分支設定
+
+    git config --local gc.master.reflogExpire "14 days"
+    git config --local gc.master.reflogExpireUnreachable "14 days"
+
+    git config --local gc.develop.reflogExpire "never"
+    git config --local gc.develop.reflogExpireUnreachable "never"
+
+上述指令寫入到 `.git\config` 的內容將是:
+
+    [gc "master"]
+    	reflogExpire = 14 days
+    	reflogExpireUnreachable = 14 days
+    [gc "develop"]
+    	reflogExpire = never
+    	reflogExpireUnreachable = never
+
+## 清除歷史紀錄 ##
+
+可使用 git reflog expire --expire=now --all 指令完成刪除動作, 最後搭配 git gc 重新整理或清除那些找不到、無法追蹤的版本。
+
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog
+    195fb18 HEAD@{0}: checkout: moving from master to newbranch1
+    1060cb0 HEAD@{1}: reset: moving to HEAD@{1}
+    39b9da7 HEAD@{2}: reset: moving to HEAD@{1}
+    1060cb0 HEAD@{3}: commit: Add d.txt
+    39b9da7 HEAD@{4}: checkout: moving from newbranch1 to master
+    195fb18 HEAD@{5}: commit: Add d.txt
+    65f026a HEAD@{6}: checkout: moving from f2e to newbranch1
+    65f026a HEAD@{7}: checkout: moving from newbranch1 to f2e
+    65f026a HEAD@{8}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{9}: checkout: moving from newbranch2 to master
+    2549228 HEAD@{10}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{11}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{12}: checkout: moving from newbranch1 to newbranch2
+    65f026a HEAD@{13}: checkout: moving from master to newbranch1
+    39b9da7 HEAD@{14}: checkout: moving from newbranch1 to master
+    65f026a HEAD@{15}: commit: Add b.txt in newbranch1
+    e93d0dc HEAD@{16}: checkout: moving from e93d0dc14653f8b72c1a2fbb3da4327fd06e7cf
+    f to newbranch1
+    e93d0dc HEAD@{17}: checkout: moving from master to e93d0dc14653f8b72c1a2fbb3da43
+    27fd06e7cff
+    39b9da7 HEAD@{18}: checkout: moving from newbranch1 to master
+    e93d0dc HEAD@{19}: checkout: moving from newbranch2 to newbranch1
+    2549228 HEAD@{20}: commit: Modify b.txt with content 'newbranch2' in the newbran
+    ch2 branch
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog expi
+    re --expire=new --all
+    fatal: '--expire=new' is not a valid timestamp
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog expi
+    re --expire=now --all
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git gc
+    Counting objects: 21, done.
+    Delta compression using up to 8 threads.
+    Compressing objects: 100% (13/13), done.
+    Writing objects: 100% (21/21), done.
+    Total 21 (delta 3), reused 0 (delta 0)
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]> git reflog
+    C:\Users\eden_liu\Documents\GitHub\git-branch-demo [newbranch1]>
+
+## 今日小結 ##
+
+Git的版本日誌(reflog)幫我們記憶在版控過程中的所有變更, 幫助我們「回憶」到底這段時間到底對Git儲存庫做什麼事。不過這只是個「日誌」, 不會影響Git儲存庫中的任何版本資訊。
+
+重新整理本日學到的Git指令與參數:
+
+- git reflog
+- git geflog [ref]
+- git log -g
+- git reset "HEAD@{1}" --hard
+- git reflog delete "ref@{specifier}"
+- git reflog delete "HEAD@{0}"
+- git reflog expire --expire=now --all
+- git gc
+- git config --global gc.reflogExpire "never"
+- git config --global gc.reflogExpireUnreachable "never"
