@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 16)"
+title:  "GitHub Study Notes(Day 18)"
 date:   2016-03-17 17:32:00 +0800
 categories: [git, github]
 ---
@@ -1263,6 +1263,7 @@ core.hidedotfiles=dotGitOnly
 ## 選項設定檔的內容結構 ##
 
 PATH: C:\Users\eden_liu (**使用者層級**)
+
 ~~~ java
 
 [user]
@@ -2002,3 +2003,418 @@ Git的版本日誌(reflog)幫我們記憶在版控過程中的所有變更, 幫�
 - git gc
 - git config --global gc.reflogExpire "never"
 - git config --global gc.reflogExpireUnreachable "never"
+
+---
+
+# Day 17: 關於合併的基本觀念與使用方式 #
+
+Git是一種分散式的版本控管系統(DVCS), 過程中會不斷進行分支與合併, 無論是有意的合併(git merge)或無意的合併(git pull), 總之使用Git版控「分支」與「合併」的動作確實經常發生。本篇文章將說明「合併」動作的基本觀念與使用方式。
+
+## 關於「合併」的基本觀念 ##
+
+一般來說, 大家都是以一個主要或預設分支進行開發(`master`), 然後再依據需求建立分支(`bugfix`), 最後則將兩個分支合併成一個。執行「合併」動作, 是將另一個分支合併回目前分支, 然後再手動將另一個分支給移除, 這樣才符合「兩個分支合併成一個」的概念。
+
+實務上, 也經常會將三個、四個或更多的分支(bugfix、feature)合併到其中一個分支。
+
+Git使用合併, 有一個重要觀念【合併的動作必須發生在同一個儲存庫中】。回想一下, 在任何一個Git儲存庫中, 都必須存在一個Initial Commit物件(初始版本), 而所有其他版本都會跟這個版本有關係, 這個關係我們稱為「在分支線上的可追蹤物件」(the tracked object on the branch heads), 所以你不能將一個儲存庫的特定分支合併到另一個毫不相干的儲存庫的某個分支裡。
+
+合併的時候, 只要兩個分支有改到相同檔案, 但行數不一樣, Git就會自動套用/合併這兩個變更。但如果剛好改到「同一個檔案」的「同一行」, 那麼在合併就會發生衝突事件。合併衝突發生時, Git並不會幫你決定任何事, 而是將「解決衝突」的工作交給「你」來負責, 且這些發生衝突的檔案也都會被標示 `unmerged` 狀態, 合併衝突後你可以用 `git status` 指令看到這些狀態。
+
+## 體驗一場成功的合併 ##
+
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir git-merge-demo
+	ryuutekiMacBook-Pro:Github eden90267$ cd git-merge-demo/
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git init
+	Initialized empty Git repository in /Users/eden90267/Github/git-merge-demo/.git/
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ echo . > a.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+
+	Initial commit
+
+	Untracked files:
+  	(use "git add <file>..." to include in what will be committed)
+
+		a.txt
+
+	nothing added to commit but untracked files present (use "git add" to track)
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git commit -m "Initial commit (a.txt created)"
+	[master (root-commit) bebe5df] Initial commit (a.txt created)
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ echo 1 > a.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git commit -m "Update a.txt"
+	[master 57de564] Update a.txt
+ 	1 file changed, 1 insertion(+), 1 deletion(-)
+ 	
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git log
+	commit 57de5647cde2132047745e498757593e970d98c4
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 00:33:34 2016 +0800
+
+	    Update a.txt
+
+	commit bebe5df11393d2ca0e42cdff82d03d737501af80
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 00:32:29 2016 +0800
+
+	    Initial commit (a.txt created)
+	    
+接著用 `git checkout -b feature` 建立一個 `feature` 分支, 並同時把工作目錄給切換到 `feature` 分支進行開發, 然後建立一個內容為 2 的 b.txt 檔案：
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git checkout -b feature
+	Switched to a new branch 'feature'
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch
+	* feature
+	  master
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ echo 2 > b.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ cat b.txt
+	2
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git commit -m "Add b.txt"
+	[feature 5e46a5e] Add b.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 b.txt
+	 
+**注意**：切換「分支」之前, 請隨時查看並保持「工作記錄」的狀態是「乾淨」的, 不要有任何檔案異動中的狀態。
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch feature
+	nothing to commit, working directory clean
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git checkout master
+	Switched to branch 'master'
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ echo NEW LINE >> a.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ cat a.txt
+	1
+	NEW LINE
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	Changes not staged for commit:
+	  (use "git add <file>..." to update what will be committed)
+	  (use "git checkout -- <file>..." to discard changes in working directory)
+
+		modified:   a.txt
+
+	no changes added to commit (use "git add" and/or "git commit -a")
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git commit -m "Update a.txt: 	append NEW LINE"
+	[master 34c6f2e] Update a.txt: append NEW LINE
+	 1 file changed, 1 insertion(+)
+	  
+目前狀態：
+	
+- `master`:
+	- a.txt有兩行, 第一行 `1` , 第二行 `NEW LINE`
+	- 沒有feature分支的變更, 沒有b.txt檔案
+- `feature`:
+   - a.txt: 1(從master分支繼承來)
+   - b.txt: 2
+	
+可用SourceTree查看較為漂亮的commit graph版本圖
+
+以上所做的修改並不會有互相衝突, 所以合併並不會發生任何問題, 接下來就來執行「合併」動作(git merge)。
+
+強調細節：
+
+1. 合併之前, 先看清楚自己在哪個分支
+2. 合併之前, 確保工作目錄乾淨
+3. 合併時請用 `git merge [另一個分支]` 來將另一個分支的變更合併回來
+4. 打錯字, Git會自動幫我執行正確指令
+5. 合併成功後, 可利用git log查看版本紀錄, 可發現**「合併」的過程會自動建立一個新版本！**
+
+範例：
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch
+	  feature
+	* master
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	nothing to commit, working directory clean
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git mrege feature
+	git: 'mrege' is not a git command. See 'git --help'.
+
+	Did you mean this?
+		merge
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git merge feature
+	Merge made by the 'recursive' strategy.
+	 b.txt | 1 +
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 b.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git log --oneline
+	002b70e Merge branch 'feature'
+	34c6f2e Update a.txt: append NEW LINE
+	5e46a5e Add b.txt
+	57de564 Update a.txt
+	bebe5df Initial commit (a.txt created)
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ ls
+	a.txt b.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ cat a.txt
+	1
+	NEW LINE
+	
+合併後狀況可用SourceTree的commit graph看
+
+確實如我們預期把兩個分支中的變更都給合併了, 這就是一場成功的合併！
+
+## 刪除不必要的分支 ##
+
+確定用不到 `git branch -d feature` 刪除分支
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch -d feature
+	Deleted branch feature (was 5e46a5e).
+
+在Git裡, 只要沒執行過「合併」的分支, 都不能用上述指令進行刪除, 必須改用 `git branch -D feature` 才能刪除該分支。
+
+## 救回誤刪的分支 ##
+
+1. 先利用 `git reflog` 找出該分支最後一個版本的 object id(SHA格式的物件絕對名稱)
+2. 執行 `git branch feature <SHA1>`
+
+如下所示, 把 `feature` 分支給救回：
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git reflog
+	002b70e HEAD@{0}: merge feature: Merge made by the 'recursive' strategy.
+	34c6f2e HEAD@{1}: commit: Update a.txt: append NEW LINE
+	57de564 HEAD@{2}: checkout: moving from feature to master
+	5e46a5e HEAD@{3}: commit: Add b.txt
+	57de564 HEAD@{4}: checkout: moving from master to feature
+	57de564 HEAD@{5}: commit: Update a.txt
+	bebe5df HEAD@{6}: commit (initial): Initial commit (a.txt created)
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch feature 34c6f2
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch
+	  feature
+	* master
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git log feature
+	commit 34c6f2ef900024b3aca802523603670d39655eb2
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 00:44:28 2016 +0800
+
+	    Update a.txt: append NEW LINE
+
+	commit 57de5647cde2132047745e498757593e970d98c4
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 00:33:34 2016 +0800
+
+	    Update a.txt
+
+	commit bebe5df11393d2ca0e42cdff82d03d737501af80
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 00:32:29 2016 +0800
+
+	    Initial commit (a.txt created)
+	    
+## 體驗一場衝突的合併 ##
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch
+	  feature
+	* master
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git checkout -b hotfixes
+	Switched to a new branch 'hotfixes'
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch
+	  feature
+	* hotfixes
+	  master
+	  
+修改一行並建立版本, 在切回 `master` 分支：
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ cat a.txt
+	1
+	NEW LINE
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ vi a.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git commit -m "a.txt bug fixed"
+	[hotfixes 51d718c] a.txt bug fixed
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch hotfixes
+	nothing to commit, working directory clean
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git checkout master
+	Switched to branch 'master'
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch
+	  feature
+	  hotfixes
+	* master
+
+在 master 分支修改 a.txt的第一行, 並建立版本
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ vi a.txt
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git commit -m "a.txt bug fixed by Eden"
+	[master 19d9255] a.txt bug fixed by Eden
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	 
+現在狀況勢必發生衝突：
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	nothing to commit, working directory clean
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git merge hotfixes
+	Auto-merging a.txt
+	CONFLICT (content): Merge conflict in a.txt
+	Automatic merge failed; fix conflicts and then commit the result.
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	You have unmerged paths.
+	  (fix conflicts and run "git commit")
+
+	Unmerged paths:
+	  (use "git add <file>..." to mark resolution)
+
+		both modified:   a.txt
+
+	no changes added to commit (use "git add" and/or "git commit -a")
+	
+用 `git status` 可看出目前發生衝突的檔案有哪些, 而且你也可以看到這個檔案位於 `Unmerged paths` 這個區段。
+
+## 查看衝突內容 ##
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git diff
+	diff --cc a.txt
+	index 64bcf3e,d20ab17..0000000
+	--- a/a.txt
+	+++ b/a.txt
+	@@@ -1,2 -1,2 +1,6 @@@
+	++<<<<<<< HEAD
+	 +bugfixed by Eden: 1
+	++=======
+	+ bugfixed: 1
+	++>>>>>>> hotfixes
+	  NEW LINE
+	  
+必須注意的是 `diff` 針對衝突內容的表示法, 看得懂, 才容易知道怎改：
+
+- `<<<<<<< HEAD` 到 `=======` 的內容, 代表 `HEAD` 裡的 `a.txt` 內容。註： `HEAD` 代表當前 `master` 分支的最新版。
+- 從 `=======` 到 `>>>>>>> hotfixes` 的內容, 代表 `hotfixes` 分支裡 `a.txt` 的內容
+
+## 解決衝突的方法 ##
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	You have unmerged paths.
+	  (fix conflicts and run "git commit")
+
+	Unmerged paths:
+	  (use "git add <file>..." to mark resolution)
+
+		both modified:   a.txt
+
+	no changes added to commit (use "git add" and/or "git commit -a")
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	All conflicts fixed but you are still merging.
+	  (use "git commit" to conclude merge)
+
+	Changes to be committed:
+
+		modified:   a.txt
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git commit
+	[master 2d085fa] always commit
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git log --oneline
+	2d085fa always commit
+	19d9255 a.txt bug fixed by Eden
+	51d718c a.txt bug fixed
+	002b70e Merge branch 'feature'
+	34c6f2e Update a.txt: append NEW LINE
+	5e46a5e Add b.txt
+	57de564 Update a.txt
+	bebe5df Initial commit (a.txt created)
+	
+做錯了, 執行 git reset --hard ORIG_HEAD 就可回復到上一版, 然後再重新合併一次引發相同的衝突
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git reset --hard ORIG_HEAD
+	HEAD is now at 19d9255 a.txt bug fixed by Eden
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git log --oneline
+	19d9255 a.txt bug fixed by Eden
+	002b70e Merge branch 'feature'
+	34c6f2e Update a.txt: append NEW LINE
+	5e46a5e Add b.txt
+	57de564 Update a.txt
+	bebe5df Initial commit (a.txt created)
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	nothing to commit, working directory clean
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git branch
+	  feature
+	  hotfixes
+	* master
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git merge hotfixes
+	Auto-merging a.txt
+	CONFLICT (content): Merge conflict in a.txt
+	Automatic merge failed; fix conflicts and then commit the result.
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	You have unmerged paths.
+	  (fix conflicts and run "git commit")
+
+	Unmerged paths:
+	  (use "git add <file>..." to mark resolution)
+
+		both modified:   a.txt
+
+	no changes added to commit (use "git add" and/or "git commit -a")
+	
+## 找出衝突的檔案 ##
+	
+- `git status`
+- `git ls-files -u`
+
+範例：
+
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git status
+	On branch master
+	You have unmerged paths.
+	  (fix conflicts and run "git commit")
+
+	Unmerged paths:
+	  (use "git add <file>..." to mark resolution)
+
+		both modified:   a.txt
+
+	no changes added to commit (use "git add" and/or "git commit -a")
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git ls-files -u
+	100644 58fc33f91f602c290d1c499ff93faefdcd645390 1		a.txt
+	100644 64bcf3e9687e48e52d80a56312d192b9184a8271 2		a.txt
+	100644 d20ab17e4f178163526e69b85ca247dd478fb2a4 3		a.txt
+	
+找到後再用 `git diff [filepath]` 就可以比對其中一個檔案了
+	
+	ryuutekiMacBook-Pro:git-merge-demo eden90267$ git diff a.txt
+	diff --cc a.txt
+	index 64bcf3e,d20ab17..0000000
+	--- a/a.txt
+	+++ b/a.txt
+	@@@ -1,2 -1,2 +1,6 @@@
+	++<<<<<<< HEAD
+	 +bugfixed by Eden: 1
+	++=======
+	+ bugfixed: 1
+	++>>>>>>> hotfixes
+	  NEW LINE
+	  
+## 真正解決衝突 ##
+
+使用SourceTree來修復衝突的檔案, 生命會更美好許多。
+
+-> 用Resolve Using 'Mine'
+
+## 今日小結 ##
+
+- git merge [other_branchname]
+- git checkout -b [new_branchname]
+- git reflog
+- git branch -d [branchname]
+- git branch -D [branchname]
+- git branch feature
+- git reset --hard ORIG_HEAD
+- git status
+- git ls-files -u
+- git diff [filepath]
+
+---
+
+# Day 18: 修正commit過的版本歷史紀錄 Part1 #
