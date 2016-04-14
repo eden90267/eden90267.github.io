@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 18)"
+title:  "GitHub Study Notes(Day 19)"
 date:   2016-03-17 17:32:00 +0800
 categories: [git, github]
 ---
@@ -2418,3 +2418,264 @@ Git使用合併, 有一個重要觀念【合併的動作必須發生在同一個
 ---
 
 # Day 18: 修正commit過的版本歷史紀錄 Part1 #
+
+Git屬於分散式版本控管機制, 對於版本控管方面沒有太多的權限設計, 跟其他如Subversion或TFVC這類版控系統相比, Git提供更多「修正版本紀錄」的機制, 讓你「分享」版本給其他人時候, 能做預先整理。
+
+## 版本控管基本原則 ##
+
+進行版控, 維持良好的版本紀錄有助追蹤每個版本的更新歷程, 但我們很難有機會, 也不太想去追蹤某專案中軟體開發的進程, 許多專案累積版本記錄數量多達數千筆, 誰有這種閒功夫去追查歷史？
+
+然而實務上, 當軟體bug發生時, 就需要去追蹤特定臭蟲的歷史紀錄, 以查出該臭蟲真正發生原因, 這時就是版本控管帶來最大價值的時候。
+
+一些控管原則分享：
+
+- 做一個小功能修改就建立版本, 這樣才容易追蹤變更
+- 千萬不要累積一大堆修改後才建立一個「大版本」
+- 有邏輯、有順序的修正功能, 確保相關的版本修正可按順序提交(commit), 這樣才便於追蹤
+
+但哪個人能確保團隊所有人都能時刻照上述原則進行版控？哪個人不是「想到哪改到哪」？所以, 需要有一套「修改版本」的機制, 讓版本提交到遠端伺服器上的時候, 已經是完美的版本狀態。
+
+## 修正 commit 歷史紀錄的理由 ##
+
+到目前為止, 我們還沒提到關於「遠端儲存庫」的細節, 所以大部分的Git操作都還專注在本地端, 也就是工作目錄下的版本管控, 這儲存庫就位於 `.git/` 目錄下。之後遠端儲存庫的應用, 到時就不只一個人擁有儲存褲, 所需注意細節也就更多。
+
+同一份儲存庫有多人共用情況下, 若有人任意竄改版本, 那麼Git版本控管會無法正常運作。
+
+那什麼樣的使用情境會需要修改版本紀錄？
+
+假設有[A] -> [B] -> [C]三個版本：
+
+- 可能[C]版本你發現commit錯了, 必須刪除這一版本所有變更
+- 你可能commit了之後才發現[C]這個版本其實只有測試程式碼, 你也想刪除它
+- 其中有些版本紀錄訊息有錯字, 想修正訊息文字, 但不影響版本變更歷程
+- 你可能想把這些版本的commit順序調整為 [A] -> [C] -> [B], 讓版本演進更有邏輯性
+- 你發現[B]這個版本忘記加入一個重要的檔案就commit了, 你想事後補救這次變更
+- 在你打算「分享」分支出去時, 發現程式碼有瑕疵, 你可以修改完再分享出去
+
+## 修正 commit 歷史紀錄的注意事項 ##
+
+Git保留了「修改版本歷史紀錄」的機制, 主希望你能在「自我控管版本」到一定程度後, 自己整理一下版本紀錄的各種資訊, 好讓你將版本「發布」出去後, 讓其他人能夠更清楚理解你對這些版本到底做了哪些修改。
+
+所以, 修改版本歷史紀錄時, 有些事情必須特別注意：
+
+- 一個儲存庫可以有許多分支(預設分支名 `master` )
+- 分享Git原始碼最小單位是以「分支」為單位
+- 你可任意修改某分支線上的版本, 只要你還沒「分享」給其他人
+- **當你「分享」特定分支給其他人之後, 這些「已分享」的版本歷史紀錄就別再改了！**
+
+## 準備本日練習用的版本庫 ##
+
+之前【Day 4: 常用的Git版本控管指令】學過 `git reset` 的用法, 主要用來**重置目前的工作目錄**。不過, 相同的指令, 也可用來修正版本歷史紀錄。
+
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir git-reset-demo
+	ryuutekiMacBook-Pro:Github eden90267$ cd git-reset-demo/
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ ls
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git init
+	Initialized empty Git repository in /Users/eden90267/Github/git-reset-demo/.git/
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ ls
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ echo . > a.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ ls
+	a.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git commit -m "Initial commit (a.txt created)"
+	[master (root-commit) 2fc8078] Initial commit (a.txt created)
+ 	1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ echo 1 > a.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git commit -m "Update a.txt"
+	[master ebcb219] Update a.txt
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ echo 1 > b.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git commit -m "Add b.txt"
+	[master b611485] Add b.txt
+ 	1 file changed, 1 insertion(+)
+ 	create mode 100644 b.txt
+ 	
+以上建立了三個版本, 執行 `git log`：
+
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git log
+	commit b611485fd43bf0c946080c2a36a5805c34fd32fd
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:22 2016 +0800
+
+	    Add b.txt
+
+	commit ebcb21993d852f0d8c14d9723db3b89d14a8b28e
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:01 2016 +0800
+
+	    Update a.txt
+
+	commit 2fc8078b6ba276cae9f1545754f7a1e96b78aa5c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:29:38 2016 +0800
+
+	    Initial commit (a.txt created)
+	    
+## 刪除最近一次的版本 ##
+
+用文字表達這三個版本的順序：
+
+	[2fc807] -> [ebcb21] -> [b61148]
+	
+想把最後一個版本刪除, 變成：
+
+	[2fc807] -> [ebcb21]
+	
+可執行 `git reset --hard "HEAD^"` , 即可刪除 `HEAD` 這個版本：**請注意**：在命令提示字元下,  `^` 是特殊符號, 所以必須用雙引號括起來！ 
+
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git reset --hard "HEAD^"
+	HEAD is now at ebcb219 Update a.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git log
+	commit ebcb21993d852f0d8c14d9723db3b89d14a8b28e
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:01 2016 +0800
+
+	    Update a.txt
+
+	commit 2fc8078b6ba276cae9f1545754f7a1e96b78aa5c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:29:38 2016 +0800
+
+	    Initial commit (a.txt created)
+	    
+此時可看見, 原本最新版被刪除。事實上, 原本你感覺被刪除的版本, 其實一直儲存在Git物件儲存區(object storage), 也就是這筆資料一直躺在 `.git\objects\` 目錄下。我們還是可用 `git show b61148` 取得該版本(即 commit 物件)的詳細資料。
+
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git show b611
+	commit b611485fd43bf0c946080c2a36a5805c34fd32fd
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:22 2016 +0800
+
+	    Add b.txt
+
+	diff --git a/b.txt b/b.txt
+	new file mode 100644
+	index 0000000..d00491f
+	--- /dev/null
+	+++ b/b.txt
+	@@ -0,0 +1 @@
+	+1
+	
+## 刪除最近一次的版本, 但保留最後一次的變更 ##
+
+還記得嗎？無論你對Git儲存庫做了什麼事, 都是可以還原的, 只要執行 `git reset --hard ORIG_HEAD` 即可。
+
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git reset --hard ORIG_HEAD
+	HEAD is now at b611485 Add b.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git log
+	commit b611485fd43bf0c946080c2a36a5805c34fd32fd
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:22 2016 +0800
+
+	    Add b.txt
+
+	commit ebcb21993d852f0d8c14d9723db3b89d14a8b28e
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:01 2016 +0800
+
+	    Update a.txt
+
+	commit 2fc8078b6ba276cae9f1545754f7a1e96b78aa5c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:29:38 2016 +0800
+
+	    Initial commit (a.txt created)
+	    
+另一個刪除版本的技巧, 則是「刪除最近一次的變更, 但留下最後一次版本變更的異動內容」, 可執行 `git reset --soft "HEAD^"`:
+
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git reset --soft "HEAD^"
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git log
+	commit ebcb21993d852f0d8c14d9723db3b89d14a8b28e
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:01 2016 +0800
+
+	    Update a.txt
+
+	commit 2fc8078b6ba276cae9f1545754f7a1e96b78aa5c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:29:38 2016 +0800
+
+	    Initial commit (a.txt created)
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git status
+	On branch master
+	Changes to be committed:
+	  (use "git reset HEAD <file>..." to unstage)
+
+		new file:   b.txt
+		
+這代表, 你可以保留最後一次的變更, 再加上一些變更後, 重新執行一次 `git commit` 一次, 並重新設定一個新的紀錄訊息。
+
+## 重新提交一次最後一個版本(即 `HEAD` 版本) ##
+
+如果你發現不小心執行了 `git commit` , 但還有檔案忘記加進去( `git add [filepath]` )或只是紀錄訊息寫錯, 想重新補上, 執行 `git commit --amend`。這個動作, 會把目前紀錄在索引中的變更檔案, 全部添加到當前最新版之中, 並要求修改原本的紀錄訊息。
+
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git reset --hard ORIG_HEAD
+	HEAD is now at b611485 Add b.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git status
+	On branch master
+	Add b.txt
+	nothing to commit, working directory clean
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git log
+	commit b611485fd43bf0c946080c2a36a5805c34fd32fd
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:22 2016 +0800
+
+	    Add b.txt
+
+	commit ebcb21993d852f0d8c14d9723db3b89d14a8b28e
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:01 2016 +0800
+
+	    Update a.txt
+
+	commit 2fc8078b6ba276cae9f1545754f7a1e96b78aa5c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:29:38 2016 +0800
+
+	    Initial commit (a.txt created)
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ echo 1 > c.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git commit --amend
+	[master 4278cfe] Add b.txt Add c.txt
+	 Date: Thu Apr 14 23:30:22 2016 +0800
+	 2 files changed, 2 insertions(+)
+	 create mode 100644 b.txt
+	 create mode 100644 c.txt
+	ryuutekiMacBook-Pro:git-reset-demo eden90267$ git log
+	commit 4278cfe7a2d42504387840899c1730143838a4d5
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:22 2016 +0800
+
+ 	   Add b.txt
+ 	   Add c.txt
+
+	commit ebcb21993d852f0d8c14d9723db3b89d14a8b28e
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:30:01 2016 +0800
+
+	    Update a.txt
+
+	commit 2fc8078b6ba276cae9f1545754f7a1e96b78aa5c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Thu Apr 14 23:29:38 2016 +0800
+
+	    Initial commit (a.txt created)
+	    
+值得注意, 最新版的 `HEAD` 已經是完全不同的 commit 物件了, 所以用 `git log` 所看到的 commit 物件絕對名稱已經跟之前不一樣了。
+
+## 今日小結 ##
+
+今天簡單學到如何對【最新版】(`HEAD`)進行版本的變更, 大多用在不小心 `git commit` 錯的情況, 事實上還有更多調整版本歷史紀錄的方式, 之後文章會出現。
+
+重新整理本日學到的Git指令與參數：
+
+- git reset --hard "HEAD^"
+- git reset --soft "HEAD^"
+- git reset --hard ORIG_HEAD
+- git commit --amend
+
+---
+
+## Day 19: 設定 .gitignore 忽略清單 ##
