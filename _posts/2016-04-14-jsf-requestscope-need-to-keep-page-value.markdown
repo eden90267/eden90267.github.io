@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "JSF: Use RequestScope Need to Keep Page Value"
-date:   2016-03-17 17:32:00 +0800
+date:   2016-04-14 16:16:00 +0800
 categories: [JSF, FlashScope]
 ---
 
