@@ -2679,3 +2679,174 @@ Git保留了「修改版本歷史紀錄」的機制, 主希望你能在「自我
 ---
 
 ## Day 19: 設定 .gitignore 忽略清單 ##
+
+在開發專案時, 工作目錄下可能經常有新的檔案產生(IDE工具產生的那些暫存檔案或快取檔案), 可能有許多檔案並不需要列入版本控管, 所以要排除這些檔案, 稱之「忽略清單」。
+
+## 關於.gitignore ##
+
+在Git, 是透過 `.gitignore` 檔案來定義「忽略清單」, 主目的是排除那些不需要版控的檔案, 列在裡面的檔名或路徑(可包含萬用字元), 都不會出現在 `git status` 的結果中, 自然也不會在執行 git add 的時候被加入。不過, 這僅限於 `Untracked file` 而已, 那些已經列入版控的檔案 (`staged file`), 不受 `.gitignore` 檔案控制。
+
+## 透過GitHub建立預設的忽略清單 ##
+
+建立先的儲存庫, 可讓你選擇GitHub預先幫你定義好的忽略清單, 以下是選擇Java的忽略清單：
+
+	*.class
+
+	# Mobile Tools for Java (J2ME)
+	.mtj.tmp/
+
+	# Package Files #
+	*.jar
+	*.war
+	*.ear
+
+	# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+	hs_err_pid*
+	
+可參考其他語言
+
+## 今日小結 ##
+
+今天的 `.gitignore` 檔案, 幾乎每個專案都會用到, 算是使用Git時一個必備的重要檔案。
+
+---
+
+## Day 20: 修正 commit 過的版本歷史紀錄Part2 ##
+
+在版本控管過程中, 還有個常見的狀況, 那就是當執行了多個版本, 才發現前面幾個版本改錯了, 例如不小心把測試中的程式碼也commit進去, 導致目前這個版本發生了問題, 這時就必須瞭解本篇所說明的內容。
+
+## 準備本日練習用的版本庫 ##
+
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir git-revert-demo
+	ryuutekiMacBook-Pro:Github eden90267$ cd git-revert-demo/
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ ls
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git init
+	Initialized empty Git repository in /Users/eden90267/Github/git-revert-	demo/.git/
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ echo 1 > a.txt
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git commit -m "Initial commit (a.txt created)"
+	[master (root-commit) 97c6d99] Initial commit (a.txt created)
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ echo 2 > a.txt
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git commit -m "Update a.txt"
+	[master 2ca8456] Update a.txt
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ echo 1 > b.txt
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git commit -m "Add b.txt"
+	[master 987ab2d] Add b.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 b.txt
+	 
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git log
+	commit 987ab2dedc4bb8ea5624d781a082207b82376522
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:05:17 2016 +0800
+
+	    Add b.txt
+
+	commit 2ca84563a627efcfdab7a0f90c50e8b3fd3b401c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:04:50 2016 +0800
+
+ 	   Update a.txt
+
+	commit 97c6d99548057f7adcc29688a21fbd4c4a3336b2
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:02:12 2016 +0800
+
+	    Initial commit (a.txt created)
+	    
+假設這個時候, 我們上一個版本( `HEAD~` 或 `HEAD^` 或 `2ca845` )被改錯了, 你希望可以將**該版本**還原就好, 而非把版本重置到第一版再重改一次, 那麼可以試試 `git revert` 指令, 他可把某個版本的變更, 透過「**相反**」的步驟把變更給還原。
+
+## 使用 `git revert` 命令 ##
+
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git log
+	commit 987ab2dedc4bb8ea5624d781a082207b82376522
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:05:17 2016 +0800
+
+	    Add b.txt
+
+	commit 2ca84563a627efcfdab7a0f90c50e8b3fd3b401c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:04:50 2016 +0800
+
+	    Update a.txt
+
+	commit 97c6d99548057f7adcc29688a21fbd4c4a3336b2
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:02:12 2016 +0800
+
+	    Initial commit (a.txt created)
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git show 2ca8
+	commit 2ca84563a627efcfdab7a0f90c50e8b3fd3b401c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:04:50 2016 +0800
+
+	    Update a.txt
+
+	diff --git a/a.txt b/a.txt
+	index d00491f..0cfbf08 100644
+	--- a/a.txt
+	+++ b/a.txt
+	@@ -1 +1 @@
+	-1
+	+2
+	
+**請注意**: 執行 git revert 命令前, 請先確保工作目錄是乾淨的！如果有改到一半的檔案, 建議可透過 `git stash` 建立暫存版本。
+
+相反步驟來還原： `git revert 2ca8` 這個指令, 執行成功會額外再建立一個新版本。
+
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git revert 2ca8
+	[master 80ea124] Revert "Update a.txt"
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git log
+	commit 80ea124ce98678e25d71f5812dc8f4d91bb88aed
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:35:01 2016 +0800
+
+	    Revert "Update a.txt"
+
+	    This reverts commit 2ca84563a627efcfdab7a0f90c50e8b3fd3b401c.
+
+	commit 987ab2dedc4bb8ea5624d781a082207b82376522
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:05:17 2016 +0800
+
+	    Add b.txt
+
+	commit 2ca84563a627efcfdab7a0f90c50e8b3fd3b401c
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:04:50 2016 +0800
+
+	    Update a.txt
+
+	commit 97c6d99548057f7adcc29688a21fbd4c4a3336b2
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:02:12 2016 +0800
+
+執行過程中會讓你編輯最後要 commit 的訊息, 預設會加上 `Revert` 字樣, 還有第三行的地方加上 `This reverts commit xxxx` 告訴你說這個版本主要目的是從 `xxxx` 版本還原的。
+
+	ryuutekiMacBook-Pro:git-revert-demo eden90267$ git show 80ea
+	commit 80ea124ce98678e25d71f5812dc8f4d91bb88aed
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Fri Apr 15 05:35:01 2016 +0800
+
+ 	   Revert "Update a.txt"
+
+ 	   This reverts commit 2ca84563a627efcfdab7a0f90c50e8b3fd3b401c.
+
+	diff --git a/a.txt b/a.txt
+	index 0cfbf08..d00491f 100644
+	--- a/a.txt
+	+++ b/a.txt
+	@@ -1 +1 @@
+	-2
+	+1
+	
+	## 使用 git revert 命令失敗的情況 ##
+	
+	事實上, 這個 `git revert` 是執行了「合併」的動作
