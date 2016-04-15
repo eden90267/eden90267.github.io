@@ -2847,6 +2847,135 @@ Git保留了「修改版本歷史紀錄」的機制, 主希望你能在「自我
 	-2
 	+1
 	
-	## 使用 git revert 命令失敗的情況 ##
-	
-	事實上, 這個 `git revert` 是執行了「合併」的動作
+## 使用 git revert 命令失敗的情況 ##
+
+事實上, 這個 `git revert` 是執行了「合併」的動作, 來證明這個過程。
+
+    C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]>type a.txt
+    C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]>echo 3 > a.txt
+    C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]>git add .
+    C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]>git commit -m "Update a.txt to '3'"
+	C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]> git log
+	commit 464171e44426c7a342fb780dd622b4df3c5474d2
+	Author: Eden Liu <eden90267@gmail.com>
+	Date:   Fri Apr 15 13:37:36 2016 +0800
+
+	    Update a.txt to '3
+
+	commit 790bbd0da0ecdf0e39e4c5beb7e3ea4f8904f2bf
+	Author: Eden Liu <eden90267@gmail.com>
+	Date:   Fri Apr 15 13:35:24 2016 +0800
+
+	    Revert "Update a.txt"
+
+	    This reverts commit 7cfd95e5aec48467872ae99618aac6ee208e4fb5.
+
+	commit 3b0770762561e0233aea5efd3e3d4e40bd3033f8
+	Author: Eden Liu <eden90267@gmail.com>
+	Date:   Fri Apr 15 13:34:37 2016 +0800
+
+	    Add b.txt
+
+	commit 7cfd95e5aec48467872ae99618aac6ee208e4fb5
+	Author: Eden Liu <eden90267@gmail.com>
+	Date:   Fri Apr 15 13:34:09 2016 +0800
+
+	    Update a.txt
+
+	commit 635c0e49e0989f386e11bbea2ac94f53c4c8f6da
+	Author: Eden Liu <eden90267@gmail.com>
+	Date:   Fri Apr 15 13:33:48 2016 +0800
+
+	    Initial commit (a.txt created)
+
+這時如果再重執行一次 `git revert 7cfd` , 試圖再還原一次, 會看到是「合併」失敗才會有的衝突情形:
+
+	C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]> git revert 7cfd
+	warning: Cannot merge binary files: a.txt (HEAD vs. parent of 7cfd95e... Update a.txt)
+	error: could not revert 7cfd95e... Update a.txt
+	hint: after resolving the conflicts, mark the corrected paths
+	hint: with 'git add <paths>' or 'git rm <paths>'
+	hint: and commit the result with 'git commit'
+	C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master +0 ~0 -0 !1 | +0 ~0 -0 !1]> git diff --text HEAD HEAD^
+	diff --git a/a.txt b/a.txt
+	index 00b30ed..ca90535 100644
+	--- a/a.txt
+	+++ b/a.txt
+	@@ -1,2 +1,2 @@
+	-<FF><FE>3^@^M^@
+	+<FF><FE>1^@^M^@
+	 ^@
+	\ No newline at end of file
+
+(實際測試果結果並未發生衝突, 而是 `a.txt` 保持原樣 `3` 的內容..只是沒有直接建立新Revert commit, 應該跟Gt版本有關)
+
+發生本次衝突原因在於, 想還原的 `7cfd` 這個版本, 變更原是 `1` -> `2`, 還原內容是 `2` -> `1` , 但現在內容卻是 `3` 而不是 `2` , 因而發生衝突狀況。
+
+合併衝突的解決:
+
+1. 手動編輯 `a.txt`
+2. 使用SourceTree工具, 自行選出一個想要的版本。
+
+## 使用 `git revert` 命令套用變更, 但不執行 commit 動作 ##
+
+使用 `git revert` 時, 預設若執行成功, 會直接建立一個commit版本, 如果希望執行git revert後還想再添加些內容, 再自行簽入, 可使用以下步驟:
+
+假設要還原 `3b077` 這個版本, 這版本其實是新增一個 b.txt 檔案而已, 用 `git show 3b077` 顯示其變更狀況, 會看到有一行 `--- /dev/null` 其實就是代表 `3b077` 這一版之前沒這個檔案, 代表這依檔案在這版本才新增進來, 而且內容為 `1`。這也代表, 如果要成功「還原」(revert)這版, 目前 `b.txt` 內容必須為 1 , 然後才會成功執行「刪除」的動作。
+
+	C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]> git show --text 3b077
+	commit 3b0770762561e0233aea5efd3e3d4e40bd3033f8
+	Author: Eden Liu <eden90267@gmail.com>
+	Date:   Fri Apr 15 13:34:37 2016 +0800
+
+	    Add b.txt
+
+	diff --git a/b.txt b/b.txt
+	new file mode 100644
+	index 0000000..ca90535
+	--- /dev/null
+	+++ b/b.txt
+	@@ -0,0 +1,2 @@
+	+<FF><FE>1^@^M^@
+	+^@
+	\ No newline at end of file
+
+輸入 `git revert -n 3b077` , 沒提示任何文字, 但事實上 `b.txt` 這檔案已經成功被刪除了。
+
+	C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]> git status
+	On branch master
+	nothing to commit, working directory clean
+	C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master]> git revert -n 3b077
+
+	C:\Users\eden_liu\Documents\GitHub\git-revert-demo [master +0 ~0 -1]> git status
+
+	On branch master
+	You are currently reverting commit 3b07707.
+	  (all conflicts fixed: run "git revert --continue")
+	  (use "git revert --abort" to cancel the revert operation)
+
+	Changes to be committed:
+	  (use "git reset HEAD <file>..." to unstage)
+
+	        deleted:    b.txt
+
+這時候, 索引狀態已經被更新, 但還是可以繼續修改這個版本, 直到你想完成本次動作。上圖可看到有兩個執行選項
+
+1. `git revert --continue` 代表你已經完成所有操作, 並且建立一個新版本, 就像 `git commit` 一樣
+2. `git revert --abort` 代表你準備放棄這次復原的動作, 執行這個命令會讓所有變更狀態還原, 也就是刪除的檔案又會被加回來。
+
+**請注意**: 當 `git revert -n` 執行完後, 並不是用 `git commit` 建立版本喔!
+
+## 今日小結 ##
+
+今天介紹的「還原」版本的機制, 其實是透過「新增一個版本」的方式把變更的內容改回來, 而且透過這種方式, 你可以透過版本歷史紀錄中明確找出你到底是針對哪幾個版本進行還原的。另外就是這個「還原」過程, 其實跟「合併」的過程非常類似, 發生衝突時的解決方法也都如出一轍。
+
+本日學到的Git指令與參數:
+
+- git show [commit_id]
+- git revert [commit_id]
+- git revert -n [commit_id]
+
+另外還有些參數沒介紹到, 建議可用 git help revert 查詢完整用法:
+
+- git revert -s [commit_id] (在訊息內容加上目前使用者的簽署名稱)
+- git revert -e [commit_id] (在完成版本之前顯示編輯訊息的視窗)
