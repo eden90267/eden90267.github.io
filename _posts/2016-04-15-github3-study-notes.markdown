@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 21)"
+title:  "GitHub Study Notes(Day 22)"
 date:   2016-04-15 21:42:00 +0800
 categories: [git, github]
 ---
@@ -148,3 +148,164 @@ categories: [git, github]
 - git cherry-pick [commit_id] -e
 - git cherry-pick [commit_id] -x
 - git cherry-pick [commit_id] -n
+
+---
+
+# Day 22: 修正 commit 過的版本歷史紀錄 Part 4 (Rebase) #
+
+我們之前講了三種不同修正版本的方法, 嚴格上來說 `git revert` 與 `git cherry-pick` 並不算「修正版本歷史紀錄」, 而是套用先前曾經 commit 過的版本, 看是「重新套用」或「反向套用」的差別而已。本篇文章將要說明Git中的Rebase機制, 這個所謂的 Rebase 機制就是真的用來修改 commit 紀錄的功能了, 其功能重要且強大。
+
+## 準備本日練習用的版本庫 ##
+
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir git-rebase-demo
+	ryuutekiMacBook-Pro:Github eden90267$ cd git-rebase-demo/
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git init
+	Initialized empty Git repository in /Users/eden90267/Github/git-rebase-demo/.git/
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo 1 > a.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Initial commit (a.txt created)"
+	[master (root-commit) 183cb06] Initial commit (a.txt created)
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo 2 > a.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Update a.txt to 2"
+	[master 591f890] Update a.txt to 2
+	 2 files changed, 1 insertion(+), 1 deletion(-)
+	 create mode 100644 null
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git checkout -b branch1
+	Switched to a new branch 'branch1'
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo b > b.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Add b.txt"
+	[branch1 4eb46b8] Add b.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 b.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo c > c.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Add c.txt"
+	[branch1 b3d3cad] Add c.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 c.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo 333 > c.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Update c.txt to 333"
+	[branch1 6b20aa3] Update c.txt to 333
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo d > d.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Add d.txt"
+	[branch1 304ecde] Add d.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 d.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git checkout master
+	Switched to branch 'master'
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo 3 > a.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Update a.txt to 3"
+	[master abfad95] Update a.txt to 3
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	 
+## 使用 `git rebase` 命令的注意事項 ##
+
+首先, 「工作目錄」必須是乾淨, 工作目錄下的「索引」不能有任何準備要commit的檔案(staged files)在裡面, 否則將無法執行。
+
+再來, 也是最重要的, 如果你的分支是從遠端儲存庫下載來的, 請千萬不要透過Rebase修改版本歷史紀錄, 否則你將會無法將修改後的版本送到遠端儲存庫！
+
+## Rebase是什麼？ ##
+
+"Re-"與"Base"複合字, 這裡的"Base"代表「基礎版本」的意思, 表示你想要重新修改特定分支的「基礎版本」, 把另外一個分支的變更, 當成我這個分支的基礎。
+
+先做一個簡單的示範, 大概做幾件事：
+
+1. 切換至 `branch1` 分支: `git ckeckout branch1`
+2. 然後執行Rebase動作, 把 `master` 當成我們的基礎版本: `git rebase master`
+
+以下範例：
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git branch
+	  branch1
+	* master
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git checkout branch1
+	Switched to branch 'branch1'
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git rebase master
+	First, rewinding head to replay your work on top of it...
+	Applying: Add b.txt
+	Applying: Add c.txt
+	Applying: Update c.txt to 333
+	Applying: Add d.txt
+	
+請注意執行完 `git rebase master` 之後的顯示訊息, 他說先將我們 `branch1` 分支中的最新版本(head)倒帶(**rewind**)到跟 `master` 一樣的分支起點, 然後再重新套用(**replay**)指定的 `master` 分支中所有版本。英文的**on top of it**代表的是讓 `branch1` 分支原本的變更套用在 `master` 上面, 所謂的「上面」代表是先套用 `master` 的版本, 然後才套用 `branch1` 的版本(詳見上面範例 `Applying:` 那幾行)。
+
+套完後看看SourceTree的版本線圖, 有沒有很神奇, 版本線圖變成一直線了！
+
+是否覺得「分支」的感覺不見了？事實上, 分支並沒有改變, 而是這幾個版本的「套用順序」被修改了。目前版本圖狀況如同以下指令的執行順序：
+
+1. 建立 Initail commit(a.txt created), 同時建立 master 分支
+2. 建立 Update a.txt to 2
+3. 建立 Update a.txt to 3
+4. 建立並切換至 `branch1` 分支
+5. 然後不斷 commit 到 Add d.txt 這個版本
+
+所以, 這其實還是「兩個分支」, 並沒有被合併成一個！**千萬別認為**這張圖只有一條線, 所以只有一個分支。
+
+有分支, 就有合併, 現在如果想要把 `branch1` 的變更, 套用到 `master` 分支上, 在使用過 Rebase 之後, 你會有兩種合併的方式：
+
+## 1. 透過一般合併指令, 並觸發 Git 的快轉機制(Fast-forward) ##
+
+先切換到 `master` 分支, 然後直接執行 `git merge branch1` , 這時會引發Git的快轉機制(Fast-forward)。所謂的「快轉機制」, 就是Git得知這個合併的過程, 其實會依序套用 `branch1` 原本就有的變更, 所以在合併時會直接修改 `master` 分支的 `HEAD` 參照絕對名稱, 直接移動到 `branch1` 的 `HEAD` 那個版本。
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git branch
+	* branch1
+	  master
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git checkout master
+	Switched to branch 'master'
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git merge branch1
+	Updating abfad95..e542fcd
+	Fast-forward
+	 b.txt | 1 +
+	 c.txt | 1 +
+	 d.txt | 1 +
+	 3 files changed, 3 insertions(+)
+	 create mode 100644 b.txt
+	 create mode 100644 c.txt
+	 create mode 100644 d.txt
+	 
+最後我們得到的線圖還是一直線, 但可看到 `master` 的分支已經移動到跟 `branch1` 一樣了。
+
+## 2. 透過 --no-ff 參數, 停用 Git 的快轉機制 ##
+
+先切換到 `master` 分支, 然後直接執行 `git merge branch1 --no-ff`
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git branch
+	  branch1
+	* master
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git merge branch1 --no-ff
+	Merge made by the 'recursive' strategy.
+	 b.txt | 1 +
+	 c.txt | 1 +
+	 d.txt | 1 +
+	 3 files changed, 3 insertions(+)
+	 create mode 100644 b.txt
+	 create mode 100644 c.txt
+	 create mode 100644 d.txt
+	 
+當你合併時指定停用Git的快轉機制, 那就代表「不允許快轉」的意思。也代表, 他會強迫你打算合併那個 `branch1` 先建立一個分支, 然後最後再合併回 `master`, 也代表我們再次變更 `branch1` 的版本線圖。最終, 看到的版本線圖會有兩條線, 比剛剛一直線還漂亮！
+
+最後, `branch1` 用不到的話, 就可以把這個分支給刪除: `git branch -d branch1`。
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git branch -d branch1
+	Deleted branch branch1 (was e542fcd).
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git branch
+	* master
+
+來比對一下, 最一開始建立的初始版本進行合併, 原 `branch1` 是從 **Update a.txt to 2 **這一版開始分支的, 透過 Rebase 之後, 分支的起點不太一樣了, 而是改由 **Update a.txt to 3** 這個分支開始, 是不是很有趣！
+
+## 今日小結 ##
+
+- git rebase master
+- git merge branch1
+- git merge branch1 --no-ff
+- git branch -d branch1
+
+---
