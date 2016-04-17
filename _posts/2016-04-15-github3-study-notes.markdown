@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 22)"
+title:  "GitHub Study Notes(Day 23)"
 date:   2016-04-15 21:42:00 +0800
 categories: [git, github]
 ---
@@ -309,3 +309,288 @@ categories: [git, github]
 - git branch -d branch1
 
 ---
+
+# Day 23: 修正 commit 過的版本歷史紀錄 Part 5 #
+
+上一篇談到Rebase是用來將現有兩個分支進行「重新指定基礎版本」, 執行Rebase後, 也會改掉原本分支的起點(分支點移動了), 所以導致版本線圖發生變化。不過Rebase可以做到的不只這樣, 他還可以用來修改特定分支線上任何一個版本的版本資訊。
+
+## 準備本日練習用的版本庫 ##
+
+	ryuutekiMacBook-Pro:~ eden90267$ cd Github/
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir git-rebase-demo
+	mkdir: git-rebase-demo: File exists
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir git-rebase-demp
+	ryuutekiMacBook-Pro:Github eden90267$ rmdir git-rebase-demp/
+	ryuutekiMacBook-Pro:Github eden90267$ clear
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir git-rebase-demo
+	ryuutekiMacBook-Pro:Github eden90267$ cd git-rebase-demo/
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git init
+	Initialized empty Git repository in /Users/eden90267/Github/git-rebase-demo/.git/
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo 1 > a.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Initial commit (a.txt created)"
+	[master (root-commit) c159e18] Initial commit (a.txt created)
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo 2 > a.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Update a.txt to 2"
+	[master a0c0b03] Update a.txt to 2
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git checkout -b branch1
+	Switched to a new branch 'branch1'
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo b > b.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Add b.txt"
+	[branch1 a58e098] Add b.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 b.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo c > c.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Add c.txt"
+	[branch1 d8e7168] Add c.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 c.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo 333 > c.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Update c.txt to 333"
+	[branch1 aeefc04] Update c.txt to 333
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo d > d.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Add d.txt"
+	[branch1 9010401] Add d.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 d.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git checkout master
+	Switched to branch 'master'
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo 3 > a.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Update a.txt to 3"
+	[master 6c7cbe1] Update a.txt to 3
+	 1 file changed, 1 insertion(+), 1 deletion(-)
+	 
+## 使用 git rebase 命令的注意事項 ##
+
+還是必須重申一次！「工作目錄乾淨」, 「索引」不能有任何準備要commit的檔案(staged files), 否則指令將會無法執行。
+
+若分支是從遠端儲存庫下載下來的, 請**千萬不要**透過Rebase修改版本歷史紀錄, 否則將無法將修改後的版本送到遠端儲存庫！
+
+## Rebase能做的事 ##
+
+上篇文章講的, 你可以將某個分支當成自己目前分支的「基礎版本」。除了這件事以外, 你還可用修改某個分支中「特定一段」歷程的紀錄, 可做的事包括：
+
+1. 調換commit的順序
+2. 修改commit的訊息
+3. 插入一個commit
+4. 編輯一個commit
+5. 拆解一個commit
+6. 壓縮一個commit, 且保留訊息紀錄
+7. 壓縮一個commit, 但丟棄版本紀錄
+8. 刪除一個commit
+
+這八件事, 可完整看出Rebase修正歷史版本紀錄的強大威力, 接下來就逐一介紹Rebase幫我們修訂版本。
+
+## 1. 調換 commit 的順序 ##
+
+首先, 先切換到 `branch1` 分支
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git checkout branch1
+	Switched to branch 'branch1'
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git branch
+	* branch1
+	  master
+	  
+到SourceTree查看版本線圖, 然後先決定這個分支中想執行的Rebase的起點, 決定後直接在SourceTree複製該版本的**絕對名稱**。在該版本按下滑鼠右鍵, 再點選**Copy SHA to Clipboard**即可將id複製到剪貼簿中
+
+選 `Update a.txt to 2`
+
+然後執行 git rebase 39cd446e65f50467ec604704e6d08ad0eb81a630 -i
+
+跳出編輯器, 並讓你編輯一系列「指令」：
+
+	pick d57449a Add b.txt
+	pick ab053d5 Add c.txt
+	pick 1186209 Update c.txt to 333
+	pick 3cdac55 Add d.txt
+
+	# Rebase 39cd446..3cdac55 onto 39cd446 (4 command(s))
+	#
+	# Commands:
+	# p, pick = use commit
+	# r, reword = use commit, but edit the commit message
+	# e, edit = use commit, but stop for amending
+	# s, squash = use commit, but meld into previous commit
+	# f, fixup = like "squash", but discard this commit's log message
+	# x, exec = run command (the rest of the line) using shell
+	#
+	# These lines can be re-ordered; they are executed from top to bottom.
+	#
+	# If you remove a line here THAT COMMIT WILL BE LOST.
+	#
+	# However, if you remove everything, the rebase will be aborted.
+	#
+	# Note that empty commits are commented out
+	~
+	~
+	
+你如果什麼都不改, 就是執行這一系列 pick 等動作, 必須了解是這些指令的格式, 與其意。
+
+先看第一行, 區分成三個欄位, 分別以「空白字元」間隔, 分別如下：
+
+1. `pick`代表的是「命令」
+2. `d57449a` 代表的是要使用的commit物件編號
+3. 剩下文字則是這版本的紀錄訊息摘要
+
+若有看過【Day 22: 修正 commit 過的版本歷史紀錄 Part 4】, 應該知道Rebase執行, 會先將目前 `branch1` 分支的最新版本(head)倒帶(rewind)到你這次指定的分支起點(rewinding head), 在這例子, 我們指定的分支起點是  `39cd446e65f50467ec604704e6d08ad0eb81a630` 這個節點。
+
+我們用 `git log` 查看目前的版本紀錄, 我們指定的那個版本, 並不在我們Rebase指令清單中。該指令清單, 由上至下分別是「最舊版」到「最新版」的順序, 跟我們 `git log` 執行的顯示順序剛好相反。
+
+	pick d57449a Add b.txt
+	pick ab053d5 Add c.txt
+	pick 1186209 Update c.txt to 333
+	pick 3cdac55 Add d.txt
+	
+這裡的 pick 代表的功能是 `use commit` , 也就是我們要用這個版本來commit新版本。也就是上篇文章講到的**重新套用**(replay)這個字, 所以這幾個指令, 就是讓你在分支「倒帶」之後, 重新用這幾個版本套用一次版本變更, 而且重新套用的過程會沿用當時版本的變更紀錄。
+
+現在先嘗試「調換 commit 的順序」, 只要很簡單的修改這份文字檔, 把版本前後順序對調即可:
+
+	pick ab053d5 Add c.txt
+	pick d57449a Add b.txt
+	pick 1186209 Update c.txt to 333
+	pick 3cdac55 Add d.txt
+	
+然後存檔退出, 看指令最後執行結果如何, 可發現, 這兩個版本真的對調了
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git rebase 39cd446e65f50467ec604704e6d08ad0eb81a630 -i
+	Successfully rebased and updated refs/heads/branch1.
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git log --oneline
+	2a56208 Add d.txt
+	9cff35e Update c.txt to 333
+	a650ba9 Add b.txt
+	3e7e741 Add c.txt
+	39cd446 Update a.txt to 2
+	bab19ab Initial commit (a.txt created)
+	
+這裡有一點必須特別注意, 那就是從 `39cd446e65f50467ec604704e6d08ad0eb81a630` 這個版本開始, 所有後續版本的 commit 絕對名稱全部都不一樣了, 這代表我們在Rebase的過程會重新建立許多新的commit物件。那舊的到哪裡去了？其實全部都還在, 只是找不到罷了, 全部都躺在Git物件儲存庫中, 只要你知道這些版本的絕對名稱, 可以隨時取出！(git reflog命令)
+
+SourceTree看一下版本線圖, 感覺上跟之前的差很多, 但其實只有這兩個版本調換而已, 線圖不太一樣的原因是時間序改變了, 應該是SourceTree顯示邏輯跟時間序有關, 才會讓這線圖變得跟之前差這麼多。
+
+## 2. 修改 commit 的訊息 ##
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git rebase 39cd446e65f50467ec604704e6d08ad0eb81a630 -i
+
+	pick 3e7e741 Add c.txt
+	pick a650ba9 Add b.txt
+	reword 9cff35e Update c.txt to 333
+	pick 2a56208 Add d.txt
+	
+想修改 `9cff35e` 這個版本訊息, 把前面 `pick` 改成 `reword` 即可。
+
+然後存檔退出, Git接著會開始重新 pick 這些版本進行套用, 但套用到 reword這個命令, 會重新開啟一次文字編輯器, 讓你可在此時變更版本訊息文字, 改成： `Update: c.txt is changed to 333`
+	
+	[detached HEAD 7c12022] Update: c.txt is changed to 333
+ 	Date: Sun Apr 17 23:44:21 2016 +0800
+ 	1 file changed, 1 insertion(+), 1 deletion(-)
+	Successfully rebased and updated refs/heads/branch1.
+	
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git log --oneline
+	c154d34 Add d.txt
+	7c12022 Update: c.txt is changed to 333
+	a650ba9 Add b.txt
+	3e7e741 Add c.txt
+	39cd446 Update a.txt to 2
+	bab19ab Initial commit (a.txt created)
+	
+該版本與**後續版本**的commit物件編號也會不一樣了, 不一樣代表這兩個是新的commit物件。
+
+## 3. 插入一個commit ##
+
+在執行一次 `git rebase 39cd446e65f50467ec604704e6d08ad0eb81a630 -i`
+
+	pick 3e7e741 Add c.txt
+	pick a650ba9 Add b.txt
+	pick 7c12022 Update: c.txt is changed to 333
+	pick c154d34 Add d.txt
+	
+想在 `7c12022` 版本之後「插入一個新版本」, 只要在 `7c12022` 這行前面的 pick 改成 edit 即可讓Rebase在重新套用的過程中「暫停」在這個版本, 然後讓你可對這版本進行編輯動作。
+
+	pick 3e7e741 Add c.txt
+	pick a650ba9 Add b.txt
+	edit 7c12022 Update: c.txt is changed to 333
+	pick c154d34 Add d.txt
+	
+然後存檔退出, 接著Git會開始執行套用, 等執行到 `7c12022` 這個版本時, 套用的動作會被中斷, 並提示你可執行 `git commit --amend` 重新執行一次 commit動作：
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git rebase 	39cd446e65f50467ec604704e6d08ad0eb81a630 -i
+	Stopped at 7c12022e993b9d813b684e966ab00acccc0609e7... Update: c.txt is changed to 333
+	You can amend the commit now, with
+
+		git commit --amend
+
+	Once you are satisfied with your changes, run
+
+		git rebase --continue
+
+接下來直接在這階段「建立新版本」：
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ echo test > z.txt
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git add .
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git status
+	rebase in progress; onto 39cd446
+	You are currently editing a commit while rebasing branch 'branch1' on '39cd446'.
+	  (use "git commit --amend" to amend the current commit)
+	  (use "git rebase --continue" once you are satisfied with your changes)
+
+	Changes to be committed:
+	  (use "git reset HEAD <file>..." to unstage)
+
+		new file:   z.txt
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git commit -m "Add z.txt"
+	[detached HEAD f611c51] Add z.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 z.txt
+	 
+接著執行 `git rebase --continue` 讓Rebase指令繼續完成。
+
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git rebase --continue
+	Successfully rebased and updated refs/heads/branch1.
+	
+	ryuutekiMacBook-Pro:git-rebase-demo eden90267$ git log --oneline
+	b42073b Add d.txt
+	f611c51 Add z.txt
+	7c12022 Update: c.txt is changed to 333
+	a650ba9 Add b.txt
+	3e7e741 Add c.txt
+	39cd446 Update a.txt to 2
+	bab19ab Initial commit (a.txt created)
+	
+## 4. 編輯一個commit ##
+
+編輯一個commit如同【插入一個commit】, 版本修正 `edit` 命令, 就可利用 `git commit --amend` 重新執行一次 commit 動作, 等同編輯了某個版本紀錄。
+
+## 5. 拆解一個commit ##
+
+拆解一個commit紀錄, 代表的是你想把「某一個commit紀錄」變成兩筆記錄, 其實這動作跟【插入一個commit幾乎完全一樣】。查別在你只要把編輯中的那個版本, 將某些檔案從「索引」狀態中移除, 然後執行 `git commit --amend` 就可建立一個新版。然後再執行 `git add .` , `git commit`, 即可將原本一個版本變更兩個版本。
+
+## 6. 壓縮一個commit, 且合併訊息紀錄 ##
+
+壓縮一個commit, 代表這幾個版本中, 有個版本訊息有點多餘, 而且可把這個版本的變更合併到「上一個版本」, 那麼可修改Rebase指令, 把 `pick` 修改為 `squash` 即可。
+
+透過壓縮方式, 被套用 `squash` 命令的版本, 其「版本記錄訊息」會被自動加入到「上一個版本」的訊息中。
+
+## 7. 壓縮一個commit, 但丟棄版本紀錄 ##
+
+想合併兩個版本變更, 但不需要合併紀錄訊息, 那麼可修改Rebase指令, 把 `pick` 修改為 `fixup` 即可。
+
+## 8. 刪除一個commit ##
+
+刪除一個commit是最簡單的, 只要直接把要刪除這幾行 `pick` 命令給移除即可。
+
+## 今日小結 ##
+
+透過 git rebase 可以有效幫你「重整版本」, 不但讓你的 Git 版本紀錄更加易懂, 也更有邏輯。這樣的好處, 在多人開發的Git專案尤其明顯。
+
+- git rebase [commit_id] -i
+- git commit --[amend | continue]
