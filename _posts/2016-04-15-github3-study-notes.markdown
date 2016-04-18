@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 23)"
+title:  "GitHub Study Notes(Day 24)"
 date:   2016-04-15 21:42:00 +0800
 categories: [git, github]
 ---
@@ -594,3 +594,270 @@ SourceTree看一下版本線圖, 感覺上跟之前的差很多, 但其實只有
 
 - git rebase [commit_id] -i
 - git commit --[amend | continue]
+
+---
+
+# Day 24: 使用GitHub遠端儲存庫 - 入門篇 #
+
+GitHub是目前最多人採用的Git線上管理平台, 它包含完整的Git遠端儲存庫實作, 還有完整的議題追蹤機制與報表, 更有成千上萬的開源專案都在GitHub進行版本控管。本篇文章主要講述GitHub最基本的使用方式。
+
+GitHub建立專案有兩種不同方式。
+
+## 將本地儲存庫的變更上傳到遠端儲存庫的方法 ##
+
+本地變更送上GitHub有好幾種不同方式：
+
+1. 在GitHub建立一個「沒有版本」的空白Git儲存庫, 然後透過 `git clone` 取得遠端儲存庫, 再建立版本後上傳。
+2. 在GitHub建立一個「沒有版本」的空白Git儲存庫, 然後直接將現有的本地Git儲存庫上傳到指定的GitHub專案
+3. 在GitHub建立一個「有初始化版本」的Git儲存庫, 然後透過 `git clone` 取得遠端儲存庫, 再建立版本後上傳
+4. 在GitHub建立一個「有初始化版本」的Git儲存庫, 然後直接將現有的本地Git儲存庫上傳到指定的GitHub專案
+
+嚴格說起來應該只有兩種：
+
+1. 透過 `git clone` 取得遠端儲存庫, 再建立版本後上傳
+
+	「沒有版本」的空白儲存庫, 連預設的 `master` 分支都沒有, 所以用預設的指令無法上傳到遠端儲存庫。所以在指令操作上有兩種用法。
+
+2. 直接將現有的本地Git儲存庫上傳到指定的GitHub專案
+
+	因為通常一個Git儲存庫只會有一個「初始commit物件」, 如果本地儲存庫已經建立了幾個版本, 代	表在你的本地儲存庫中已經有了自己的「初始commit物件」, 這將與GitHub建立的「有初始化版本」	的Git儲存庫相互衝突, 所以上傳的指令也會有些不同。
+	
+## 透過 `git clone` 取得遠端儲存庫, 再建立版本後上傳 ##
+
+這方法最簡單, 因還沒有本地儲存庫的存在, 甚至連工作目錄都沒有, 所以直接利用git clone即可把專案下載。使用GitHub, 最簡單方法是利用GitHub for Windows工具。你只要點擊**Clone in Desktop**按鈕, 即可自動啟動GitHub for Windows工具幫你下載Git專案。
+
+	ryuutekiMacBook-Pro:Github eden90267$ git clone https://github.com/eden90267/sandbox-empty.git
+	Cloning into 'sandbox-empty'...
+	warning: You appear to have cloned an empty repository.
+	Checking connectivity... done.
+	ryuutekiMacBook-Pro:Github eden90267$ git clone https://github.com/eden90267/sandbox-initialized.git
+	Cloning into 'sandbox-initialized'...
+	remote: Counting objects: 5, done.
+	remote: Compressing objects: 100% (4/4), done.
+	remote: Total 5 (delta 0), reused 0 (delta 0), pack-reused 0
+	Unpacking objects: 100% (5/5), done.
+	Checking connectivity... done.
+	
+`sandox-empty`這專案為例, 這是一個「沒有版本」的空白Git儲存庫, 在GitHub上的遠端儲存庫是完全空的, 連預設的 `master` 分支都沒有, 所以下達 `git push` 要加上 `-u` 參數, 才能成功把本地儲存庫上傳到GitHub上的遠端儲存庫, 其指令 `git push -u origin master`
+
+	ryuutekiMacBook-Pro:Github eden90267$ cd sandbox-empty/
+	ryuutekiMacBook-Pro:sandbox-empty eden90267$ git log
+	fatal: bad default revision 'HEAD'
+	ryuutekiMacBook-Pro:sandbox-empty eden90267$ git status
+	On branch master
+
+	Initial commit
+
+	nothing to commit (create/copy files and use "git add" to track)
+	ryuutekiMacBook-Pro:sandbox-empty eden90267$ echo a > a.txt
+	ryuutekiMacBook-Pro:sandbox-empty eden90267$ git add .
+	ryuutekiMacBook-Pro:sandbox-empty eden90267$ git commit -m "Initial commit"
+	[master (root-commit) a809a35] Initial commit
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:sandbox-empty eden90267$ git push -u origin master
+	Username for 'https://github.com': eden90267
+	Password for 'https://eden90267@github.com':
+	Counting objects: 3, done.
+	Writing objects: 100% (3/3), 206 bytes | 0 bytes/s, done.
+	Total 3 (delta 0), reused 0 (delta 0)
+	To https://github.com/eden90267/sandbox-empty.git
+	 * [new branch]      master -> master
+	Branch master set up to track remote branch master from origin.
+	
+	ryuutekiMacBook-Pro:Github eden90267$ cd sandbox-initialized/
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git log
+	commit bf43336363e37c51a4b345e82dae5a564a1df7f0
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Mon Apr 18 12:19:04 2016 +0800
+
+	    Initial commit
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git branch
+	* master
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ echo a > a.txt
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git add .
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git commit -m "Add a.txt"
+	[master e357acf] Add a.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git push origin master
+	Username for 'https://github.com': eden90267
+	Password for 'https://eden90267@github.com':
+	Counting objects: 3, done.
+	Delta compression using up to 8 threads.
+	Compressing objects: 100% (2/2), done.
+	Writing objects: 100% (3/3), 259 bytes | 0 bytes/s, done.
+	Total 3 (delta 1), reused 0 (delta 0)
+	To https://github.com/eden90267/sandbox-initialized.git
+	   bf43336..e357acf  master -> master
+	   
+當第二次建立版本, 直接執行 `git push` 就會自動上傳成功：
+
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git log --oneline
+	e357acf Add a.txt
+	bf43336 Initial commit
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ echo b > b.txt
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git add .
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git commit -m "Add b.txt"
+	[master cabf663] Add b.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 b.txt
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git push
+	warning: push.default is unset; its implicit value has changed in
+	Git 2.0 from 'matching' to 'simple'. To squelch this message
+	and maintain the traditional behavior, use:
+
+	  git config --global push.default matching
+
+	To squelch this message and adopt the new behavior now, use:
+
+	  git config --global push.default simple
+
+	When push.default is set to 'matching', git will push local branches
+	to the remote branches that already exist with the same name.
+
+	Since Git 2.0, Git defaults to the more conservative 'simple'
+	behavior, which only pushes the current branch to the corresponding
+	remote branch that 'git pull' uses to update the current branch.
+
+	See 'git help config' and search for 'push.default' for further information.
+	(the 'simple' mode was introduced in Git 1.7.11. Use the similar mode
+	'current' instead of 'simple' if you sometimes use older versions of Git)
+
+	Username for 'https://github.com': eden90267
+	Password for 'https://eden90267@github.com':
+	Counting objects: 3, done.
+	Delta compression using up to 8 threads.
+	Compressing objects: 100% (2/2), done.
+	Writing objects: 100% (3/3), 259 bytes | 0 bytes/s, done.
+	Total 3 (delta 1), reused 0 (delta 0)
+	To https://github.com/eden90267/sandbox-initialized.git
+	   e357acf..cabf663  master -> master
+	   
+	   
+不過, 當執行簡單版本的 `git push` 會出現一段提示, 告訴你要設定 `push.default` 這個選項, 因這種簡寫的 `git push` 方法, Git的預設行為將會在Git 2.0之後發生改變, 建議你透過設定 `push.default` 選項的方式明確指定 push 的方法。建議設定成 `simple` , 以利跟日後的Git指令列工具的預設值相同。
+
+	git config --global push.default simple
+	
+設定好後, 下次執行 git push 就不會再出現提示訊息了。
+
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git config --global 	push.default simple
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ echo c > c.txt
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git add .
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git commit -m "Add c.txt"
+	[master 2883bfb] Add c.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 c.txt
+	ryuutekiMacBook-Pro:sandbox-initialized eden90267$ git push
+	Username for 'https://github.com': eden90267
+	Password for 'https://eden90267@github.com':
+	Counting objects: 3, done.
+	Delta compression using up to 8 threads.
+	Compressing objects: 100% (2/2), done.
+	Writing objects: 100% (3/3), 261 bytes | 0 bytes/s, done.
+	Total 3 (delta 1), reused 0 (delta 0)
+	To https://github.com/eden90267/sandbox-initialized.git
+	   cabf663..2883bfb  master -> master
+	   
+## 直接將現有的本地 Git 儲存庫上傳到指定的 GitHub 專案 ##
+
+	ryuutekiMacBook-Pro:~ eden90267$ cd Github/
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir sandbox-empty2
+	ryuutekiMacBook-Pro:Github eden90267$ cd sandbox-empty2/
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ git init
+	Initialized empty Git repository in /Users/eden90267/Github/sandbox-empty2/.git/
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ echo a > a.txt
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ git add .
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ git commit -m "Initial commit"
+	[master (root-commit) 935e445] Initial commit
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ cd ..
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir sandbox-initialized2
+	ryuutekiMacBook-Pro:Github eden90267$ cd sandbox-initialized2/
+	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git init
+	Initialized empty Git repository in /Users/eden90267/Github/sandbox-	initialized2/.git/
+	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ echo a > a.txt
+	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git add .
+	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git commit -m "Initial commit"
+	[master (root-commit) 81a684a] Initial commit
+ 	1 file changed, 1 insertion(+)
+ 	create mode 100644 a.txt
+ 	
+以 `sandbox-empty2` 專案為例, 由於本地儲存庫跟GitHub上的遠端儲存庫完全沒關連, 所以必須告訴Git遠端儲存庫在哪。這時可輸入 `git remote add origin http://github.com/eden90267/sandbox-empty2.git` 建立一個名為 `origin` 的參照名稱, 並指向 `http://github.com/eden90267/sandbox-empty2.git` 位址, 也就是我們在GitHub上的遠端儲存庫位址：
+
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ git remote add origin 	https://github.com/eden90267/sandbox-empty2.git
+	fatal: remote origin already exists.
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ git branch
+	* master
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ git push -u origin master
+	Username for 'https://github.com': eden90267
+	Password for 'https://eden90267@github.com':
+	Branch master set up to track remote branch master from origin.
+	Everything up-to-date
+	
+再以 sandbox-initialized2 專案為例, 請記得複製正確的URL位址：
+
+	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git remote add origin 	https://github.com/eden90267/sandbox-initialized2.git
+	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git push origin master
+	Username for 'https://github.com': eden90267
+	Password for 'https://eden90267@github.com':
+	To https://github.com/eden90267/sandbox-initialized2.git
+	 ! [rejected]        master -> master (fetch first)
+	error: failed to push some refs to 'https://github.com/eden90267/sandbox-initialized2.git'
+	hint: Updates were rejected because the remote contains work that you do
+	hint: not have locally. This is usually caused by another repository pushing
+	hint: to the same ref. You may want to first integrate the remote changes
+	hint: (e.g., 'git pull ...') before pushing again.
+	hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+可發現, 這次的 `git push` 動作被GitHub拒絕了！因為不能把兩個無關的Git版本直接上傳到GitHub上的遠端儲存庫。
+
+解決方法： 只要把遠端的儲存庫 `master` 分支, 成功合併回我本地的分支, 即可建立兩個不同版本庫之間的關聯, 這樣就可以把本地的 `master` 分支推送到GitHub上遠端的 `master` 分支了。
+
+將遠端儲存庫 master 分支取回, 並合併到本地儲存庫的 master 分支, 有兩個方法：
+
+1. 使用 `git pull origin master` 指令
+2. 使用 git fetch 指令後執行 git merge origin/master 合併動作(這方法後續文章詳述)
+
+	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git pull origin master
+	warning: no common commits
+	remote: Counting objects: 5, done.
+	remote: Compressing objects: 100% (4/4), done.
+	remote: Total 5 (delta 0), reused 0 (delta 0), pack-reused 0
+	Unpacking objects: 100% (5/5), done.
+	From https://github.com/eden90267/sandbox-initialized2
+	 * branch            master     -> FETCH_HEAD
+	 * [new branch]      master     -> origin/master
+	Merge made by the 'recursive' strategy.
+	 .gitignore |  12 +++
+	 LICENSE    | 339 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 README.md  |   1 +
+	 3 files changed, 352 insertions(+)
+	 create mode 100644 .gitignore
+	 create mode 100644 LICENSE
+	 create mode 100644 README.md
+	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git push origin master
+	Username for 'https://github.com': eden90267
+	Password for 'https://eden90267@github.com':
+	Counting objects: 5, done.
+	Delta compression using up to 8 threads.
+	Compressing objects: 100% (3/3), done.
+	Writing objects: 100% (5/5), 494 bytes | 0 bytes/s, done.
+	Total 5 (delta 1), reused 0 (delta 0)
+	To https://github.com/eden90267/sandbox-initialized2.git
+	   0d9817b..728b15e  master -> master
+	   
+今日小結：
+
+如果透過GitHub for Windows操作, 要上傳到GitHub只要簡單按下sync按鈕, 就可自動上傳, 連帳密都不用輸入！
+
+- git push origin master
+- git push -u origin master
+- git pull origin master
+- git config --global push.default simple
+- git push
+- git fetch
+- git merge origin/master
+
+---
