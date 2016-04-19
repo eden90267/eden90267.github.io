@@ -1279,7 +1279,7 @@ User1先聲奪人, 搶先建立版本也推送遠端儲存庫：
 - git commit -m "message"
 - git push origin master
 - git fetch
-- git merge orgin/master
+- git merge origin/master
 - git pull
 - git reset --hard HEAD
 - git reset --hard ORIG_HEAD
