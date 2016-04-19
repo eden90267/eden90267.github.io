@@ -876,9 +876,9 @@ GitHub建立專案有兩種不同方式。
 
 	將遠端儲存庫的最新版下載回來, 下載的內容包含完整的物件儲存庫(object storage)。並將遠端分支合併到本地分支。(將 `origin/master` 遠端分支合併到 `master` 本地分支)
 
-	所以一個 git pull 動作, 相等於以下兩段指令:
+	所以一個 `git pull` 動作, 相等於以下兩段指令:
 
-	    git fetch
+	   	git fetch
     	git merge origin/master
 
 - `git push`
@@ -944,7 +944,7 @@ GitHub建立專案有兩種不同方式。
 
     git remote add origin https://github.com/eden90267/sandbox-empty2.git
 
-這個 `origin` 名稱是在Git版本控管中慣用的預設遠端分支的參照名稱, 主目的用來代表一個遠端儲存庫的URL位址。
+這個 `origin` 名稱是在Git版本控管中慣用的預設遠端分支的參照名稱, **主目的用來代表一個遠端儲存庫的URL位址**。
 
 不過, 事實上可在你的工作目錄中, 建立多個遠端儲存庫的參照位址。例如 `sandbox-empty2` 為例, 先複製一份回來, 然後透過 `git remote -v` 可列出目前註冊工作目錄裡的遠端儲存庫資訊。
 
@@ -961,7 +961,7 @@ GitHub建立專案有兩種不同方式。
 
     git remote add jquery https://github.com/jquery/jquery.git
 
-最後再用 `git featch` 指令把完整的jQuery遠端儲存庫一併下載回來:
+最後再用 `git fetch` 指令把完整的jQuery遠端儲存庫一併下載回來:
 
     C:\Users\eden_liu\Documents\GitHub\sandbox-empty2 [master]> git remote add jquery https://github.com/jquery/jquery.git
     C:\Users\eden_liu\Documents\GitHub\sandbox-empty2 [master]> git remote -v
@@ -1044,3 +1044,101 @@ GitHub建立專案有兩種不同方式。
 	 * [new tag]         2.0.0b1    -> 2.0.0b1
 	 * [new tag]         2.0.0b2    -> 2.0.0b2
 	 * [new tag]         2.1.0-beta1 -> 2.1.0-beta1
+
+可看到, 我們事實上可以在一個Git工作目錄中, 加入許多相關或不相關的遠端儲存庫, 這些複製回來的**完整儲存庫**, 都包含這些儲存庫中所有物件與變更歷史, 這些Git物件隨時都可以靈活運用。不過, 通常我們註冊多個遠端儲存庫的機會不多, 除非你想抓其他團隊成員的版本庫回來查看內容。
+
+這些註冊進工作目錄的遠端儲存庫設定資訊, 都儲存在 `.git\config` 設定檔中, 其內容：
+
+	[remote "origin"]
+		url = https://github.com/eden90267/sandbox-empty.git
+		fetch = +refs/heads/*:refs/remotes/origin/*
+	[remote "jquery"]
+		url = https://github.com/jquery/jquery.git
+		fetch = +refs/heads/*:refs/remotes/jquery/*
+		
+這個 `[remote "origin"]` 區段的設定, 包含遠端儲存庫的代表名稱 `origin`, 還有兩個重要參數, 分別是 `url` 與 `fetch`, 所代表意義是：「遠端儲存庫URL位址在 `https://github.com/eden90267/sandbox-empty.git`, 然後 fetch 所指定的則是一個**參照名稱對應規格**(refspec)」。
+
+## 何謂參照名稱對應規格 ##
+
+	+refs/heads/*:refs/remotes/origin/*
+
+格式概略分4塊：
+
+- `+`
+
+	設定 `+` 加號, 代表傳輸資料時, 不會特別使用安全性確認機制
+	
+- `refs/heads/*`
+
+	「來源參照規格」, 代表一個位於**遠端儲存庫**的**遠端分支**, 而 `*` 星號代表 `refs/heads/` 這個路徑下[所有的遠端參照]。
+	
+- `:`
+
+	用來區分「來源分支」與「目的分支」
+	
+- `refs/remotes/origin/*`
+
+	「目的參照規格」, 代表一個位於**本地儲存庫**的**本地追蹤分支**, 而 `*` 星號代表 `refs/remote/origin/` 這個路徑下[所有的本地參照]。
+	
+當定義好這份refspec對應規格後, 主要影響到的是 `git fetch` 與 `git push` 這兩個遠端儲存庫的操作。
+
+`git fetch` 就是把遠端儲存庫的相關物件取回, 但要取得哪些遠端分支的物件？ 就是透過這份refspec的定義, 他才知道。當你執行 `git fetch` 或 `git fetch origin`的時候, 他會先透過URL連到遠端儲存庫, 然後找出「來源參照規格」的那些遠端分支(`refs/heads/*`), 取回後放入「目的參照規格」的那些本地追蹤分支(`refs/remote/origin/*`)。
+
+查詢遠端儲存庫有哪些分支, 可執行 `git ls-remote` 或 `git ls-remote origin` 即可列出：
+
+	ryuutekiMacBook-Pro:sandbox-empty2 eden90267$ git ls-remote
+	From https://github.com/eden90267/sandbox-empty.git
+	a809a3578360928ad3760e525d02889186dc2588		HEAD
+	a809a3578360928ad3760e525d02889186dc2588		refs/heads/master
+	
+如果把fetch的refspec修改成以下這樣, 那麼除 `master` 以外的遠端分支, 就不會被下載：
+
+	fetch = +refs/heads/master:refs/remotes/origin/master
+	
+如果想明確下載特定幾個分支, 可重複定義好幾個不同的 fetch 參照規格(refspec):
+
+	[remote "origin"]
+		url = https://github.com/eden90267/sandbox-empty.git
+		fetch = +refs/heads/master:refs/remotes/origin/master
+		fetch = +refs/heads/TestBranch:refs/remotes/origin/TestBranch
+		
+另外, 在我們透過 `git remote add [URL]` 建立遠端儲存庫設定時, 並沒有 `push` 參照規格, default如下：
+
+	push = +refs/heads/*:refs/heads/*
+	
+所代表意思, 當執行 `git push`, Git指令會參考這份 `push` 的參照規格, 讓你將本地儲存庫在 `refs/heads/*` 底下的所有分支與標籤, 全部推送到相對應遠端儲存庫的 `refs/heads/*` 參照名稱下。
+
+最後, 無論執行 `git push` 或 `git fetch`, 在不特別加參數的情況, Git預設就是用 `origin` 當成遠端儲存庫, 並使用 `origin` 的參照規格。
+
+## 本地分支與遠端儲存庫之間的關係 ##
+
+我們已經知道, 一個工作目錄下的本地儲存庫, 可能定義有多個遠端儲存庫。所以當想將 **非 `master` 分支** 透過 git push 推送到遠端, Git可能不知道你到底想推送到哪裡, 所以要另外定義本地分支與遠端儲存庫之間的關係。
+
+例：建立一個 `FixForCRLF` 本地分支, 直接透過 `git push` 無法推送成功, 必須輸入完整的 `git push origin FixForCRLF` 指令才能將本地分支推上去, 原因在於你並沒有設定「本地分支」與「遠端儲存庫」之間的預設對應。
+
+若將**本地分支**建立起跟**遠端儲存庫**的對應關係, 只要在 `git push` 的時候加上 `--set-upstream` 參數, 即可將本地分支註冊進 `.git\config` 設定檔, 之後再用 `git push` 就可以順利自動推上去。
+
+執行 `git push --set-upstream origin FixForCRLF` 同時, 會在 .git\config 設定檔增加以下內容：
+
+	[branch "FixForCRLF"]
+		remote = origin
+		merge = refs/heads/FixForCRLF
+		
+可從設定檔的格式發現, 有兩個屬性 `remote` 與 `merge`, 所代表意義是：「當想要本地的 `FixForCRLF` 分支推送到遠端儲存庫時, 預設的遠端儲存庫為 `origin` 這個, 然後推送的時候要將本次變更合併到 `refs/heads/FixForCRLF` 這個遠端分支裡。」
+
+一開始執行git clone, Git預設就會幫我們建立好 `master` 分支的對應關係, 所以針對master 分支操作, 不需額外加上 --set-upstream就能使用。其分支定義內容：
+
+	[branch "master"]
+		remote = origin
+		merge = refs/heads/master
+		
+## 今日小結 ##
+
+refspec參照規格, 這一段學會之後才有機會設定更加符合自己或團隊需要的設定, 但建議還是不要修改預設值, 以免把大家搞糊塗了。
+
+- git remote -v
+- git branch -r
+- git branch -a
+- git branch
+- git push
+- git ls-remote
