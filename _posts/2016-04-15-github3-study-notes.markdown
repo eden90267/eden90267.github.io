@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 25)"
+title:  "GitHub Study Notes(Day 26)"
 date:   2016-04-15 21:42:00 +0800
 categories: [git, github]
 ---
@@ -1142,3 +1142,144 @@ refspec參照規格, 這一段學會之後才有機會設定更加符合自己�
 - git branch
 - git push
 - git ls-remote
+
+---
+
+# Day 26: 多人在同一個遠端儲存庫中進行版控 #
+
+一個人用版本控管, 只能當作是原始碼歷史備份工具, 在大多情況下, 版本控管機制都是設計給多人共同使用的, 尤其Git這套分散式版本控管系統, 更是設計給成千上萬人都能順利使用的版本控管工具。不過在多人使用的情況下, 通常多多少少也會帶來一些副作用, 多跟少的問題。在Git版控中, 多人同時間進行版控的策略有好幾種, 今回介紹大家共用一個遠端儲存庫的使用方式與問題解決方法。
+
+## 建立多人使用的遠端儲存庫與工作目錄 ##
+
+	ryuutekiMacBook-Pro:~ eden90267$ cd Github/
+	ryuutekiMacBook-Pro:Github eden90267$ mkdir myproject.git
+	ryuutekiMacBook-Pro:Github eden90267$ cd myproject.git/
+	ryuutekiMacBook-Pro:myproject.git eden90267$ git init --bare
+	Initialized empty Git repository in /Users/eden90267/Github/myproject.git/
+	
+假設兩個開發人員準備開發一個新專案 myproject, 分別是 User1 與 User2 這兩位。
+	
+	ryuutekiMacBook-Pro:Github eden90267$ git clone /Users/eden90267/Github/myproject.git User1WD
+	Cloning into 'User1WD'...
+	warning: You appear to have cloned an empty repository.
+	done.
+	ryuutekiMacBook-Pro:Github eden90267$ cd User1WD/
+	ryuutekiMacBook-Pro:User1WD eden90267$ echo a > a.txt
+	ryuutekiMacBook-Pro:User1WD eden90267$ git add .
+	ryuutekiMacBook-Pro:User1WD eden90267$ git commit -m "Add a.txt"
+	[master (root-commit) 5f98743] Add a.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:User1WD eden90267$ git push origin master
+	Counting objects: 3, done.
+	Writing objects: 100% (3/3), 203 bytes | 0 bytes/s, done.
+	Total 3 (delta 0), reused 0 (delta 0)
+	To /Users/eden90267/Github/myproject.git
+	 * [new branch]      master -> master
+
+	ryuutekiMacBook-Pro:Github eden90267$ git clone /Users/eden90267/Github/	myproject.git User2WD
+	Cloning into 'User2WD'...
+	done.
+	ryuutekiMacBook-Pro:Github eden90267$ cd User2WD/
+	
+現在已準備好一個「多人」使用的版控環境, 並共用一個遠端儲存庫。
+
+## 遠端儲存庫的基本開發流程 ##
+
+User1先聲奪人, 搶先建立版本也推送遠端儲存庫：
+
+	ryuutekiMacBook-Pro:Github eden90267$ cd User1WD/
+	ryuutekiMacBook-Pro:User1WD eden90267$ echo b > b.txt
+	ryuutekiMacBook-Pro:User1WD eden90267$ git add .
+	ryuutekiMacBook-Pro:User1WD eden90267$ git commit -m "Add b.txt"
+	[master 0165668] Add b.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 b.txt
+	ryuutekiMacBook-Pro:User1WD eden90267$ git push origin master
+	Counting objects: 3, done.
+	Delta compression using up to 8 threads.
+	Compressing objects: 100% (2/2), done.
+	Writing objects: 100% (3/3), 259 bytes | 0 bytes/s, done.
+	Total 3 (delta 0), reused 0 (delta 0)
+	To /Users/eden90267/Github/myproject.git
+	   5f98743..0165668  master -> master
+
+這時User2的工作目錄有兩個分支, 一個是本地的 master 分支, 另一個是 origin/master 本地追蹤分支。但User2現在的origin/master並沒有得到遠端儲存庫的最新版, 而且User2並不知道User1已經將他手邊的版本推送到遠端儲存庫了, 所以還是繼續自己的開發作業, 也在他自己的工作目錄中建立一個版本。但準備將版本推送到遠端儲存庫時, 發現他的推送作業被遠端儲存庫拒絕了！原因在於存在遠端儲存庫的初始版本後, 已經擁有一個新版本, 他不允許另一個人建立一個多重的版本歷史, 所以拒絕你將本地版本推送上去。
+
+	ryuutekiMacBook-Pro:User1WD eden90267$ cd ..
+	ryuutekiMacBook-Pro:Github eden90267$ cd User2WD/
+	ryuutekiMacBook-Pro:User2WD eden90267$ echo c > c.txt
+	ryuutekiMacBook-Pro:User2WD eden90267$ git add .
+	ryuutekiMacBook-Pro:User2WD eden90267$ git commit -m "Add c.txt"
+	[master 6555c0d] Add c.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 c.txt
+	ryuutekiMacBook-Pro:User2WD eden90267$ git push origin master
+	To /Users/eden90267/Github/myproject.git
+	 ! [rejected]        master -> master (fetch first)
+	error: failed to push some refs to '/Users/eden90267/Github/myproject.git'
+	hint: Updates were rejected because the remote contains work that you do
+	hint: not have locally. This is usually caused by another repository pushing
+	hint: to the same ref. You may want to first integrate the remote changes
+	hint: (e.g., 'git pull ...') before pushing again.
+	hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+	
+遇到這問題不用緊張, Git很擅長處理這種狀況。User2現在要做的事, 就是先把遠端儲存庫中的新物件取回, 如下指令：
+
+	ryuutekiMacBook-Pro:User2WD eden90267$ git fetch
+	remote: Counting objects: 3, done.
+	remote: Compressing objects: 100% (2/2), done.
+	remote: Total 3 (delta 0), reused 0 (delta 0)
+	Unpacking objects: 100% (3/3), done.
+	From /Users/eden90267/Github/myproject
+	   5f98743..0165668  master     -> origin/master
+	   
+這時可看到版本移動了, 代表已經成功改變 `origin/master` 的參照位置到最新的 Add b.txt 這個版本。
+
+現在要做的事把 `origin/master` 版本的變更「合併」回自己的 master 本地分支：
+
+	ryuutekiMacBook-Pro:User2WD eden90267$ git merge origin/master
+	Merge made by the 'recursive' strategy.
+	 b.txt | 1 +
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 b.txt
+	 
+這樣就可以將遠端儲存庫中 master 遠端分支的所有版本套用到自己的 master 分支上, 也代表現在可嘗試把本地修改過的變更版本推送到遠端儲存庫了
+
+	ryuutekiMacBook-Pro:User2WD eden90267$ git push origin master
+	Counting objects: 5, done.
+	Delta compression using up to 8 threads.
+	Compressing objects: 100% (4/4), done.
+	Writing objects: 100% (5/5), 556 bytes | 0 bytes/s, done.
+	Total 5 (delta 0), reused 0 (delta 0)
+	To /Users/eden90267/Github/myproject.git
+	   0165668..ac45cc4  master -> master
+	   
+下次又遇到類似的狀況, 可改用 `git pull` 指令幫我們一次做到 `git fetch` 與 `git merge origin/master` 這個動作, 這動作相對會簡單許多。
+
+就這樣不斷周而復始, 完成多人協同作業的步驟。
+
+## 今日小結 ##
+
+無法避免的, 執行 git merge origin/master 或 git pull 的過程中, 還是很可能會出現合併衝突的現象, 遇到這種情形還是必須手動處理並協調解決衝突, 但這已經是多人使用 Git 版本控管中最簡單的使用方式。
+
+如果今天發生了衝突狀況, 而又不知該如何解決, 因版本尚未被成功合併, 所以可執行以下指令「重置」到目前的 `HEAD` 版本：
+
+	git reset --hard HEAD
+	
+如果成功合併, 但又想反悔這次的合併動作, 還是可執行以下指令「重置」到合併前的版本狀態：
+
+	git reset --hard ORIG_HEAD
+	
+整理下本日學到的Git指令與參數：
+
+- git init --bare
+- git clone [repo_url][dir]
+- git add .
+- git commit -m "message"
+- git push origin master
+- git fetch
+- git merge orgin/master
+- git pull
+- git reset --hard HEAD
+- git reset --hard ORIG_HEAD
