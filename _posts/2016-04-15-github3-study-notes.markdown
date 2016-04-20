@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 26)"
+title:  "GitHub Study Notes(Day 28)"
 date:   2016-04-15 21:42:00 +0800
 categories: [git, github]
 ---
@@ -1279,7 +1279,234 @@ User1先聲奪人, 搶先建立版本也推送遠端儲存庫：
 - git commit -m "message"
 - git push origin master
 - git fetch
-- git merge origin/master
+- git merge orgin/master
 - git pull
 - git reset --hard HEAD
 - git reset --hard ORIG_HEAD
+
+---
+
+# Day 27: 透過分支在同一個遠端儲存庫中進行版控 #
+
+Git遠端儲存庫多人協作的的情況下, 應善加利用分支將不同用途的原始碼分別進行版本管理。
+
+## 建立多人使用的遠端儲存庫與工作目錄 ##
+
+	ryuutekiMacBook-Pro:~ eden90267$ cd Github/
+	ryuutekiMacBook-Pro:Github eden90267$ git clone git@github.com:eden90267/sandbox-multi-branch.git
+	Cloning into 'sandbox-multi-branch'...
+	Warning: Permanently added the RSA host key for IP address '192.30.252.122' to the list of known hosts.
+	remote: Counting objects: 4, done.
+	remote: Compressing objects: 100% (3/3), done.
+	remote: Total 4 (delta 0), reused 0 (delta 0), pack-reused 0
+	Receiving objects: 100% (4/4), done.
+	Checking connectivity... done.
+	ryuutekiMacBook-Pro:Github eden90267$ cd sandbox-multi-branch/
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git log
+	commit 94607c11df02ca1d827e71927e18d6a2371bc65e
+	Author: eden90267 <eden90267@gmail.com>
+	Date:   Wed Apr 20 23:29:34 2016 +0800
+
+	    Initial commit
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch -a
+	* master
+	  remotes/origin/HEAD -> origin/master
+	  remotes/origin/master
+	  
+此時我們的 `.git\config` 內容如下：
+
+	[core]
+		repositoryformatversion = 0
+		filemode = true
+		bare = false
+		logallrefupdates = true
+		ignorecase = true
+		precomposeunicode = true
+	[remote "origin"]
+		url = git@github.com:eden90267/sandbox-multi-branch.git
+		fetch = +refs/heads/*:refs/remotes/origin/*
+	[branch "master"]
+		remote = origin
+		merge = refs/heads/master
+
+## 常見的分支名稱 ##
+
+`master`: 目前系統的「穩定版本」, 必須乾淨且高品質的原始碼版本。會要求所有人都不要用這個分支建立任何版本, 真要建立版本, 一定會透過「合併」的方式來進行操作, 以確保版本能夠更容易被追蹤。
+
+進入開發階段時, 通常會再從 `master` 分支建立起另一個 `develop` 分支, 用來作為「開發分支」, 也就是所有人都會在這個分支上進行開發, 但這時候或許會產生一些衝突的情形, 因大家都在同分支上進行版本控管。
+
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch
+	* master
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git checkout -b develop
+	Switched to a new branch 'develop'
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch
+	* develop
+	  master
+	  
+開發過程中可能因為需求變更, 被指派開發些新功能,可能新功能變動性大, 或小功能測試用途, 不想因為開發這些功能而影響到大家的開發作業, 所以這時會選擇再建立起一個「新功能分支」, 專門用來存放新增功能的程式碼版本。這測試用的「功能分支」, 通常建立在develop之上。這分支命名, 實務上通常會取名為 `feature/[branch_name]` , 例：`feature/aspent_identity`。
+
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch
+	* develop
+	  master
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git checkout -b feature/aspnet_identity
+	Switched to a new branch 'feature/aspnet_identity'
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch
+	  develop
+	* feature/aspnet_identity
+	  master
+	  
+如果發現開發過程中, 「正式機」(prod env)出現嚴重錯誤, 但在「開發分支」裡又包含一些尚未完成的功能, 這時你可能會從 master 分支緊急建立一個「修正分支」, 通常的命名為 `hotfix/[branch_name]`, 例：`hotfix/bugs_in_membership`。
+
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch
+	  develop
+	* feature/aspnet_identity
+	  master
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git checkout master
+	Switched to branch 'master'
+	Your branch is up-to-date with 'origin/master'.
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch
+	  develop
+	  feature/aspnet_identity
+	* master
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git checkout -b hotfix/	bugs_in_membership
+	Switched to a new branch 'hotfix/bugs_in_membership'
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch
+	  develop
+	  feature/aspnet_identity
+	* hotfix/bugs_in_membership
+	  master
+	  
+如果你發現目前的 `master` 分支趨於穩定版本, 那麼你可能會想替目前的 `master` 分支建立起一個「標籤物件」或稱「標示物件」(annotated tag), 那麼可先切換到 `master` 分支後輸入 `git tag 1.0.0-beta1 -a -m "V1.0.0-beta1 created"` 即可建立一個名為 `1.0.0-beta` 的標示標籤, 並透過 `-m` 賦予標籤一個說明訊息。
+
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git branch
+	  develop
+	  feature/aspnet_identity
+	* hotfix/bugs_in_membership
+	  master
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git checkout master
+	Switched to branch 'master'
+	Your branch is up-to-date with 'origin/master'.
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git tag 1.0.0-beta1 -a -m "V1.0.0-beta1 created"
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git tag
+	1.0.0-beta1
+	
+## 將本地分支送上儲存庫 ##
+
+目前為止我們已經建立好幾個分支與標籤, 用SourceTree來看, 目前還看不出分支的版本線圖, 畢竟我們還沒建立任何版本, 但該有的分支已經被成功建立。
+
+不過, 這些分支都僅儲存在本地儲存庫中, 團隊中所有其他人都無法得到你建立的這些分支, 如果要將這些分支的參照名稱推送到遠端儲存庫, 可以使用 `git push --all`
+
+	yuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git push --all
+	Total 0 (delta 0), reused 0 (delta 0)
+	To git@github.com:eden90267/sandbox-multi-branch.git
+	 * [new branch]      develop -> develop
+	 * [new branch]      feature/aspnet_identity -> feature/aspnet_identity
+	 * [new branch]      hotfix/bugs_in_membership -> hotfix/bugs_in_membership
+
+不過只下達 `--all` 參數是不夠的, 可能還要加上 `--tags` 參數, 才能將標示標籤也一併送到遠端儲存庫。
+
+	ryuutekiMacBook-Pro:sandbox-multi-branch eden90267$ git push --tags
+	Counting objects: 1, done.
+	Writing objects: 100% (1/1), 162 bytes | 0 bytes/s, done.
+	Total 1 (delta 0), reused 0 (delta 0)
+	To git@github.com:eden90267/sandbox-multi-branch.git
+	 * [new tag]         1.0.0-beta1 -> 1.0.0-beta1
+
+## 請團隊成員下載遠端儲存庫所有物件 ##
+
+這時大家就能夠透過 `git fetch --all --tags` 將所有物件取回, 包含所有物件參照與標籤參照。
+
+	ryuutekiMacBook-Pro:Github eden90267$ git clone git@github.com:eden90267/	sandbox-multi-branch.git sandbox-multi-branch-user2
+	Cloning into 'sandbox-multi-branch-user2'...
+	remote: Counting objects: 5, done.
+	remote: Compressing objects: 100% (4/4), done.
+	remote: Total 5 (delta 0), reused 1 (delta 0), pack-reused 0
+	Receiving objects: 100% (5/5), done.
+	Checking connectivity... done.
+	ryuutekiMacBook-Pro:Github eden90267$ cd sandbox-multi-branch-user2/
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git fetch --all --tags
+	Fetching origin
+
+## 開始各自進行不同的分支開發 ##
+
+User2 的本地分支只有 `master` 而已, 跟原本建立的那個工作目錄有些不一樣。之前【Day 25: 使用Github遠端儲存庫 - 觀念篇】文章中不是提到說「**把這些「本地追蹤分支」視為是一種「唯讀」的分支**」嗎？沒有本地分支要怎樣進行？
+
+Git早幫我們想好了, 可直接執行 `git checkout hotfix/bugs_in_membership` 將這個「本地追蹤分支」給取出來(checkout)。
+
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git branch -a
+	* master
+	  remotes/origin/HEAD -> origin/master
+	  remotes/origin/develop
+	  remotes/origin/feature/aspnet_identity
+	  remotes/origin/hotfix/bugs_in_membership
+	  remotes/origin/master
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git checkout hotfix/bugs_in_membership
+	Branch hotfix/bugs_in_membership set up to track remote branch hotfix/bugs_in_membership from origin.
+	Switched to a new branch 'hotfix/bugs_in_membership'
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git branch -a
+	* hotfix/bugs_in_membership
+	  master
+	  remotes/origin/HEAD -> origin/master
+	  remotes/origin/develop
+	  remotes/origin/feature/aspnet_identity
+	  remotes/origin/hotfix/bugs_in_membership
+	  remotes/origin/master
+	  
+在取出 `hotfix/bugs_in_membership` 這個「本地追蹤分支」後, Git會自動幫你建立起一個同名的「本地分支」, 所以你根本不用擔心有沒有本地分支的情形。
+
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git status
+	On branch hotfix/bugs_in_membership
+	Your branch is up-to-date with 'origin/hotfix/bugs_in_membership'.
+	nothing to commit, working directory clean
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ echo %date% %time% > a.txt
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git add .
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git commit -m "Add a.txt"
+	[hotfix/bugs_in_membership e17e6b0] Add a.txt
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git push origin hotfix/bugs_in_membership
+	Counting objects: 3, done.
+	Delta compression using up to 8 threads.
+	Compressing objects: 100% (2/2), done.
+	Writing objects: 100% (3/3), 311 bytes | 0 bytes/s, done.
+	Total 3 (delta 0), reused 0 (delta 0)
+	To git@github.com:eden90267/sandbox-multi-branch.git
+	   94607c1..e17e6b0  hotfix/bugs_in_membership -> hotfix/bugs_in_membership
+	   
+目前為止, 推送出去的, 只有 `hotfix/bugs_in_membership` 這個分支的版本而已, 並沒有將變更「合併」回 `master` 分支。這樣操作代表意思是, 你將變更放上遠端儲存庫, 目的是為了將變更可讓其人看到, 也可取回繼續修改, 就跟【Day 26：多人在同一個遠端儲存庫中進行版控】的版控流程一樣。
+
+想合併回去 `master`：
+
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git branch -a
+	* hotfix/bugs_in_membership
+	  master
+	  remotes/origin/HEAD -> origin/master
+	  remotes/origin/develop
+	  remotes/origin/feature/aspnet_identity
+	  remotes/origin/hotfix/bugs_in_membership
+	  remotes/origin/master
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git checkout master
+	Switched to branch 'master'
+	Your branch is up-to-date with 'origin/master'.
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git merge hotfix/	bugs_in_membership
+	Updating 94607c1..e17e6b0
+	Fast-forward
+	 a.txt | 1 +
+	 1 file changed, 1 insertion(+)
+	 create mode 100644 a.txt
+	ryuutekiMacBook-Pro:sandbox-multi-branch-user2 eden90267$ git push
+	Total 0 (delta 0), reused 0 (delta 0)
+	To git@github.com:eden90267/sandbox-multi-branch.git
+	   94607c1..e17e6b0  master -> master
+	   
+## 今日小結 ##
+
+- git push --all --tags
+- git fetch --all --tags
+- git branch -a
+- git checkout hotfix/bugs_in_membership
+- git push origin hotfix/bugs_in_membership
+
+---
+
+# Day 28: 了解 GitHub 的 fork 與 pull request 版控流程 #
