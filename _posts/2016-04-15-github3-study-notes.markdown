@@ -820,33 +820,33 @@ GitHub建立專案有兩種不同方式。
 1. 使用 `git pull origin master` 指令
 2. 使用 git fetch 指令後執行 git merge origin/master 合併動作(這方法後續文章詳述)
 
-	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git pull origin master
-	warning: no common commits
-	remote: Counting objects: 5, done.
-	remote: Compressing objects: 100% (4/4), done.
-	remote: Total 5 (delta 0), reused 0 (delta 0), pack-reused 0
-	Unpacking objects: 100% (5/5), done.
-	From https://github.com/eden90267/sandbox-initialized2
-	 * branch            master     -> FETCH_HEAD
-	 * [new branch]      master     -> origin/master
-	Merge made by the 'recursive' strategy.
-	 .gitignore |  12 +++
-	 LICENSE    | 339 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	 README.md  |   1 +
-	 3 files changed, 352 insertions(+)
-	 create mode 100644 .gitignore
-	 create mode 100644 LICENSE
-	 create mode 100644 README.md
-	ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git push origin master
-	Username for 'https://github.com': eden90267
-	Password for 'https://eden90267@github.com':
-	Counting objects: 5, done.
-	Delta compression using up to 8 threads.
-	Compressing objects: 100% (3/3), done.
-	Writing objects: 100% (5/5), 494 bytes | 0 bytes/s, done.
-	Total 5 (delta 1), reused 0 (delta 0)
-	To https://github.com/eden90267/sandbox-initialized2.git
-	   0d9817b..728b15e  master -> master
+		ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git pull origin master
+		warning: no common commits
+		remote: Counting objects: 5, done.
+		remote: Compressing objects: 100% (4/4), done.
+		remote: Total 5 (delta 0), reused 0 (delta 0), pack-reused 0
+		Unpacking objects: 100% (5/5), done.
+		From https://github.com/eden90267/sandbox-initialized2
+		 * branch            master     -> FETCH_HEAD
+		 * [new branch]      master     -> origin/master
+		Merge made by the 'recursive' strategy.
+		 .gitignore |  12 +++
+		 LICENSE    | 339 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		 README.md  |   1 +
+		 3 files changed, 352 insertions(+)
+		 create mode 100644 .gitignore
+		 create mode 100644 LICENSE
+		 create mode 100644 README.md
+		ryuutekiMacBook-Pro:sandbox-initialized2 eden90267$ git push origin master
+		Username for 'https://github.com': eden90267
+		Password for 'https://eden90267@github.com':
+		Counting objects: 5, done.
+		Delta compression using up to 8 threads.
+		Compressing objects: 100% (3/3), done.
+		Writing objects: 100% (5/5), 494 bytes | 0 bytes/s, done.
+		Total 5 (delta 1), reused 0 (delta 0)
+		To https://github.com/eden90267/sandbox-initialized2.git
+	   	0d9817b..728b15e  master -> master
 
 今日小結：
 
