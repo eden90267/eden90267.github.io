@@ -1510,3 +1510,99 @@ Git早幫我們想好了, 可直接執行 `git checkout hotfix/bugs_in_membershi
 ---
 
 # Day 28: 了解 GitHub 的 fork 與 pull request 版控流程 #
+
+GitHub採用forks與pull request的流程, 讓你可做到基本的權限控管。
+
+## 設定 GitHub 專案的權限控管 - 個人帳號 ##
+
+在GitHub個人帳戶下, 並沒什麼權限控管的機制, 所以只要你授權特定人為協同開發人員(Collaborators), 他就能自由Push與Pull專案原始碼。
+
+由於你沒辦法設定更細的Git遠端儲存庫權限, 所以只要被指派的人, 就能存取完整的Git遠端儲存庫, 大家都能任意分支進行push、pull或刪除分支等動作, 要是團隊有天兵, 就會是災難。
+
+## 設定 GitHub 專案的權限控管 - 組織帳號 ##
+
+在GitHub的組織帳戶下, 就可設定人員群組(Teams), 你就可在群組上設定更細的權限:
+
+- Pull Only
+- Push & Pull
+- Push, Pull & Administrative
+
+## 使用Fork功能 ##
+
+英文Fork字面翻譯是「叉子」的意思, 好像你用叉子去把食物叉起來, 直接把菜挪放到你自己的盤子, 所謂「菜」就是你要複製的GitHub專案, 而「盤子」就是你的GitHub帳號。
+
+ex: [https://github.com/doggy8088/DataDictionaryCreator](https://github.com/doggy8088/DataDictionaryCreator), Fork button
+
+該專案已經在你自己的帳號下, 所以此時你已經可以把該專案當成「自己的遠端儲存庫」在用, 完全沒有讀寫權限的問題。
+
+因為Git是個分散式版本控管系統, 只要你有fetch權限, 基本上就可以抓到該版本庫的完整變更歷程。
+
+## 使用 Fork 過的 Git 遠端儲存庫 ##
+
+版控方面, 使用上幾乎跟自己的Git遠端儲存庫沒什麼兩樣, 且你也有完整的歷史紀錄。請記得這份資料是[https://github.com/doggy8088/DataDictionaryCreator](https://github.com/doggy8088/DataDictionaryCreator)複製過來就好。
+
+	C:\Users\eden_liu\Documents\GitHub> cd .\DataDictionaryCreator
+	C:\Users\eden_liu\Documents\GitHub\DataDictionaryCreator [master]> echo TEST > test.md
+	C:\Users\eden_liu\Documents\GitHub\DataDictionaryCreator [master +1 ~0 -0 !]> git add .
+	C:\Users\eden_liu\Documents\GitHub\DataDictionaryCreator [master +1 ~0 -0]> git
+	commit -m "Add a test.md for test purpose"
+	[master deff343] Add a test.md for test purpose
+	 1 file changed, 0 insertions(+), 0 deletions(-)
+	 create mode 100644 test.md
+	C:\Users\eden_liu\Documents\GitHub\DataDictionaryCreator [master]> git push
+	warning: push.default is unset; its implicit value has changed in
+	Git 2.0 from 'matching' to 'simple'. To squelch this message and maintain the traditional behavior, use:
+
+	  git config --global push.default matching
+
+	To squelch this message and adopt the new behavior now, use:
+
+	  git config --global push.default simple
+
+	When push.default is set to 'matching', git will push local branches to the remote branches that already exist with the same name.
+
+	Since Git 2.0, Git defaults to the more conservative 'simple' behavior, which only pushes the current branch to the corresponding remote branch that 'git pull' uses to update the current branch.
+
+	See 'git help config' and search for 'push.default' for further information.
+	(the 'simple' mode was introduced in Git 1.7.11. Use the similar mode 'current' instead of 'simple' if you sometimes use older versions of Git)
+
+	Warning: Permanently added the RSA host key for IP address '192.30.252.131' to the list of known hosts.
+	Counting objects: 3, done.
+	Delta compression using up to 8 threads.
+	Compressing objects: 100% (2/2), done.
+	Writing objects: 100% (3/3), 293 bytes | 0 bytes/s, done.
+	Total 3 (delta 1), reused 0 (delta 0)
+	To git@github.com:eden90267/DataDictionaryCreator.git
+	   c29aaab..deff343  master -> master
+
+## 使用 pull request 將變更合併回當初的 GitHub 專案 ##
+
+透過 `eden90267` , 有建立新的commit, push並推回GitHub。 現在要把儲存在 `eden90267` 帳號下的專案「合併」回 `doggy8088` 帳號下的 `DataDictionaryCreator` 專案, 這時因為是跨帳號的, 所以必須利用 pull request 才能把變更「合併」回去。
+
+註: 這裡pull request照字面翻譯是「拉取要求」的意思, 代表要以 `eden90267` 的身分, 請 `doggy8088` 把我的變更給拉回去(`git pull`), 但你不能強迫對方拉(`pull`), 所以必須拜託(`request`)對方拉, 所以才叫pull request。
+
+要用 `eden90267` 的身分, 連到 `https://github.com/doggy8088/DataDictionaryCreator` 這頁, 然後點選 **Pull Requests** 頁籤。
+
+選擇兩個版本(兩個 commit 物件), GitHub才能建立patch檔案, 也才能知道要合併哪些東西回去。但你選不到自己fork過的版本, 因此你要點選**compare across forks**。
+
+然後就可以選擇到自己fork過的專案與分支了!不過, 這一步要特別注意不要選錯, 你的版本較新, 所以應該要把右邊的版本選擇你的, GitHub才知道從 `doggy8088/DataDictionaryCreator` 的 `master` 分支, 到 `eden90267/DataDictionaryCreator` 的 `master` 分支, 到底發生哪些版本變化。
+
+最後會看到有哪些檔案以及那些地方變更了, 然後就可按下 **Click to create a pull request for this comparison** 建立起一個 pull request:
+
+最後, 先看一下右上角有個**Able to merge**的地方, 會預先告訴你合併結果, 顯示你的版本跟目前 `doggy8088:master` 的版本是否有衝突發生。如果都沒有, 再輸入些說明文字給原作者( `doggy8088` ), 並按下 **Send pull request** 即可完成。
+
+**註**: Github for Mac;Github for Windows 已增加pull request功能。
+
+## 接受 **pull request** 的要求, 確認合併回自己的 **GitHub** 專案 ##
+
+最後一個步驟, 是讓原作者(`doggy8088`)去看有誰傳送了一個pull request給自己。
+
+按下**Merge pull request**即可完成合併工作。
+
+## 今日小結 ##
+
+應該大致上能了解fork與pull request的存在, 最主要就是「權限」以及「版本庫隔離」的需求。一個上千人的專案(Linux Kernel), 如果所有人都能存取主要的遠端儲存庫, 那不是很恐怖?!
+
+不過在一般企業, 你不一定要這樣做, 畢竟操作步驟確實繁瑣了些。實際運用就靠自己判斷了。
+
+---
