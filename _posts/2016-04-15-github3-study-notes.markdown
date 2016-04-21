@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 28)"
+title:  "GitHub Study Notes(Day 30)"
 date:   2016-04-15 21:42:00 +0800
 categories: [git, github]
 ---
@@ -1606,3 +1606,187 @@ ex: [https://github.com/doggy8088/DataDictionaryCreator](https://github.com/dogg
 不過在一般企業, 你不一定要這樣做, 畢竟操作步驟確實繁瑣了些。實際運用就靠自己判斷了。
 
 ---
+
+# Day 29: 如何將 Subversion 專案匯入到 Git 儲存庫 #
+
+轉換簡單四步驟：
+
+## 準備使用者清單對應檔 ##
+
+## 將 SVN 專案取出並轉換成 Git 工作目錄 ##
+
+## 轉換 SVN 的忽略清單(即 svn:ignore 屬性) ##
+
+## 將專案推送到遠端儲存庫 ##
+
+---
+
+# Day 30: 分享工作中幾個好用的 Git 操作技巧 #
+
+## 如何讓 git pull / push / fetch 不用輸入帳號、密碼 ##
+
+原使用**HTTPS**通訊協定取得Git儲存庫。但事實上可改用**SSH**選擇當成取得Git遠端儲存庫的網址。
+
+使用HTTP通訊協定來存取GitHub上的遠端儲存庫, 由於無法記憶帳號密碼, 所以每次執行遠端儲存庫的指令都一定會被要求輸入帳號、密碼。但改用SSH的話, 就可透過預先定義好的金鑰來進行身份驗證。
+
+第一次使用Git for Windows會自動上傳GitHub的**SSH Key**專區。因為github_rsa、github_rsa.pub這一對金鑰的存在。所以在Git Shell底下操作Git指令, 所有針對遠端儲存庫的操作, 都不需要再次輸入帳密了。
+
+因GitHub for Windows工具已把SSH金鑰上傳到GitHub網站了。
+
+如果希望「命令提示字元」下也可以不用輸入帳號密碼認證, 可將 `%USERPROFILE%\.ssh` 資料夾下的兩個檔案分別把 `github_rsa` 複製一份改名成 `id_rsa`, 然後把 `github_rsa.pub` 複製一份 `id_rsa.pub`, 即可完成設定！
+
+可用 `git remote set-url origin git@github.com:doggy8088/frontend-tools.git` 將現有遠端 URL 改成 SSH 的通訊協定。
+
+如此一來, 就不用再需要驗證帳號密碼了。
+
+## 如何讓操作 Bitbucket 遠端儲存庫時, 也可以不用輸入帳號、密碼 ##
+
+github_rsa.pub value copy to Bitbucket SSH Setting.
+
+## 如何還原一個 `git rebase` 變動 ##
+
+`git merge` 還原：`git reset --hard ORIG_HEAD`, 即可還原本次合併的變更。但 `git rebase` 怎辦？因為` git rebase` 會將版本線圖改變, 而且分支結構也會發生變化, 感覺難作, 但其實非常簡單。
+
+	ryuutekiMacBook-Pro:Github eden90267$ git clone git@github.com:eden90267/CSS-Guidelines.git
+	Cloning into 'CSS-Guidelines'...
+	Warning: Permanently added the RSA host key for IP address '192.30.252.130' to the list of known hosts.
+	remote: Counting objects: 692, done.
+	remote: Total 692 (delta 0), reused 0 (delta 0), pack-reused 692
+	Receiving objects: 100% (692/692), 341.68 KiB | 103.00 KiB/s, done.
+	Resolving deltas: 100% (362/362), done.
+	Checking connectivity... done.
+	ryuutekiMacBook-Pro:Github eden90267$ cd CSS-Guidelines/
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git reflog
+	d972a71 HEAD@{0}: clone: from git@github.com:eden90267/CSS-Guidelines.git
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git log --oneline -5
+	d972a71 Point to new home
+	a69b734 Merge pull request #29 from dahyun-yoon/patch-2
+	be20df6 Update README.md
+	4d8a623 Merge branch 'master' of github.com:csswizardry/CSS-Guidelines
+	8c6b709 Custom domain
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git rebase -i 8c6b709
+	Successfully rebased and updated refs/heads/master.
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git reflog
+	65f0761 HEAD@{0}: rebase -i (finish): returning to refs/heads/master
+	65f0761 HEAD@{1}: rebase -i (pick): Point to new home
+	4b212f3 HEAD@{2}: rebase -i (pick): Update README.md
+	d9d5f1f HEAD@{3}: rebase -i (pick): Add german translation
+	0b5a3e3 HEAD@{4}: rebase -i (pick): Add space before opening bracket, too.
+	41e2fd6 HEAD@{5}: rebase -i (pick): Add spaces between property: value; in CSS
+	8c6b709 HEAD@{6}: rebase -i (start): checkout 8c6b709
+	d972a71 HEAD@{7}: clone: from git@github.com:eden90267/CSS-Guidelines.git
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git reset --hard HEAD@{7}
+	HEAD is now at d972a71 Point to new home
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git reflog
+	d972a71 HEAD@{0}: reset: moving to HEAD@{7}
+	65f0761 HEAD@{1}: rebase -i (finish): returning to refs/heads/master
+	65f0761 HEAD@{2}: rebase -i (pick): Point to new home
+	4b212f3 HEAD@{3}: rebase -i (pick): Update README.md
+	d9d5f1f HEAD@{4}: rebase -i (pick): Add german translation
+	0b5a3e3 HEAD@{5}: rebase -i (pick): Add space before opening bracket, too.
+	41e2fd6 HEAD@{6}: rebase -i (pick): Add spaces between property: value; in CSS
+	8c6b709 HEAD@{7}: rebase -i (start): checkout 8c6b709
+	d972a71 HEAD@{8}: clone: from git@github.com:eden90267/CSS-Guidelines.git
+	
+## 取得遠端儲存庫的統計資訊 ##
+
+`git clone`, 抓回完整的版本紀錄, 這代表我們可隨時在本地儲存庫統計版本資訊。
+
+例如想取得版本庫中所有人的 commit 次數統計：`git shortlog -sne` 即可列出每個人的commit次數, 而且加上 `-n` 參數還可按照 commit 數量進行降幂排序：
+
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git shortlog -sne
+	    68  Harry Roberts <harry@csswizardry.com>
+	     2  Matteo Nicoletti <matteo.nicoletti@webdev.it>
+	     2  Matt Bainton <matt@inlikealion.com>
+	     1  dahyun-yoon <bongy12357@naver.com>
+	     1  Jack Rugile <jack@jackrugile.com>
+	     1  Mike <mike@mikepennisi.com>
+	     1  Tim Vandecasteele <tim.vandecasteele@gmail.com>
+	     1  Marian Friedmann <marian.friedmann@gmail.com>
+	     
+也可利用 `git shortlog` 顯示出每個人最近 commit 過的歷史紀錄。
+
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git shortlog
+	Harry Roberts (68):
+	      Iitial commit
+	      Adding readme and other guideline text
+	      Update URL to BSkyB
+	      Fix typo in README
+	      Update doc URL
+	      Update README intro
+	      Update README intro
+	      Embolden sharing details
+	      Update copyright date
+	      Add closing sentence to preprocessor section.
+	      Tidy up link to CSS perf article.
+	      Correct syntax for conditional comment.
+	      Fix typo
+	      Add note about syntax rules.
+	      Use more robust URL in tweet link.
+	      Use more robust URL in tweet link
+	      Use more robust URL in tweet link
+	      Merge pull request #3 from jugglinmike/typo
+	      Add section on key selectors
+	      Add section on key selectors
+	      Remove Twitter link
+	      Reformat and add BEM section
+	      Complete rewrite
+	:
+	
+也可利用GitHub上**Graph**頁面提供的統計資訊：
+
+這裡主要提供六種報表：
+
+- Contributors(本專案貢獻者的活躍程度)
+- Commit Activiti(每一天commit活動數量)
+- Code Frequency(原始碼異動服務, 可看出每天新增與刪除的程式碼行數)
+- Punchcard(每一天的commit數量, 用打卡方式顯示)
+- Network(pull request 與 merge 圖形表示)
+- Members(所有 fork 此專案的 github 成員)
+
+## 從工作目錄清除不在版本庫的中的檔案 ##
+
+Git工作目錄, 通常會產生些不必要的檔案, 這些檔案通常都會透過 `.gitignore` 檔案, 讓Git自動忽略這些檔案。想將這些額外的檔案都給刪掉, 可透過 `git clean -f` 強迫刪除這些檔案。
+
+不過, 執行前, 還是建議用 `git clean -n` 看一下, 這個指令會列出他「預計」會刪除哪些檔案, 等你確認後再執行 `git clean -f` 即可刪除檔案。
+
+## 刪除遠端分支 ##
+
+如果你將「本地分支」透過 `git push origin FixForCRLF` 指令建立起「遠端分支」, 也代表會在遠端被建立一個名為 `FixForCRLF` 的分支, 想本地下指令刪除遠端追蹤分支(在遠端分支前面加個 `:` 而已)：
+
+	git push origin :FixForCRLF
+	
+另一個同樣目的的指令, 看起來較直覺：
+
+	git push origin --delete FixForCRLF
+
+※ 使用要注意, 如果有人下載過這個遠端分支的話, 他就再也無法透過 `git push` 把變更推送上來了
+
+## 找出改壞程式的兇手 ##
+
+替原始碼做版控, 最有效就是每個檔案每一行都可以進行詳細追蹤, 今天如果程式發生異常, 且要找到哪一行, 就可透過 `git blame` 指令, 幫你找出真正改壞的兇手, 並去看他為什麼改壞。
+
+	git blame [filename]
+
+	git blame -L [開始行數],[結束行數] [filename]
+
+ex:
+
+	git blame README.md
+	
+	git blame -L 8, 16 ViewModels/MemberViewModel.cs
+	
+	git blame -L 4, Models/Product.cs
+	
+實例測試：
+
+	ryuutekiMacBook-Pro:CSS-Guidelines eden90267$ git blame README.md
+	54b7932e (Harry Roberts 2012-10-06 08:26:34 +0100 1) # General CSS notes, advice and guidelines
+	ece70ccd (Harry Roberts 2012-03-10 10:53:40 +0000 2)
+	3bdcff28 (Harry Roberts 2012-10-26 10:03:27 +0200 3) ---
+	3bdcff28 (Harry Roberts 2012-10-26 10:03:27 +0200 4)
+	d972a71a (Harry Roberts 2014-08-18 16:35:13 +0100 5) **The guidelines have moved: [cssguidelin.es](http://cssguidelin.es/)**
+	
+## 今日小結 ##
+
+一些小技巧, 需要的時候就會用到。
