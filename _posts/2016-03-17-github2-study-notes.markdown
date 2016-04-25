@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "GitHub Study Notes(Day 19)"
+title:  "GitHub Study Notes(Day 20)"
 date:   2016-03-17 17:32:00 +0800
 categories: [git, github]
 ---
