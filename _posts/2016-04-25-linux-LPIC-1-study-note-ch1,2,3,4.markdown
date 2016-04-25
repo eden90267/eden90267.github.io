@@ -118,4 +118,6 @@ Gentoo linux官方網站, 做下列幾點聲明：
 3. Gentoo linux 會回饋給自由軟體社群
 4. Gentoo linux 不會隱藏任何問題
 
+---
+
 # Chapter 02: 認識 LPI 認證考試 #
