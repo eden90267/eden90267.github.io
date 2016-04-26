@@ -121,3 +121,55 @@ Gentoo linux官方網站, 做下列幾點聲明：
 ---
 
 # Chapter 02: 認識 LPI 認證考試 #
+
+LPI考試內容廣泛, 包含硬體與軟體、RPM與DEB、系統、網路並含括安全的範圍。
+
+LPI含括Red Hat(Red Hat Enterprise、Fedora、CentOS)與Ubuntu(Debian與Ubuntu)兩套主流系統, 屬於較中立的機構。
+
+117-101
+
+偏重在指令與檔案系統的部分
+
+- System Architecture
+- Linux Installation and Package Management
+- GNU and Unix Commands
+- Devices, Linux Filesystems, Filesystem Hierarchy Standard(標準化檔案系統階層)
+
+117-102
+
+比例比較均衡, 除User Interfaces and Desktops比重5外, 其他比重都在10左右
+
+- Shells, Scripting and Data Management
+- User Interfaces and Desktops
+- Administrative Tasks
+- Essential System Services(必要的系統服務)
+- Networking Fundamentals(網路基礎概念)
+- Security
+
+ ---
+
+# Chapter 03: 作業系統環境的架設 #
+
+## 虛擬機環境 ##
+
+虛擬機顧名思義, 就是一台虛擬的主機, 在同一台主機上可安裝多個作業系統。一般虛擬主機分為硬體跟軟體的虛擬機, 硬體的虛擬機通常為大型工作站, 擁有多顆處理器與大型的記憶體, 在開機階段可分配給多個作業系統使用。這類主機價格昂貴, 多半用於電信業者的機房之內。
+
+軟體虛擬機是用軟體達到虛擬機的效果。原理是在已經安裝作業系統上安裝一個虛擬機軟體, 再透過該虛擬機分配資源並安裝作業系統。Ex: VirtualBox。
+
+這樣的好處是在資源有限的環境下可安裝第二個作業系統。
+
+相對的, 安裝虛擬機會耗損原有作業系統的資源, 延緩程式執行的速度。因此需要優異的效能, 虛擬機不是最好選擇。
+
+## Pietty遠端連線操作 ##
+
+具備SSH的連線遠端伺服器軟體, 並有完整的中文化支援。
+
+---
+
+# Chapter 04: Linux系統環境建置 #
+
+分三部分: 安裝規劃、安裝過程以及後續的設定調整。
+
+## 安裝規劃 ##
+
+一般將安裝分三階段
