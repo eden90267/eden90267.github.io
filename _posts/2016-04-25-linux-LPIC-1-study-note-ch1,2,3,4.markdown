@@ -300,10 +300,58 @@ ISA源自早期IBM電腦的舊技術, 早期靠著jumper來調整IRQ, 後來產�
 
 1. pnpdump
 
-	功能: 顯示ISA Pnp介面卡上使用的資訊
+	功能: 顯示ISA PnP介面卡上使用的資訊
 
 	格式: pnpdump [參數]
 
-	- `-h`
-	- -c
-	- -o
+	- `-h`: 顯示所有幫助
+	- `-c`: 會根據 `/proc` 和 `/etc/isapnp.gone` 兩個檔案, 不輸出已使用的裝置
+	- `-o`: 將輸出另存為檔案
+
+知道ISA Pnp裝置資訊後, 可利用isapnp來調整其組態, 要注意指令isapnp後面接的是組態檔, 不是裝置名稱。
+
+2. isapnp
+
+	功能: 組態ISA PnP(Plug and Play)裝置
+	
+	格式: isapnp 組態檔(config)
+	
+		# isapnp /etc/isapnp.conf
+		
+#### PCI ####
+
+PCI匯流排常見於現在的個人電腦中, 並已經取代了ISA, 成為標準的擴展匯流排。目前已經推出了PCI Express, 目前也逐漸取代了PCI匯流排, 以下介紹相關指令:
+
+1. lspci
+
+	功能: 列出電腦所有PCI裝置的資訊
+	
+	格式: lspci [參數]
+	
+	- `-v`: 詳細輸出PCI匯流排資訊
+
+2. setpci
+
+	功能: 設定PCI裝置組態
+	
+	格式: setpci [裝置]
+	
+3. setserial
+
+	功能: 取得或設定序列埠(serial port)組態
+	
+	格式: setserial 參數 [序列埠裝置]
+	
+	- `-a`: 輸出序列埠裝置組態時, 印出所有可用資訊
+	- `-q`: 輸出較剪短序列埠組態
+	- `-v`: 輸出較長序列埠組態
+
+		setserial -a /dev/ttyS0
+		
+#### USB 裝置 ####
+
+目前的核心都有支援USB上的OHCI、UHCI、EHCI三種控制器, 我們可在 `/proc/bus/usb/devices` 來看USB裝置資訊, 較舊的機器上檔案位置可能在 `/proc/pci` 上。
+
+	cat /proc/bus/pci/devices
+	
+### 開機過程與紀錄 ###
