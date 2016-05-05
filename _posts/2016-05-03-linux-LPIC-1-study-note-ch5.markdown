@@ -170,3 +170,229 @@ Ex:
 	# declare -x
 
 #### enable: 啟動或關閉 shell 的內建指令 ####
+
+語法:
+
+- enable [-a]
+- enable [-n] 指令
+
+- `-a`: 顯示shell所有啟動的指令
+- `-n` 指令: 關閉shell內建的特定指令
+
+顯示目前shell內建指令:
+
+    ubuntu@ip-172-31-7-139:~$ enable -a
+    enable .
+    enable :
+    enable [
+    enable alias
+    enable bg
+    enable bind
+    enable break
+    enable builtin
+    enable caller
+    enable cd
+    enable command
+    enable compgen
+    enable complete
+    enable compopt
+    enable continue
+    enable declare
+    enable dirs
+    enable disown
+    enable echo
+    enable enable
+    enable eval
+    enable exec
+    enable exit
+    enable export
+    enable false
+    enable fc
+    enable fg
+    enable getopts
+    enable hash
+    enable help
+    enable history
+    enable jobs
+    enable kill
+    enable let
+    enable local
+    enable logout
+    enable mapfile
+    enable popd
+    enable printf
+    enable pushd
+    enable pwd
+    enable read
+    enable readarray
+    enable readonly
+    enable return
+    enable set
+    enable shift
+    enable shopt
+    enable source
+    enable suspend
+    enable test
+    enable times
+    enable trap
+    enable true
+    enable type
+    enable typeset
+    enable ulimit
+    enable umask
+    enable unalias
+    enable unset
+    enable wait
+
+若要關閉shell內建的指令:
+
+	# enable -n cd
+
+若要加回shell內建指令:
+
+	# enable cd
+
+#### exit: 離開目前的shell ####
+
+語法: exit
+
+若執行 `/bin/bash` 進入另一個 shell, 鍵入 `exit` 則會退回來原來 shell, 執行過程如下:
+
+    ubuntu@ip-172-31-7-139:~$ /bin/bash
+    ubuntu@ip-172-31-7-139:~$ exit
+    exit
+    ubuntu@ip-172-31-7-139:~$
+
+#### export: 宣告環境變數 ####
+
+語法: export [參數] 變數名稱 [=變數設定值]
+
+- `-f`: 設定變數名稱為某一函數的名稱
+- `-n`: 移除變數名稱
+- `-p`或不加: 列出 shell 上的環境變數
+
+宣告DOG這個變數的內容為happy1234:
+
+	ubuntu@ip-172-31-7-139:~$ export DOG=happy1234
+	ubuntu@ip-172-31-7-139:~$ echo $DOG
+	happy1234
+
+列出目前的環境變數:
+
+    ubuntu@ip-172-31-7-139:~$ export
+    declare -x DOG="happy1234"
+    declare -x HOME="/home/ubuntu"
+    declare -x LANG="en_US.UTF-8"
+    declare -x LESSCLOSE="/usr/bin/lesspipe %s %s"
+    declare -x LESSOPEN="| /usr/bin/lesspipe %s"
+    declare -x LOGNAME="ubuntu"
+    declare -x LS_COLORS="rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:"
+    declare -x MAIL="/var/mail/ubuntu"
+    declare -x OLDPWD
+    declare -x PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+    declare -x PWD="/home/ubuntu"
+    declare -x SHELL="/bin/bash"
+    declare -x SHLVL="1"
+    declare -x SSH_CLIENT="43.251.79.36 56677 22"
+    declare -x SSH_CONNECTION="43.251.79.36 56677 172.31.7.139 22"
+    declare -x SSH_TTY="/dev/pts/0"
+    declare -x TERM="xterm"
+    declare -x USER="ubuntu"
+    declare -x XDG_RUNTIME_DIR="/run/user/1000"
+    declare -x XDG_SESSION_ID="7"
+
+#### help: shell 內建指令說明 ####
+
+語法: help shell內建指令
+
+	ubuntu@ip-172-31-7-139:~$ help exit
+	exit: exit [n]
+	    Exit the shell.
+
+	    Exits the shell with a status of N.  If N is omitted, the exit status
+	    is that of the last command executed.
+
+#### history: 列出使用過的指令 ####
+
+語法: history [欲查詢最近使用過的指令個數] [參數]
+
+- `-c`: 清除之前history紀錄
+- `-d 編號`: 刪除history紀錄中指定編號的那一項
+- `-n 歷史檔案`: 讀取尚未讀到的歷史紀錄
+- `-r 歷史檔案`: 讀取history檔案, 不會加上紀錄
+- `-w 歷史檔案`: 覆寫原有的history檔案
+
+列出最近5個使用過的指令:
+
+	ubuntu@ip-172-31-7-139:~$ history 5
+	   32  echo $DOG
+	   33  export
+	   34  help exit
+	   35  history --help
+	   36  history 5
+
+#### set: 設定變數 ####
+
+語法: set [參數] 變數名稱 數值
+
+- `-C` , `-o noclobber` : 對於現有的一般檔案不得使用覆蓋">"或是附加的方式">>"變更檔案
+- `-n` , `-o noexec` : 讀取指令但不實際執行
+- `-P` , `-o physical` : 執行與連結有關的指令時, 會進入該連結檔所在的實際位置
+- `-t` , `-o onecmd` : 當執行一行指令後就離開當前的Shell
+- `-x` , `-o xtrace` : 執行指令時列出指令與完整的參數(例如可讓我們了解alias別名中定義的指令參數)
+- 無 , `-o vi` : 指定vi為編輯器
+
+將vi設為預設的編輯器:
+
+	$ set -o vi
+
+#### unalias: 移除別名設定 ####
+
+語法: unalias [參數] [別名]
+
+- `-a` : 移除所有已定義的別名
+
+將已定義的別名 ll 移除:
+
+	$ unalias ll
+
+#### unset: 移除變數設定 ####
+
+語法: unset [參數] 變數
+
+- `-f` : 僅將函數移除
+- `-v` : 僅將變數移除
+
+移除變數 num 的設定:
+
+	$ unset num
+
+## 指令的使用技巧 ##
+
+### 指令的結合使用 ###
+
+指令中除單一指令的使用外, 常常會將多指令混合使用, 如管線(|)、導向(>或>>)與指令中的指令等, 分述如下:
+
+#### 管線的用法 ####
+
+`指令一 [參數] | 指令二 [參數]` , 也就是將 `指令一 [參數]` 的輸出結果傳到 `指令二 [參數]` , 透過指令二的處理後才輸出到螢幕上。
+
+Ex: `ls /etc | more` , 將 `ls /etc` 的結果透過 more 分頁輸出。
+
+#### 特殊符號: 「;」、「&&」與「||」用法 ####
+
+- 「指令一 ; 指令二」: 指令一執行完畢後(無論是否正確執行)執行指令二
+- 「指令一 && 指令二」: 指令一正確執行完畢(exit回傳值為0)後才執行指令二
+- 「指令一 || 指令二」: 指令一錯誤執行(exit回傳值為1)後才執行指令二(指令一若正確執行則不執行指令二)
+
+#### 指令中的指令 ####
+
+許多指令在執行後, 會進入該指令的操作模式, 如 alpine、fdisk、pico、top等, 進入後我們必須要使用該指令中的指令, 才能正確執行, 一般要離開這樣的指令, 可輸入 exit、q、quit或按下`Ctrl+C`。
+
+### 指令的重新導向 ###
+
+#### 關於輸入、輸出和錯誤輸出 ####
+
+一般我們會直接輸入指令與參數來達成我們要的功能, 而指令的執行結果多半顯示在螢幕上。在這裡介紹的標準輸入與標準輸出, 不只是單純輸入或螢幕顯示, 而是透過導向符號提供更多樣的輸入與輸出方式。
+
+輸入與輸出導向通常與FD(文件描述符號)
