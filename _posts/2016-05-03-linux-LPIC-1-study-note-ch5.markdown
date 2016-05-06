@@ -395,4 +395,202 @@ Ex: `ls /etc | more` , 將 `ls /etc` 的結果透過 more 分頁輸出。
 
 一般我們會直接輸入指令與參數來達成我們要的功能, 而指令的執行結果多半顯示在螢幕上。在這裡介紹的標準輸入與標準輸出, 不只是單純輸入或螢幕顯示, 而是透過導向符號提供更多樣的輸入與輸出方式。
 
-輸入與輸出導向通常與FD(文件描述符號)
+輸入與輸出導向通常與FD(文件描述符號, File Descriptor)有關, Shell的FD有10個, 即0~9, 常用FD有3個
+
+- 0 (stdin, 標準輸入)
+- 1 (stdout, 標準輸出)
+- 2 (stderr, 標準錯誤輸出)
+
+預設與鍵盤與螢幕相關。
+
+#### 輸入導向 ####
+
+很多指令可以透過參數來指定輸入的檔案名稱, 但若是該指令沒這樣的參數, 就能透過輸入導向解決問題。
+
+- cmd < file_name
+
+	cmd指令從file_name讀入資料, 也就是說指令cmd的輸入來源是file_name
+
+- cmd > output_file < input_file
+
+	cmd指令從input_file中讀入資料, 處理完畢後再將資料寫入output_file
+
+- cmd <> file_name
+
+	cmd指令從file_name中讀入資料, 處理完畢後再將資料寫回相同檔案file_name
+
+舉例:
+
+    ubuntu@ip-172-31-7-139:~$ cat > file_name
+    testing
+    hello
+    this is a test
+    hello world
+    ubuntu@ip-172-31-7-139:~$ cat file_name
+    testing
+    hello
+    this is a test
+    hello world
+
+類似的, 我們可讓cat從testfile獲得輸入資料, 然後輸出給檔案file_name
+
+    ubuntu@ip-172-31-7-139:~$ cat > testfile
+    this is a second file
+    hello world
+    test hello
+    ubuntu@ip-172-31-7-139:~$ cat > file_name < testfile
+    ubuntu@ip-172-31-7-139:~$ cat file_name
+    this is a second file
+    hello world
+    test hello
+
+#### 輸出導向 ####
+
+如果我們希望將執行結果存到檔案、其他終端機介面或是特定裝置上, 就會使用「輸出導向」這功能。
+
+不加導向符號「>」的意思是將結果輸出到螢幕上, 若是在導向後面加上檔案名稱, 則會將指令的執行結果輸出到指令的檔案, Ex: `ls > temp.txt` 。「>」與「>>」差異在於前是覆蓋, 後者是附加。
+
+#### 正確輸出與錯誤輸出 ####
+
+使用導向符號「>」的預設值是1, 因此「>」與「1>」是一樣的。
+
+語法如下:
+
+- `cmd > file` , 把 cmd 指令的標準輸出導向到file檔案中
+- `cmd 1> file` , 把 cmd 指令的標準輸出導向到file檔案中
+- `cmd >> file` , 把 cmd 指令的標準輸出導向到file檔案中(追加)
+- `cmd 2> file` , 把 cmd 指令的標準錯誤輸出導向到file檔案中
+- `cmd 2>> file`, 把 cmd 指令的標準錯誤輸出導向到file檔案中(附加)
+- `cmd > file 2>&1` , 把 cmd 指令的標準輸出和 cmd 指令的標準錯誤輸出一起導向到file檔案中。&1 表示引用標準輸出的檔案控制碼, 因而 2>&1 表示將標準錯誤導向到標準輸出
+- `cmd >> file 2>&1` , 把 cmd 指令的標準輸出和 cmd 指令的標準錯誤一起導向到file檔案中(附加)
+
+範例:
+
+	ubuntu@ip-172-31-7-139:~$ echo 'hello world' > file3
+
+假設file1與file2不存在, file3存在, 透過 `ls` 列出這三個檔案
+
+	ubuntu@ip-172-31-7-139:~$ ls -l file1 file2 file3
+	ls: cannot access file1: No such file or directory
+	ls: cannot access file2: No such file or directory
+	-rw-rw-r-- 1 ubuntu ubuntu 12 May  6 08:57 file3
+
+前兩筆顯示file1與file2不存在(錯誤輸出), file3正確列出(標準輸出)
+
+    ubuntu@ip-172-31-7-139:~$ ls file1 file2 file3 1>donefile
+    ls: cannot access file1: No such file or directory
+    ls: cannot access file2: No such file or directory
+    ubuntu@ip-172-31-7-139:~$ cat donefile
+    file3
+    ubuntu@ip-172-31-7-139:~$ ls file1 file2 file3 2>errorfile
+    file3
+    ubuntu@ip-172-31-7-139:~$ cat errorfile
+    ls: cannot access file1: No such file or directory
+    ls: cannot access file2: No such file or directory
+    ubuntu@ip-172-31-7-139:~$ ls file1 file2 file3 1>donefile 2>errorfile
+
+## 常用指令介紹 ##
+
+### 檔案內容與文字處理 ###
+
+如果要變動檔案內容, 最簡單方式就是開啟檔案編輯, 但如果只要抽取檔案部分資料、特定欄位, 或是特定字元、字串的取代, 就不需開啟文字編輯器加以編輯, 可直接使用指令完成這些動作。
+
+#### awk: 文字資料的進階處理 ####
+
+語法: awk [參數] [輸出條件] [檔案]
+
+參數:
+
+- `-F"字元"` : 以指定的字元作為分隔欄位
+- `--help` : 顯示說明畫面
+- `--version` : 顯示版本資訊
+
+保留變數:
+
+- ARGC : 指令執行所使用的參數個數(不包含awk本身)
+- ARGV : 指令執行所使用的參數, 以陣列方式表達
+- CONVFMT : 數字輸出的格式
+- FILENAME : 所輸入的檔案名稱
+- FS : 每欄所使用的分割字元
+- IGNORECASE : 忽略大小寫
+- NF : 欄位的個數
+- NR : 輸入紀錄的編號
+- OFMT : 字元輸出的格式
+- OFS : 數字輸出的格式
+- ORS : 每筆資料的輸出格式, 預設為換行
+- RS : 每筆資料的輸入格式, 預設為換行
+
+輸出條件:
+
+- `index(字串, 子字串)` : 列出字串當中的子字串所在的位置
+- `length(字串)` : 列出字串的長度
+- `print(字串)` : 列出字串
+- `split(字元, 陣列, 字串)` : 將字串使用分隔字元切割後, 存入陣列中
+- `substr(字串, m, n)` : 列出字串後, 從位置 m 到位置 n 的字元
+
+顯示 `/etc/passwd` 的內容:
+
+    ubuntu@ip-172-31-7-139:~$ awk '{ print }' /etc/passwd
+    root:x:0:0:root:/root:/bin/bash
+    daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+    bin:x:2:2:bin:/bin:/usr/sbin/nologin
+    sys:x:3:3:sys:/dev:/usr/sbin/nologin
+    sync:x:4:65534:sync:/bin:/bin/sync
+    games:x:5:60:games:/usr/games:/usr/sbin/nologin
+    man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+    lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+    mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+    news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+    uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+    proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+    www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+    backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+    list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+    irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+    gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+    nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+    libuuid:x:100:101::/var/lib/libuuid:
+    syslog:x:101:104::/home/syslog:/bin/false
+    messagebus:x:102:106::/var/run/dbus:/bin/false
+    landscape:x:103:109::/var/lib/landscape:/bin/false
+    sshd:x:104:65534::/var/run/sshd:/usr/sbin/nologin
+    pollinate:x:105:1::/var/cache/pollinate:/bin/false
+    ubuntu:x:1000:1000:Ubuntu:/home/ubuntu:/bin/bash
+
+要將 /etc/passwd 當中的內容以冒號為分割, 取出第一位與第六位:
+
+    ubuntu@ip-172-31-7-139:~$ awk -F":" '{ print $1 $6 }' /etc/passwd
+    root/root
+    daemon/usr/sbin
+    bin/bin
+    sys/dev
+    sync/bin
+    games/usr/games
+    man/var/cache/man
+    lp/var/spool/lpd
+    mail/var/mail
+    news/var/spool/news
+    uucp/var/spool/uucp
+    proxy/bin
+    www-data/var/www
+    backup/var/backups
+    list/var/list
+    irc/var/run/ircd
+    gnats/var/lib/gnats
+    nobody/nonexistent
+    libuuid/var/lib/libuuid
+    syslog/home/syslog
+    messagebus/var/run/dbus
+    landscape/var/lib/landscape
+    sshd/var/run/sshd
+    pollinate/var/cache/pollinate
+    ubuntu/home/ubuntu
+
+#### col: 過濾保留字元 ####
+
+語法: col [參數]
+
+- -b : 過濾所有控制字元, 包含RLF與HRLF
+- -f : 過濾RLF, 但保留HRLF
+- -l 列數 : 定義記憶體中緩衝區列數, 預設值為 128 列
+- -p : 強迫不過濾未知的字元
