@@ -501,7 +501,7 @@ Ex: `ls /etc | more` , 將 `ls /etc` 的結果透過 more 分頁輸出。
 
 參數:
 
-- `-F"字元"` : 以指定的字元作為分隔欄位
+- `-F"字元"` : `--Field-separator="字元"`, 以指定的字元作為分隔欄位
 - `--help` : 顯示說明畫面
 - `--version` : 顯示版本資訊
 
@@ -590,7 +590,297 @@ Ex: `ls /etc | more` , 將 `ls /etc` 的結果透過 more 分頁輸出。
 
 語法: col [參數]
 
-- -b : 過濾所有控制字元, 包含RLF與HRLF
-- -f : 過濾RLF, 但保留HRLF
-- -l 列數 : 定義記憶體中緩衝區列數, 預設值為 128 列
-- -p : 強迫不過濾未知的字元
+- `-b` : 過濾所有控制字元, 包含RLF與HRLF
+- `-f` : 過濾RLF, 但保留HRLF
+- `-l 列數` : 定義記憶體中緩衝區列數, 預設值為 128 列
+- `-p` : 強迫不過濾未知的字元
+
+將testfile當中的RLF字元過濾:
+
+	ubuntu@ip-172-31-7-139:~$ col -f < testfile
+	this is a second file
+	hello world
+	test hello
+
+將cat的線上說明(man)輸出至檔案cat.txt, 並過濾所有控制字元
+
+	ubuntu@ip-172-31-7-139:~$ man cat | col -b > testfile
+
+#### cut: 擷取檔案中每一行的指定範圍 ####
+
+語法: cut [參數] [檔案名稱]
+
+- `-b 輸出範圍` : --bytes=LIST, 輸出指定的bytes數或是範圍
+- `-c 輸出範圍` : --characters=LIST, 輸出指定的字元數或是範圍
+- `-d 分隔字元` : --delimiter=DELIM, 指定分隔欄位的字元
+- `-f 輸出範圍` : --fields=LIST, 設定輸出的範圍
+- `-s` : --only-delimited, 該行沒有分隔欄位字元, 則不顯示該行
+- `--help`
+- `--version`
+
+/etc/passwd的內容:
+
+    ubuntu@ip-172-31-7-139:~$ cat /etc/passwd
+    root:x:0:0:root:/root:/bin/bash
+    daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+    bin:x:2:2:bin:/bin:/usr/sbin/nologin
+    sys:x:3:3:sys:/dev:/usr/sbin/nologin
+    sync:x:4:65534:sync:/bin:/bin/sync
+    games:x:5:60:games:/usr/games:/usr/sbin/nologin
+    man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+    lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+    mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+    news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+    uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+    proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+    www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+    backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+    list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+    irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+    gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+    nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+    libuuid:x:100:101::/var/lib/libuuid:
+    syslog:x:101:104::/home/syslog:/bin/false
+    messagebus:x:102:106::/var/run/dbus:/bin/false
+    landscape:x:103:109::/var/lib/landscape:/bin/false
+    sshd:x:104:65534::/var/run/sshd:/usr/sbin/nologin
+    pollinate:x:105:1::/var/cache/pollinate:/bin/false
+    ubuntu:x:1000:1000:Ubuntu:/home/ubuntu:/bin/bash
+
+將前三個字母抽出:
+
+    ubuntu@ip-172-31-7-139:~$ cut -b 1-3 /etc/passwd
+    roo
+    dae
+    bin
+    sys
+    syn
+    gam
+    man
+    lp:
+    mai
+    new
+    uuc
+    pro
+    www
+    bac
+    lis
+    irc
+    gna
+    nob
+    lib
+    sys
+    mes
+    lan
+    ssh
+    pol
+    ubu
+
+使用:為分隔欄位字元
+
+    ubuntu@ip-172-31-7-139:~$ cut -d : -f 1 /etc/passwd
+    root
+    daemon
+    bin
+    sys
+    sync
+    games
+    man
+    lp
+    mail
+    news
+    uucp
+    proxy
+    www-data
+    backup
+    list
+    irc
+    gnats
+    nobody
+    libuuid
+    syslog
+    messagebus
+    landscape
+    sshd
+    pollinate
+    ubuntu
+
+將/etc/passwd當中的帳號與根目錄欄位列出:
+
+    ubuntu@ip-172-31-7-139:~$ cut -d : -f 1,6 /etc/passwd
+    root:/root
+    daemon:/usr/sbin
+    bin:/bin
+    sys:/dev
+    sync:/bin
+    games:/usr/games
+    man:/var/cache/man
+    lp:/var/spool/lpd
+    mail:/var/mail
+    news:/var/spool/news
+    uucp:/var/spool/uucp
+    proxy:/bin
+    www-data:/var/www
+    backup:/var/backups
+    list:/var/list
+    irc:/var/run/ircd
+    gnats:/var/lib/gnats
+    nobody:/nonexistent
+    libuuid:/var/lib/libuuid
+    syslog:/home/syslog
+    messagebus:/var/run/dbus
+    landscape:/var/lib/landscape
+    sshd:/var/run/sshd
+    pollinate:/var/cache/pollinate
+    ubuntu:/home/ubuntu
+
+#### expand: 將Tab取代為空白鍵 ####
+
+語法: expand [參數] [檔案名稱]
+
+- `-i` : --initial, 如果Tab後面還有文字,則不取代
+- `-t` :　--tabs=NUMBER, -t後面加上數字, 可指定用多少空白取代tab(default is 8)
+- `--help`
+- `--version`
+
+使用cat查詢檔案內容, 並用expand將Tab改為兩個空白:
+
+    ubuntu@ip-172-31-7-139:~$ cat /etc/hosts
+    127.0.0.1 localhost
+
+    # The following lines are desirable for IPv6 capable hosts
+    ::1 ip6-localhost ip6-loopback
+    fe00::0 ip6-localnet
+    ff00::0 ip6-mcastprefix
+    ff02::1 ip6-allnodes
+    ff02::2 ip6-allrouters
+    ff02::3 ip6-allhosts
+    ubuntu@ip-172-31-7-139:~$ cat /etc/hosts | expand -t 2
+    127.0.0.1 localhost
+
+    # The following lines are desirable for IPv6 capable hosts
+    ::1 ip6-localhost ip6-loopback
+    fe00::0 ip6-localnet
+    ff00::0 ip6-mcastprefix
+    ff02::1 ip6-allnodes
+    ff02::2 ip6-allrouters
+    ff02::3 ip6-allhosts
+
+	ubuntu@ip-172-31-7-139:~$ vi testhosts
+	ubuntu@ip-172-31-7-139:~$ cat testhosts
+	127.0.0.1       localhost
+	ubuntu@ip-172-31-7-139:~$ cat testhosts | expand -t 2
+	127.0.0.1 localhost
+
+#### unexpand: 將空白鍵取代為 Tab ####
+
+語法: unexpand [參數] [檔案名稱]
+
+- `-a` : --all, 取代所有空白,包括一開始的空白
+- `--first-only` : 僅取代一行開頭的空白
+- `-t` : --tabs=N, -t後面加上數字,可指定用多少空白取代tab(default is 8)
+- `--help`
+- `--version`
+
+使用unexpand將兩個空白改為Tab:
+
+	ubuntu@ip-172-31-7-139:~$ cat readme.txt
+	This  is  new  line
+	A  B  C
+	ubuntu@ip-172-31-7-139:~$ unexpand -t 2 readme.txt
+	This    is      new      line
+	A        B      C
+
+#### sed: 檔案內容修改 ####
+
+語法: sed [參數] [語法] [檔案名稱]
+
+- `-n` : --quiet, 安靜模式, 自動執行
+- `-l N` : --line-length, 指定每一行最多N字元,超過自動拆行
+- `-s` : --separate, 將檔案視為分離的, 而不是單獨連續的長字串
+- `--help`
+- `--V`
+
+sed的語法眾多且複雜, 以下僅列舉兩個常用的語法:
+
+	'[範圍][動作]/[原字串]/[新字串]/[動作]'
+	'[字串]/[動作]/[原字串]/[新字串]/[動作]'
+
+testfile檔案內容:
+
+    ubuntu@ip-172-31-7-139:~$ cat testfile
+    this is line 1
+    this is line 2
+    this is line 2
+    this is line 3
+    this is line 3
+
+將testfile的2-3行刪除:
+
+    ubuntu@ip-172-31-7-139:~$ sed '2, 3d' testfile
+    this is line 1
+    this is line 3
+    this is line 3
+
+將內容is字串換成paper(僅換每行的第一個is、換每行的所有is):
+
+    ubuntu@ip-172-31-7-139:~$ sed 's/is/paper/' testfile
+    thpaper is line 1
+    thpaper is line 2
+    thpaper is line 2
+    thpaper is line 3
+    thpaper is line 3
+    ubuntu@ip-172-31-7-139:~$ sed 's/is/paper/g' testfile
+    thpaper paper line 1
+    thpaper paper line 2
+    thpaper paper line 2
+    thpaper paper line 3
+    thpaper paper line 3
+
+#### sort: 將文字檔內容重新排序 ####
+
+語法: sort [參數] [檔案名稱]
+
+- `-b` : --ignore-leading-blanks, 忽略一開始的空白
+- `-d` : --dictionary-order, 只考慮空白、數字字元、與英文字母
+- `-f` : --ignore-case, 忽略大小寫, 也就是大小寫視為相同
+- `-g` : --general-numeric-sort, 只比較一般的數字部分
+- `-i` : --ignore-nonprinting, 只考慮可以映出的字串
+- `-M` : --month-sort, 比較月份, 如Jan<Feb<...<Dec
+- `-n` : --numeric-sort, 根據字串的數值比較
+- `-r` : --reverse, 將結果以相反的方式呈現
+- `--help`
+- `--version`
+
+將w的輸出, 透過sort依照第五個欄位排序:
+
+	ubuntu@ip-172-31-7-139:~$ w -h | sort -k 5
+	ubuntu   pts/0    43.251.79.36     05:57    7.00s  0.51s  0.00s w -h
+
+testfile內容:
+
+    ubuntu@ip-172-31-7-139:~$ cat testfile
+    2 this is line 1
+    3 this is line 5
+    5 this is line 2
+    1 this is line 4
+    4 this is line 3
+
+若直接使用sort, 則會依照最小的欄位排序:
+
+    ubuntu@ip-172-31-7-139:~$ sort testfile
+    1 this is line 4
+    2 this is line 1
+    3 this is line 5
+    4 this is line 3
+    5 this is line 2
+
+若以第五個欄位排序:
+
+    ubuntu@ip-172-31-7-139:~$ sort -k 5 testfile
+    2 this is line 1
+    5 this is line 2
+    4 this is line 3
+    1 this is line 4
+    3 this is line 5
+
