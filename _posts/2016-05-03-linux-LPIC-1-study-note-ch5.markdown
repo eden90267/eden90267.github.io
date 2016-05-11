@@ -895,3 +895,166 @@ testfile內容:
 - `--help`
 - `--version`
 
+將testfile的檔案內容透過tr將is字元分別換成mn:
+
+	ubuntu@ip-172-31-7-139:~$ cat > testfile
+	this is line 1
+	this is line 2
+	this is line 2
+	this is line 3
+	this is line 3
+	ubuntu@ip-172-31-7-139:~$ cat testfile
+	this is line 1
+	this is line 2
+	this is line 2
+	this is line 3
+	this is line 3
+	
+	ubuntu@ip-172-31-7-139:~$ cat testfile | tr is mn
+	thmn mn lmne 1
+	thmn mn lmne 2
+	thmn mn lmne 2
+	thmn mn lmne 3
+	thmn mn lmne 3
+	
+將testfile的檔案內容小寫全部換成大寫:
+
+	ubuntu@ip-172-31-7-139:~$ cat testfile | tr a-z A-Z
+	THIS IS LINE 1
+	THIS IS LINE 2
+	THIS IS LINE 2
+	THIS IS LINE 3
+	THIS IS LINE 3
+	
+#### uniq: 顯示並刪除檔案中重複的行 ####
+
+語法: uniq [參數] [輸入檔] [輸出檔]
+
+- `-c` : --count, 在每一行的左邊顯示重複的次數
+- `-d` : --repeated, 僅顯示重複出現的行
+- `-f 欄位` : --skip-fields=N, 不比較指定的欄位(行數)
+- `-i` : --ignore-case, 忽略大小寫
+- `-s 字元位置` : --skip-chars=N, 不比較指定的字元
+- `-u` : --unique, 僅顯示出現一次的行
+- `-w 字元數` : --check-chars=N, 指定每行僅比較前幾個字元
+- `--help`
+- `--version`
+
+將檔案唯一化:
+
+	ubuntu@ip-172-31-7-139:~$ cat testfile
+	this is line 1
+	this is line 2
+	this is line 2
+	this is line 3
+	this is line 3
+	ubuntu@ip-172-31-7-139:~$ uniq testfile
+	this is line 1
+	this is line 2
+	this is line 3
+	
+顯示該檔案重複出現的行:
+
+	ubuntu@ip-172-31-7-139:~$ uniq -d testfile
+	this is line 2
+	this is line 3
+	
+#### split: 分割檔案 ####
+
+語法: split [參數] [檔案名稱]
+
+- `-a N` : --suffix-length=N, 分割檔檔名最末尾的長度為N, 預設為2
+- `-b N` : --bytes=SIZE, 每個檔案輸出的大小, 單位為bytes
+- `-c N` : --line-bytes=SIZE, 每個輸出檔中每行的大小, 單位為bytes
+- `-d` : --numeric-suffixes, 分割檔檔名末尾以數字依序列出(01、02...), 而不使用英文字母列出(aa、ab...)
+- `-l N` : --lines=NUMBER, 每個檔案的行數最多為N
+- `--verbose` : 出現錯誤時, 顯示在螢幕上
+- `--help`
+- `--version`
+
+將apache2.conf分割為小檔, 每個檔案最多為1000bytes:
+
+	ubuntu@ip-172-31-7-139:~/apache_split$ ls
+	apache2.conf
+	ubuntu@ip-172-31-7-139:~/apache_split$ ll
+	total 40
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:46 ./
+	drwxr-xr-x 5 ubuntu ubuntu  4096 May 11 19:44 ../
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 11 19:46 apache2.conf
+	ubuntu@ip-172-31-7-139:~/apache_split$ split -b 1000 apache2.conf
+	ubuntu@ip-172-31-7-139:~/apache_split$ ls
+	apache2.conf  xac  xaf  xai  xal  xao  xar  xau  xax  xba  xbd
+	xaa           xad  xag  xaj  xam  xap  xas  xav  xay  xbb  xbe
+	xab           xae  xah  xak  xan  xaq  xat  xaw  xaz  xbc  xbf
+	ubuntu@ip-172-31-7-139:~/apache_split$ ll
+	total 168
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:47 ./
+	drwxr-xr-x 5 ubuntu ubuntu  4096 May 11 19:44 ../
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 11 19:46 apache2.conf
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xaa
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xab
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xac
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xad
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xae
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xaf
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xag
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xah
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xai
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xaj
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xak
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xal
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xam
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xan
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xao
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xap
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xaq
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xar
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xas
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xat
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xau
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xav
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xaw
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xax
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xay
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xaz
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xba
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xbb
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xbc
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xbd
+	-rw-rw-r-- 1 ubuntu ubuntu  1000 May 11 19:47 xbe
+	-rw-rw-r-- 1 ubuntu ubuntu   745 May 11 19:47 xbf
+
+將apache2分割為小檔, 每行的行數最多為50行, 且分割檔名以數字為區隔:
+
+	ubuntu@ip-172-31-7-139:~/apache_split2$ ls
+	apache2.conf
+	ubuntu@ip-172-31-7-139:~/apache_split2$ split -l 50 -d apache2.conf
+	ubuntu@ip-172-31-7-139:~/apache_split2$ ll
+	total 120
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:51 ./
+	drwxr-xr-x 6 ubuntu ubuntu  4096 May 11 19:50 ../
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 11 19:50 apache2.conf
+	-rw-rw-r-- 1 ubuntu ubuntu  2134 May 11 19:51 x00
+	-rw-rw-r-- 1 ubuntu ubuntu  1144 May 11 19:51 x01
+	-rw-rw-r-- 1 ubuntu ubuntu  1458 May 11 19:51 x02
+	-rw-rw-r-- 1 ubuntu ubuntu  1538 May 11 19:51 x03
+	-rw-rw-r-- 1 ubuntu ubuntu  1767 May 11 19:51 x04
+	-rw-rw-r-- 1 ubuntu ubuntu  1727 May 11 19:51 x05
+	-rw-rw-r-- 1 ubuntu ubuntu  1297 May 11 19:51 x06
+	-rw-rw-r-- 1 ubuntu ubuntu  1653 May 11 19:51 x07
+	-rw-rw-r-- 1 ubuntu ubuntu  1818 May 11 19:51 x08
+	-rw-rw-r-- 1 ubuntu ubuntu  1776 May 11 19:51 x09
+	-rw-rw-r-- 1 ubuntu ubuntu  1314 May 11 19:51 x10
+	-rw-rw-r-- 1 ubuntu ubuntu  1532 May 11 19:51 x11
+	-rw-rw-r-- 1 ubuntu ubuntu  2076 May 11 19:51 x12
+	-rw-rw-r-- 1 ubuntu ubuntu  1567 May 11 19:51 x13
+	-rw-rw-r-- 1 ubuntu ubuntu  1821 May 11 19:51 x14
+	-rw-rw-r-- 1 ubuntu ubuntu  1356 May 11 19:51 x15
+	-rw-rw-r-- 1 ubuntu ubuntu  1929 May 11 19:51 x16
+	-rw-rw-r-- 1 ubuntu ubuntu  1895 May 11 19:51 x17
+	-rw-rw-r-- 1 ubuntu ubuntu  1419 May 11 19:51 x18
+	-rw-rw-r-- 1 ubuntu ubuntu   524 May 11 19:51 x19
+	
+### 檔案管理 ###
+
+透過指令也能管理檔案, 包括顯示檔案的資訊, 檔案的複製、移動、貼上, 以及檔案間的比較
