@@ -884,3 +884,14 @@ testfile內容:
     1 this is line 4
     3 this is line 5
 
+#### tr: 轉換或變更檔案中的字元 ####
+
+語法: tr [參數] 字串一 [字串二]
+
+- `-c` : --complement(補充), 取代或刪除不包含字串一的字元
+- `-d` : --delete, 刪除字串一所包含的字元, 此參數不需要字串二
+- `-s` : --squeeze-repeats, 當字串一連續出現時, 取代為一個, 此參數不需要字串二
+- `-t` : --truncate-set1, 若字串一與二的長度不同, 指定字串一的長度給字串二
+- `--help`
+- `--version`
+
