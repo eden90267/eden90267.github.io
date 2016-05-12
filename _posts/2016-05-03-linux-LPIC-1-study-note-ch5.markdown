@@ -1057,4 +1057,54 @@ testfile內容:
 	
 ### 檔案管理 ###
 
-透過指令也能管理檔案, 包括顯示檔案的資訊, 檔案的複製、移動、貼上, 以及檔案間的比較
+透過指令也能管理檔案, 包括顯示檔案的資訊, 檔案的複製、移動、貼上, 以及**檔案間的比較**。
+
+#### du: 顯示目錄或檔案大小 ####
+
+語法: du [參數] [檔案]
+
+- `-a` : --apparent-size, 顯示目錄中的個別檔案大小
+- `-b` : --bytes, 以bytes為單位顯示
+- `-c` : --total, 顯示個別檔案大小, 以及總和
+- `-D` : --dereference-args, 顯示符號連結的來源檔大小
+- `-h` : --human-readable, 提供更高的可讀性, 以K(KB)、M(MB)、G(GB)為單位顯示
+- `-H` : 與-h類似, 但以1000為k的單位, 而非1024
+- `-k` : 以1024bytes為區塊的單位
+- `-l` : --count-links, 重複計算連結檔所佔的空間
+- `-L` : --dereference, 指定符號檔連結所對應的實際檔案大小
+- `-m` : 以MB為單位顯示
+- `-s` : --summarize, 只顯示總和
+- `-S` : --separate-dirs, 顯示目錄內容, 不包含子目錄大小
+- `-x` : ---one-file-system, 若目錄中有不同檔案系統, 不顯示相異的檔案系統
+- `--exclude=檔案` : 忽略指定的檔案或目錄
+- `--max-depth` : 僅搜尋指定的目錄層級
+- --help
+- --version
+
+顯示目前目錄使用狀況, 過程如下:
+
+	ubuntu@ip-172-31-7-139:~$ du
+	164     ./apache_split
+	8       ./.ssh
+	4       ./.cache
+	116     ./apache_split2
+	376     .
+
+顯示 `/var` 目錄下所有檔案的容量, 僅顯示總計, 並以KB為單位:
+
+	ubuntu@ip-172-31-7-139:~$ sudo du -sk /var/*
+	460     /var/backups
+	149440  /var/cache
+	4       /var/crash
+	145028  /var/lib
+	4       /var/local
+	0       /var/lock
+	2120    /var/log
+	4       /var/mail
+	4       /var/opt
+	0       /var/run
+	32      /var/spool
+	4       /var/tmp
+
+#### file: 顯示檔案類型 ####
+
