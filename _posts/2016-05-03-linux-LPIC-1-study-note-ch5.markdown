@@ -1108,3 +1108,174 @@ testfile內容:
 
 #### file: 顯示檔案類型 ####
 
+語法: file [參數] 檔案名稱
+
+- `-b` : --brief, 不顯示檔案名稱
+- `-c` : --checking-printout, 列出詳細過程
+- `-C` : --compile, 列出magic.ngc的輸出檔, 先分離一些原始檔案內容到此檔案中
+- `-f namefile` : --files-from FILE, 指定名稱檔, 讓file指令依照此檔案內容辨識
+- `-F 分隔字元` : --separator STRING, 用來作為分隔的字元
+- `-h` : --no-dereference, 若為符號連結的檔案, 不顯示原始的檔案類別
+- `-i` : --mime, 輸出檔案的字碼總類
+- `-k` : --keep-going, 當發現符合的條件時, 不要停止, 繼續執行
+- `-L` : --dereference, 若為連結檔, 直接顯示原始檔案的類型
+- `-n` : --no-buffer, 直接將結果輸出到螢幕, 不放暫存區
+- `-v` : --version
+- `-z` : --uncompress, 試著去讀取壓縮檔的內容
+- --help
+
+顯示一般檔與連結檔:
+
+	ubuntu@ip-172-31-7-139:~$ file apache2.conf
+	apache2.conf: UTF-8 Unicode text
+	ubuntu@ip-172-31-7-139:~$ file /etc/resolv.conf
+	/etc/resolv.conf: symbolic link to `../run/resolvconf/resolv.conf'
+	
+顯示執行檔:
+
+	ubuntu@ip-172-31-7-139:~$ file /bin/grep
+	/bin/grep: ELF 64-bit LSB  executable, x86-64, version 1 (SYSV), dynamically linked 	(uses shared libs), for GNU/Linux 2.6.24, 	BuildID[sha1]=9780fb82e027800459e20af35f65055688a3c031, stripped
+	
+顯示裝置檔:
+
+	vagrant@vagrant-ubuntu-trusty-64:~$ file /dev/sda
+	/dev/sda: block special
+	
+#### ls: 列出目錄或是檔案名稱 ####
+
+語法: ls [參數] [檔案]
+
+- `-a` : --all, 列出所有檔案, 包含以「.」為開頭的隱藏檔案
+- `-c` : 使用欄位排列顯示檔案與目錄
+- `-f` : 不照字母排序, 而照存入磁碟的順序排序
+- `-h` : --human-readable, 以較易閱讀的方式呈現檔案大小, 如以M來顯示MBytes
+- `-i` : --inode, 列出--inodes(檔案訊息區的內容)的編號
+- `-k` : --kibibytes, 檔案大小以KBytes列出
+- `-l` : 使用長列表列出
+- `-m` : 以水平排列顯示每個指令, 指令間以逗號「.」表示
+- `-n` : --numeric-uid-gid, 使用UID與GID來取代使用者名稱跟群組名稱
+- `-o` : 以長列表顯示, 但不顯示群組資訊
+- `-q` : --hide-control-chars, 不顯示控制碼, 這是預設值
+- `-r` : --reverse, 以字母的相反順序列出
+- `-R` : --recursive, 遞迴處理, 列出目錄與子目錄下的所有檔案
+- `-t` : 依照檔案最後修改時間列出
+- `-u` : 依照檔案最後存取時間列出
+- `-1` : 一行列出一檔案或目錄
+- `-Z` : --context, 查看SELinux的標籤
+- `--author` : 列出該檔案或目錄的原作者
+- `--color[=條件]` : 色彩與顯示條件定義在dircolors這個指令中, 可參閱dircolors的參數設定
+- `--help`
+- `--version`
+
+列出/var下的檔案
+
+	root@ip-172-31-7-139:/home/ubuntu# ls /var
+	backups  cache  crash  lib  local  lock  log  mail  opt  run  spool  tmp
+	
+列出目前目錄下的檔案, 並以長列表顯示(加入 `--color=tty` , 會以彩色顯示)
+
+	root@ip-172-31-7-139:/home/ubuntu# ls -l --color=tty
+	total 68
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 11 19:43 apache2.conf
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:47 apache_split
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:51 apache_split2
+	-rw-rw-r-- 1 ubuntu ubuntu     6 May  6 09:01 donefile
+	-rw-rw-r-- 1 ubuntu ubuntu   102 May  6 09:01 errorfile
+	-rw-rw-r-- 1 ubuntu ubuntu    12 May  6 08:57 file3
+	-rw-rw-r-- 1 ubuntu ubuntu    45 May  6 04:15 file_name
+	-rw-rw-r-- 1 ubuntu ubuntu    28 May  9 08:07 readme.txt
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 11 15:48 testfile
+	-rw-rw-r-- 1 ubuntu ubuntu   203 May  9 09:45 wfile
+	
+以字母相反順序表示:
+
+	root@ip-172-31-7-139:/home/ubuntu# ls -r
+	wfile     readme.txt  file3      donefile       apache_split
+	testfile  file_name   errorfile  apache_split2  apache2.conf
+	
+列出inodes的數目:
+
+	root@ip-172-31-7-139:/home/ubuntu# ls -i
+	395978 apache2.conf   395976 donefile   395973 file_name   395972 wfile
+	395979 apache_split   395977 errorfile  395980 readme.txt
+	396015 apache_split2  395975 file3      395981 testfile
+	
+#### stat: 顯示檔案或檔案系統的狀態 ####
+
+語法: stat [參數] 檔案或檔案系統
+
+- `-f` : 顯示檔案系統, 而非單獨的檔案
+- `-L` : 顯示連結檔案
+- `-t` : 以簡單的模式列出資訊
+- `--help`
+- `--version`
+
+顯示apache2.conf檔案的狀態
+
+	root@ip-172-31-7-139:/home/ubuntu# stat apache2.conf
+	  File: ‘apache2.conf’
+	  Size: 31745     	Blocks: 64         IO Block: 4096   regular file
+	Device: ca01h/51713d	Inode: 395978      Links: 1
+	Access: (0664/-rw-rw-r--)  Uid: ( 1000/  ubuntu)   Gid: ( 1000/  ubuntu)
+	Access: 2016-05-12 21:56:07.994812999 +0000
+	Modify: 2016-05-11 19:43:52.942812999 +0000
+	Change: 2016-05-11 19:43:52.942812999 +0000
+	 Birth: -
+	 
+顯示檔案系統 `/dev/sda1` 的狀態：
+
+	vagrant@vagrant-ubuntu-trusty-64:~$ stat /dev/sda1
+	  File: ‘/dev/sda1’
+	  Size: 0         	Blocks: 0          IO Block: 4096   block special file
+	Device: 5h/5d	Inode: 6392        Links: 1     Device type: 8,1
+	Access: (0660/brw-rw----)  Uid: (    0/    root)   Gid: (    6/    disk)
+	Access: 2016-05-12 23:16:08.137686354 +0000
+	Modify: 2016-05-12 23:15:48.941773059 +0000
+	Change: 2016-05-12 23:15:48.941773059 +0000
+	 Birth: -
+	 
+經驗談： `stat` 與 `ls` 這兩個指令可以列出檔案的inode
+
+#### mkdir: 新增目錄 ####
+
+語法: mkdir [參數] 目錄
+
+- `-m 模式` : --mode=MODE, 模式用法與chmod相同, 參閱chmod參數說明
+- `-p` : 若上層目錄不存在, 會依序建立; 若該目錄已存在, 將會略過, 不出現錯誤訊息
+- `--help`
+- `--verbose` : 以完整過程顯示
+- `--version`
+
+在目前下新增data的子目錄:
+
+	ubuntu@ip-172-31-7-139:~$ mkdir data
+	
+新增一個目錄/data/www/test:
+
+	ubuntu@ip-172-31-7-139:~$ mkdir data/www/test
+	mkdir: cannot create directory ‘data/www/test’: No such file or directory
+	
+#### touch: 更改檔案的時間標記 ####
+
+語法: touch [參數] 檔案名稱
+
+- `-a` : 更改檔案被存取的時間
+- `-c` : --no-create, 不要新增檔案
+- `-m` : 更改檔案被修改的時間
+- `-t 時間` : 時間格式為MMDDhhmm
+- `--help`
+- `--version`
+
+新增一個名為test1的檔案:
+
+	ubuntu@ip-172-31-7-139:~$ touch test1
+	
+touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增一個時間標記為現在的檔案
+
+	ubuntu@ip-172-31-7-139:~$ ls -l apache2.conf
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 11 19:43 apache2.conf
+	ubuntu@ip-172-31-7-139:~$ touch apache2.conf
+	ubuntu@ip-172-31-7-139:~$ ls -l apache2.conf
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 12 23:30 apache2.conf
+	
+#### cp: 複製檔案或目錄 ####
