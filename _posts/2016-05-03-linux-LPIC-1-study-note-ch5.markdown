@@ -1588,3 +1588,172 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 	     8  # daemon name. See rpcbind(8) and rpc.mountd(8) for further information.
 	     9  #
 
+#### tac: 將檔案內容由尾到頭的顯示 ####
+
+語法: tac [參數] [檔案名稱]
+
+- `-b` : --before, 將間隔的字元放在檔案紀錄前面
+- `-r` : --regex, 間隔字元當作一般文字表達
+- `-s` : --separator, 用指定的間隔字元取代新增控制字元
+- `--help`
+- `--version`
+
+將檔案由尾到頭相反顯示：
+
+	ubuntu@ip-172-31-15-54:~$ cat aaa
+	line1
+	line2
+	line3
+	line4
+	line5
+	ubuntu@ip-172-31-15-54:~$ tac aaa
+	line5
+	line4
+	line3
+	line2
+	line1
+	
+#### head: 輸出檔案內容最前面的部分 ####
+
+語法: head [參數] 檔案名稱
+
+- `-c 顯示數量` : --bytes=[-]K, 設定顯示數量以byte為單位
+- `-n 顯示列數` : --lines=[-]K, 設定顯示列數
+- `-q` : --quiet, 不顯示檔案名稱
+- `-v` : --verbose, 顯示檔案名稱
+- `--help`
+- `--version`
+
+顯示/etc/hosts.allow的前三行:
+
+	ubuntu@ip-172-31-15-54:~$ head -n 3 /etc/hosts.allow
+	# /etc/hosts.allow: list of hosts that are allowed to access the system.
+	#                   See the manual pages hosts_access(5) and hosts_options(5).
+	#
+	
+顯示/etc/hosts.allow的前25個bytes:
+
+	ubuntu@ip-172-31-15-54:~$ head -c 25 /etc/hosts.allow
+	# /etc/hosts.allow: list ubuntu@ip-172-31-15-54:~$
+	
+#### less: 顯示檔案內容 ####
+
+語法: less [參數] [檔案名稱]
+
+- `-e` : --quit-at-eof, 檔案顯示結束後, 自動離開, 不須鍵入q
+- `-f` : --force, 強迫開啟非一般檔
+- `-g` : --hilite-search, 不特別標示使用搜尋指令的關鍵字
+- `-i` : --ignore-case, 搜尋時忽略大小寫
+- `-N` : --line-numbers, 在每一行開頭顯示行號
+- `-Q` : --quiet, 關閉警告音
+- `-s` : --squeeze-blank-lines, 將連續的空行以一行表示
+- `-S` : --chop-long-lines, 過長的行不換行顯示
+- `-x n` : --tabs=[N[,...]], 將Tab字元取代為n個空白字元
+
+執行less當中的指令說明:
+
+- `b` : 往後捲動一頁
+- `d` : 往後捲動半頁
+- `h, H, Help` : 顯示說明畫面
+- `q` : 離開
+- `R` : 重新顯示畫面, 不讀取緩衝區的資料
+- `u` : 往前捲動半頁
+- `y` : 往前捲動一行
+- `Enter鍵` : 捲動一行
+- `空白鍵` : 捲動一頁
+- `/字串` : 尋找特定字串
+
+使用less查看apache2.conf這個檔案
+
+	ubuntu@ip-172-31-15-54:~$ less apache2.conf
+	
+一般我們用Space與上下鍵翻閱內容, 並可隨時按 `q` 離開
+
+#### more: 顯示檔案內容 ####
+
+語法: more [參數] [檔案名稱]
+
+- `-c` : 每次顯示全新的一頁。預設會顯示上一頁的最後一行
+- `-d` : more會在最後一行顯示說明; 按space鍵繼續、按q離開等等
+- `-f` : 只處理正常狀況的行, 太長的行列將不處理
+- `+num` : 從第num行開始顯示
+- `-num` : 顯示每一頁的行數(num)
+- `-p` : 不捲動, 而以整頁表示內容
+- `-s` : 若有多行空白, 將以一行顯示
+
+瀏覽apache2.conf, 每次顯示10行:
+
+	ubuntu@ip-172-31-15-54:~$ more -10 apache2.conf
+	SA 服務的設定檔。
+	#
+	#這是Apache伺服器主要設定檔。
+	#它包含伺服器的影響伺服器運行的設定指令。
+	#參見<URL:http://httpd.ache.org/doc-2.0/>以取得關於這些指令的詳細資訊
+	#
+	#不要只是簡單的閱讀這些指令資訊而不去理解它。
+	#這裡只是做了簡單的說明，如果你沒有參考線上檔，你就會被警告。
+	#
+	#這些設定指令被分為下面三個部分：
+	--More--(1%)
+	
+#### nl: 加上檔案中的行列編號 ####
+
+語法: nl [參數] [檔案名稱]
+
+- -i : --line-increment=NUMBER, 每行的增加數值
+- -s : --number-separator=STRING, 在編號後面加上的符號
+- -v : --starting-line-number=NUMBER, 設定起始的數字
+- -w : --number-width=NUMBER, 設定數字顯示的位置(第幾列)
+- --help
+- --version
+
+使用不同的編號位置(第2個):
+
+	ubuntu@ip-172-31-15-54:~$ cat /etc/hosts
+	127.0.0.1 localhost
+
+	# The following lines are desirable for IPv6 capable hosts
+	::1 ip6-localhost ip6-loopback
+	fe00::0 ip6-localnet
+	ff00::0 ip6-mcastprefix
+	ff02::1 ip6-allnodes
+	ff02::2 ip6-allrouters
+	ff02::3 ip6-allhosts
+	ubuntu@ip-172-31-15-54:~$ nl /etc/hosts -w 2
+	 1	127.0.0.1 localhost
+
+	 2	# The following lines are desirable for IPv6 capable hosts
+	 3	::1 ip6-localhost ip6-loopback
+	 4	fe00::0 ip6-localnet
+	 5	ff00::0 ip6-mcastprefix
+	 6	ff02::1 ip6-allnodes
+	 7	ff02::2 ip6-allrouters
+	 8	ff02::3 ip6-allhosts
+	 
+使用不同的編號位置(第5個):
+	 
+	ubuntu@ip-172-31-15-54:~$ nl /etc/hosts -w 5
+	    1	127.0.0.1 localhost
+
+	    2	# The following lines are desirable for IPv6 capable hosts
+	    3	::1 ip6-localhost ip6-loopback
+	    4	fe00::0 ip6-localnet
+	    5	ff00::0 ip6-mcastprefix
+	    6	ff02::1 ip6-allnodes
+	    7	ff02::2 ip6-allrouters
+	    8	ff02::3 ip6-allhosts
+	    
+編號每次增加3, 並在編號後面加符號「=」:
+
+	ubuntu@ip-172-31-15-54:~$ nl /etc/hosts -i 3 -s=
+	     1=127.0.0.1 localhost
+
+	     4=# The following lines are desirable for IPv6 capable hosts
+	     7=::1 ip6-localhost ip6-loopback
+	    10=fe00::0 ip6-localnet
+	    13=ff00::0 ip6-mcastprefix
+	    16=ff02::1 ip6-allnodes
+	    19=ff02::2 ip6-allrouters
+	    22=ff02::3 ip6-allhosts
+	    
+#### tail: 顯示檔案最後面的部分 ####
