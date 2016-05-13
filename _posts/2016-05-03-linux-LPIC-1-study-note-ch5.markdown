@@ -1279,3 +1279,312 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 12 23:30 apache2.conf
 	
 #### cp: 複製檔案或目錄 ####
+
+語法: cp [參數] 檔案名稱或目錄 檔案名稱或目錄/路徑
+
+- `-b` : 覆蓋時會先備份, 備份檔會在字尾加~
+- `-f` : --force, 強迫複製
+- `-i` : --interactive, 交談模式, 覆蓋檔案前會先詢問使用者
+- `-p` : 保留原有檔案的屬性
+- `-r` : --recursive, 遞迴處理, 非檔案或目錄則視為一般檔案處理
+- `-R` : --recursive, 遞迴處理, 保留特殊檔案的屬性
+- `-u` : 僅複製時間差異的檔案
+
+將檔案testfile複製testfile1:
+
+	ubuntu@ip-172-31-7-139:~$ cp testfile testfile1
+	ubuntu@ip-172-31-7-139:~$ ls -l testfile
+	-rw-rw-r-- 1 ubuntu ubuntu 75 May 11 15:48 testfile
+	ubuntu@ip-172-31-7-139:~$ ls -l testfile1
+	-rw-rw-r-- 1 ubuntu ubuntu 75 May 13 03:36 testfile1
+
+將/tmp目錄複製到目前的目錄之下:
+
+	ubuntu@ip-172-31-7-139:~$ cp -r /tmp ./
+	ubuntu@ip-172-31-7-139:~$ ls -l
+	total 80
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 12 23:30 apache2.conf
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:47 apache_split
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:51 apache_split2
+	drwxrwxr-x 3 ubuntu ubuntu  4096 May 12 23:24 data
+	-rw-rw-r-- 1 ubuntu ubuntu     6 May  6 09:01 donefile
+	-rw-rw-r-- 1 ubuntu ubuntu   102 May  6 09:01 errorfile
+	-rw-rw-r-- 1 ubuntu ubuntu    12 May  6 08:57 file3
+	-rw-rw-r-- 1 ubuntu ubuntu    45 May  6 04:15 file_name
+	-rw-rw-r-- 1 ubuntu ubuntu    28 May  9 08:07 readme.txt
+	-rw-rw-r-- 1 ubuntu ubuntu     0 May 12 23:28 test1
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 11 15:48 testfile
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 13 03:36 testfile1
+	drwxrwxr-t 2 ubuntu ubuntu  4096 May 13 03:38 tmp
+	-rw-rw-r-- 1 ubuntu ubuntu   203 May  9 09:45 wfile
+
+	ubuntu@ip-172-31-7-139:~$ cp -p /usr/bin/passwd ./
+	ubuntu@ip-172-31-7-139:~$ ls -l
+	total 128
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 12 23:30 apache2.conf
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:47 apache_split
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:51 apache_split2
+	drwxrwxr-x 3 ubuntu ubuntu  4096 May 12 23:24 data
+	-rw-rw-r-- 1 ubuntu ubuntu     6 May  6 09:01 donefile
+	-rw-rw-r-- 1 ubuntu ubuntu   102 May  6 09:01 errorfile
+	-rw-rw-r-- 1 ubuntu ubuntu    12 May  6 08:57 file3
+	-rw-rw-r-- 1 ubuntu ubuntu    45 May  6 04:15 file_name
+	-rwxr-xr-x 1 ubuntu ubuntu 47032 Jul 15  2015 passwd
+	-rw-rw-r-- 1 ubuntu ubuntu    28 May  9 08:07 readme.txt
+	-rw-rw-r-- 1 ubuntu ubuntu     0 May 12 23:28 test1
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 11 15:48 testfile
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 13 03:36 testfile1
+	drwxrwxr-t 2 ubuntu ubuntu  4096 May 13 03:38 tmp
+	-rw-rw-r-- 1 ubuntu ubuntu   203 May  9 09:45 wfile
+
+#### 移動或更名檔案或目錄 ####
+
+語法: mv [參數] 來源檔或目錄 目的檔或目錄
+
+- `-b` : 若目的檔存在, 在覆蓋前會將舊有檔案備份(檔名後加~)
+- `-f` : --force, 強迫執行, 若目的檔存在, 則會強迫覆蓋
+- `-i` : --interactive, 交談模式, 覆蓋舊檔會先詢問使用者
+- `-u` : --update, 移動或變更檔名時,若目的檔已存在且檔案更新時間比來源新, 則不執行
+- `-v` : 列出詳細過程
+- `--help`
+- `--version`
+
+將 file1 更名 file2 :
+
+	ubuntu@ip-172-31-7-139:~$ echo test > file1
+	ubuntu@ip-172-31-7-139:~$ ls
+	apache2.conf   data       file1      passwd      testfile   wfile
+	apache_split   donefile   file3      readme.txt  testfile1
+	apache_split2  errorfile  file_name  test1       tmp
+	ubuntu@ip-172-31-7-139:~$ mv file1 file2
+	ubuntu@ip-172-31-7-139:~$ ls -l
+	total 132
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 12 23:30 apache2.conf
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:47 apache_split
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:51 apache_split2
+	drwxrwxr-x 3 ubuntu ubuntu  4096 May 12 23:24 data
+	-rw-rw-r-- 1 ubuntu ubuntu     6 May  6 09:01 donefile
+	-rw-rw-r-- 1 ubuntu ubuntu   102 May  6 09:01 errorfile
+	-rw-rw-r-- 1 ubuntu ubuntu     5 May 13 03:49 file2
+	-rw-rw-r-- 1 ubuntu ubuntu    12 May  6 08:57 file3
+	-rw-rw-r-- 1 ubuntu ubuntu    45 May  6 04:15 file_name
+	-rwxr-xr-x 1 ubuntu ubuntu 47032 Jul 15  2015 passwd
+	-rw-rw-r-- 1 ubuntu ubuntu    28 May  9 08:07 readme.txt
+	-rw-rw-r-- 1 ubuntu ubuntu     0 May 12 23:28 test1
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 11 15:48 testfile
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 13 03:36 testfile1
+	drwxrwxr-t 2 ubuntu ubuntu  4096 May 13 03:38 tmp
+	-rw-rw-r-- 1 ubuntu ubuntu   203 May  9 09:45 wfile
+
+將檔案移動到/tmp下:
+
+	ubuntu@ip-172-31-7-139:~$ mv file2 file1
+	ubuntu@ip-172-31-7-139:~$ mv file1 /tmp/
+	ubuntu@ip-172-31-7-139:~$ ls -l /tmp/
+	total 4
+	-rw-rw-r-- 1 ubuntu ubuntu 5 May 13 03:49 file1
+
+將目錄/home/dir1更名為/home/dir2:
+
+	ubuntu@ip-172-31-7-139:~$ mkdir dir1
+	ubuntu@ip-172-31-7-139:~$ mv dir1 dir2
+	ubuntu@ip-172-31-7-139:~$ ls -l
+	total 132
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 12 23:30 apache2.conf
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:47 apache_split
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:51 apache_split2
+	drwxrwxr-x 3 ubuntu ubuntu  4096 May 12 23:24 data
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 13 03:53 dir2
+	-rw-rw-r-- 1 ubuntu ubuntu     6 May  6 09:01 donefile
+	-rw-rw-r-- 1 ubuntu ubuntu   102 May  6 09:01 errorfile
+	-rw-rw-r-- 1 ubuntu ubuntu    12 May  6 08:57 file3
+	-rw-rw-r-- 1 ubuntu ubuntu    45 May  6 04:15 file_name
+	-rwxr-xr-x 1 ubuntu ubuntu 47032 Jul 15  2015 passwd
+	-rw-rw-r-- 1 ubuntu ubuntu    28 May  9 08:07 readme.txt
+	-rw-rw-r-- 1 ubuntu ubuntu     0 May 12 23:28 test1
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 11 15:48 testfile
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 13 03:36 testfile1
+	drwxrwxr-t 2 ubuntu ubuntu  4096 May 13 03:38 tmp
+	-rw-rw-r-- 1 ubuntu ubuntu   203 May  9 09:45 wfile
+
+#### rm: 刪除檔案或目錄 ####
+
+語法: rm [參數] 檔案或目錄
+
+- `-d` : --dir, 直接刪除目錄, 而不刪除目錄下的檔案, 這會造成其下檔案失去連結, 並可能須透過fsck方能修復, 一般不建議使用
+- `-f` : --force, 強制刪除檔案或目錄
+- `-i` : 刪除檔案前, 會先詢問使用者
+- `-r` : 將該檔案或目錄底下的所有檔案與子目錄一併處理
+- `-v` : 顯示完整的執行畫面
+- `--help`
+- `--version`
+
+以交談模式刪除檔案:
+
+	ubuntu@ip-172-31-7-139:~$ echo abc1 > abc1
+	ubuntu@ip-172-31-7-139:~$ echo abc2 > abc2
+	ubuntu@ip-172-31-7-139:~$ ls -l
+	total 140
+	-rw-rw-r-- 1 ubuntu ubuntu     5 May 13 04:00 abc1
+	-rw-rw-r-- 1 ubuntu ubuntu     5 May 13 04:00 abc2
+	-rw-rw-r-- 1 ubuntu ubuntu 31745 May 12 23:30 apache2.conf
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:47 apache_split
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 11 19:51 apache_split2
+	drwxrwxr-x 3 ubuntu ubuntu  4096 May 12 23:24 data
+	drwxrwxr-x 2 ubuntu ubuntu  4096 May 13 03:53 dir2
+	-rw-rw-r-- 1 ubuntu ubuntu     6 May  6 09:01 donefile
+	-rw-rw-r-- 1 ubuntu ubuntu   102 May  6 09:01 errorfile
+	-rw-rw-r-- 1 ubuntu ubuntu    12 May  6 08:57 file3
+	-rw-rw-r-- 1 ubuntu ubuntu    45 May  6 04:15 file_name
+	-rwxr-xr-x 1 ubuntu ubuntu 47032 Jul 15  2015 passwd
+	-rw-rw-r-- 1 ubuntu ubuntu    28 May  9 08:07 readme.txt
+	-rw-rw-r-- 1 ubuntu ubuntu     0 May 12 23:28 test1
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 11 15:48 testfile
+	-rw-rw-r-- 1 ubuntu ubuntu    75 May 13 03:36 testfile1
+	drwxrwxr-t 2 ubuntu ubuntu  4096 May 13 03:38 tmp
+	-rw-rw-r-- 1 ubuntu ubuntu   203 May  9 09:45 wfile
+	ubuntu@ip-172-31-7-139:~$ rm -i abc*
+	rm: remove regular file ‘abc1’? ^C
+	rm: remove regular file ‘abc1’? y
+	rm: remove regular file ‘abc2’? y
+
+強制刪除test目錄與子目錄下檔案與目錄:
+
+	ubuntu@ip-172-31-7-139:~$ mkdir test
+	ubuntu@ip-172-31-7-139:~$ echo test1 > test/test1
+	ubuntu@ip-172-31-7-139:~$ ls -R test
+	test:
+	test1
+	ubuntu@ip-172-31-7-139:~$ rm -rf test
+
+#### diff: 比較並顯示檔案差異的部分 ####
+
+語法: diff [參數] 檔案1 檔案2
+
+- `-a` : --text, 強迫比對二進位的檔案
+- `-b` : --ignore-space-change, 不比較空白字元
+- `-B` : --ignore-blank-lines, 不比較空白行數
+- `-c` : --C NUM, --context[=NUM], 顯示相異處的前後內文, 並標示不同之處
+- `-d` : --minimal, 使用不同的演算法
+- `-H` : 可加速大檔案的比較速度
+- `-I` : --ignore-matching-lines=RE, 忽略指定字串的差異
+- `-i` : --ignore-case, 不檢查大小寫的不同
+- `-l` : --paginate, 將結果使用pr來分頁
+- `-n` : --rcs, 將結果以RCS的格式來表示
+- `-p` : --show-c-function, 若比較的檔案為C語言, 列出差異所在的函數
+- `-q` : --brief, 僅顯示是否有差異, 不顯示其他訊息
+- `-r` : --recursive, 遞迴處理, 比較子目錄下的所有檔案
+- `-s` : --report-identical-files, 即使沒差異, 也顯示訊息
+- `-S 檔案` : --starting-file=FILE, 若是比較目錄, 從指定的檔案開始比較
+- `-t` : --expand-tabs, 將結果輸出時, 將tab字元顯示出。預設以空白取代
+- `-T` : --initial-tab, 在每行前加上tab
+- `-v` : 顯示版本資訊
+- `-w` : --ignore-all-space, 忽略所有空白字元
+- `-W 寬度` : --width=NUM, 若使用-y參數, 指定欄寬
+- `-x 檔案或目錄` : --exclude=PAT, 不比對特定字元
+- `-X 檔案` : --exclude-from=FILE, 將特定檔案或目錄存成文字檔, 在執行diff時不比對這些檔案
+- `-y` : --side-by-side, 以並列方式顯示比對結果
+- `--help`
+
+假設file1、file2、file3檔案內容:
+
+    ubuntu@ip-172-31-7-139:~$ cat file1
+    This is line 1.....
+    This is line 2.....
+    This is line 3.....
+    This is line 4.....
+    This is line 5.....
+    ubuntu@ip-172-31-7-139:~$ cat file2
+    This is line 1.....
+    This is line 2.....
+    it's ok.....
+    there is a car.....
+    This is line 5.....
+    ubuntu@ip-172-31-7-139:~$ cat file3
+    This is line 1.....
+    This is line 2.....
+    This is line 3.....
+    This is line 4.....
+
+    This is line 5.....
+
+比對file1與file2:
+
+	ubuntu@ip-172-31-7-139:~$ diff file1 file2
+	3,4c3,4
+	< This is line 3.....
+	< This is line 4.....
+	---
+	> it's ok.....
+	> there is a car.....
+
+比對file1與file2, 並列出前後一行的異同:
+
+	ubuntu@ip-172-31-7-139:~$ diff -c file1 file2
+	*** file1       2016-05-13 07:21:11.146812999 +0000
+	--- file2       2016-05-13 07:22:11.710812999 +0000
+	***************
+	*** 1,5 ****
+	  This is line 1.....
+	  This is line 2.....
+	! This is line 3.....
+	! This is line 4.....
+	  This is line 5.....
+	--- 1,5 ----
+	  This is line 1.....
+	  This is line 2.....
+	! it's ok.....
+	! there is a car.....
+	  This is line 5.....
+
+比對file1與file2, 以並列顯示
+
+	ubuntu@ip-172-31-7-139:~$ diff -y file1 file2
+	This is line 1.....                                             This is line 1.....
+	This is line 2.....                                             This is line 2.....
+	This is line 3.....                                           | it's ok.....
+	This is line 4.....                                           | there is a car.....
+	This is line 5.....                                             This is line 5.....
+
+#### cat: 列出檔案內容 ####
+
+語法: cat [參數] 檔案名稱
+
+- `-A` : --show-all, 顯示全部, 效果等同於「-vET」參數
+- `-b` : --number-nonblank, 在所有非空白列上標示符號
+- `-e` : 等同於「-vE」
+- `-E` : --show-end, 在每一列的最後標上「$」符號
+- `-n` : --number, 在所有的列前標示符號。效果與-b相同, 但會包含空白列
+- `-s` : --squeeze-blank, 當連續出現兩列以上空白列, 會僅標示一列空白
+- `-t` : 等同於「-vT」
+- `-T` : --show-tabs, 將tab鍵(跳格字元)以「^|」來顯示
+- `-v` : --show-nonprinting, 除LFD與tab字元以外, 其他控制字元均以「^」表示
+- `--help`
+- `--version`
+
+顯示/etc/hosts.allow內容:
+
+	ubuntu@ip-172-31-15-54:~$ cat /etc/hosts.allow
+	# /etc/hosts.allow: list of hosts that are allowed to access the system.
+	#                   See the manual pages hosts_access(5) and hosts_options(5).
+	#
+	# Example:    ALL: LOCAL @some_netgroup
+	#             ALL: .foobar.edu EXCEPT terminalserver.foobar.edu
+	#
+	# If you're going to protect the portmapper use the name "rpcbind" for the
+	# daemon name. See rpcbind(8) and rpc.mountd(8) for further information.
+	#
+
+顯示/etc/hosts.allow內容, 並在非空白列上標示符號:
+
+	ubuntu@ip-172-31-15-54:~$ cat -b /etc/hosts.allow
+	     1  # /etc/hosts.allow: list of hosts that are allowed to access the system.
+	     2  #                   See the manual pages hosts_access(5) and hosts_options(5).
+	     3  #
+	     4  # Example:    ALL: LOCAL @some_netgroup
+	     5  #             ALL: .foobar.edu EXCEPT terminalserver.foobar.edu
+	     6  #
+	     7  # If you're going to protect the portmapper use the name "rpcbind" for the
+	     8  # daemon name. See rpcbind(8) and rpc.mountd(8) for further information.
+	     9  #
+
