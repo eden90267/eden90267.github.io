@@ -1700,12 +1700,12 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 
 語法: nl [參數] [檔案名稱]
 
-- -i : --line-increment=NUMBER, 每行的增加數值
-- -s : --number-separator=STRING, 在編號後面加上的符號
-- -v : --starting-line-number=NUMBER, 設定起始的數字
-- -w : --number-width=NUMBER, 設定數字顯示的位置(第幾列)
-- --help
-- --version
+- `-i` : --line-increment=NUMBER, 每行的增加數值
+- `-s` : --number-separator=STRING, 在編號後面加上的符號
+- `-v` : --starting-line-number=NUMBER, 設定起始的數字
+- `-w` : --number-width=NUMBER, 設定數字顯示的位置(第幾列)
+- `--help`
+- `--version`
 
 使用不同的編號位置(第2個):
 
@@ -1729,9 +1729,9 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 	 6	ff02::1 ip6-allnodes
 	 7	ff02::2 ip6-allrouters
 	 8	ff02::3 ip6-allhosts
-	 
+
 使用不同的編號位置(第5個):
-	 
+
 	ubuntu@ip-172-31-15-54:~$ nl /etc/hosts -w 5
 	    1	127.0.0.1 localhost
 
@@ -1742,7 +1742,7 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 	    6	ff02::1 ip6-allnodes
 	    7	ff02::2 ip6-allrouters
 	    8	ff02::3 ip6-allhosts
-	    
+
 編號每次增加3, 並在編號後面加符號「=」:
 
 	ubuntu@ip-172-31-15-54:~$ nl /etc/hosts -i 3 -s=
@@ -1755,7 +1755,7 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 	    16=ff02::1 ip6-allnodes
 	    19=ff02::2 ip6-allrouters
 	    22=ff02::3 ip6-allhosts
-	    
+
 #### tail: 顯示檔案最後面的部分 ####
 
 語法: tail [參數] [檔案名稱]
@@ -1783,7 +1783,7 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 	May 14 15:27:49 ip-172-31-15-54 dhclient: DHCPREQUEST of 172.31.15.54 on eth0 to 172.31.0.1 port 67 (xid=0x6ec1748b)
 	May 14 15:27:49 ip-172-31-15-54 dhclient: DHCPACK of 172.31.15.54 from 172.31.0.1
 	May 14 15:27:49 ip-172-31-15-54 dhclient: bound to 172.31.15.54 -- renewal in 1452 seconds.
-	
+
 持續的監控/var/log/syslog這個檔案:
 
 	ubuntu@ip-172-31-15-54:~$ tail -f /var/log/syslog
@@ -1797,7 +1797,7 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 	May 14 15:27:49 ip-172-31-15-54 dhclient: DHCPREQUEST of 172.31.15.54 on eth0 to 172.31.0.1 port 67 (xid=0x6ec1748b)
 	May 14 15:27:49 ip-172-31-15-54 dhclient: DHCPACK of 172.31.15.54 from 172.31.0.1
 	May 14 15:27:49 ip-172-31-15-54 dhclient: bound to 172.31.15.54 -- renewal in 1452 seconds.
-	
+
 執行後, 該檔案只要有新的內容, 就會在螢幕輸出, 若要停止, 要必須按`Ctrl+C`
 
 #### tee: 同時輸出到畫面與檔案中 ####
@@ -1820,17 +1820,17 @@ touch主要是更改檔案的時間標記, 但若檔案不存在, 則會新增�
 	ubuntu@ip-172-31-15-54:~$ cat aaa
 	this is line 1
 	this is line 2
-	
+
 同時輸出一列文字到檔案與畫面上:
 
 	ubuntu@ip-172-31-15-54:~$ echo "This is a test line" | tee test1.txt
 	This is a test line
-	
+
 ### 正則化字串搜尋 ###
 
 正則表達式是一個**字元和字串的範本**, 透過多種操作符號來組合與建構類似算術的運算式。透過正規表達式的處理, 可以用簡單的運算式來呈現一組字元或字串, 對於指令的使用或是Shell Script都是方便的工具。
 
-Ex: 
+Ex:
 
 1. [a-p]表達字母a到p之間的所有字元
 2. 「^ns」表達nslookup、nstat或nsupdate等(開頭為ns)
@@ -1844,12 +1844,12 @@ Ex:
 - `*` : 之前的字元可出現零次或多次, 例如「0*1234」符合1234, 01234, 0001234等
 - `^` : 字串開始的位置
 - `$` : 字串結束的位置
-- \b : 符合字串邊界的位置, 例如「ee\b」符合bee, 但不符feed
-- \B : 符合字串, 但不得為邊界, 例如「ee\b」可符合feed, 但不符bee
-- [xyz] : 符合包含的字元x或y或z
-- [^xyz] : 符合未包含x或y或z的字元
-- [a-z] : 符合字元的範圍
-- [^a-z] : 不符合字元的範圍
+- `\b` : 符合字串邊界的位置, 例如「ee\b」符合bee, 但不符feed
+- `\B` : 符合字串, 但不得為邊界, 例如「ee\b」可符合feed, 但不符bee
+- `[xyz]` : 符合包含的字元x或y或z
+- `[^xyz]` : 符合未包含x或y或z的字元
+- `[a-z]` : 符合字元的範圍
+- `[^a-z]` : 不符合字元的範圍
 
 注意: 並非所有指令都支持正規表達式, grep是支援正規表達式的標準指令
 
@@ -1861,7 +1861,7 @@ Ex:
 
 		ubuntu@ip-172-31-15-54:~$ grep ^root /etc/passwd
 		root:x:0:0:root:/root:/bin/bash
-	
+
 2. Ex2: 搜尋字尾符號為「:」的行
 
 		ubuntu@ip-172-31-15-54:~$ grep :$ /etc/group
@@ -1876,7 +1876,7 @@ Ex:
 		catch
 		clash
 		...
-		
+
 ## 文書編輯工具 ##
 
 ### vi編輯器 ###
@@ -1900,7 +1900,7 @@ vi是Linux以及UNIX上最普遍被使用的編輯器, 目前Linux上面是使�
 	~                    type  :q<Enter>               to exit
 	~                    type  :help<Enter>  or  <F1>  for on-line help
 	~                    type  :help version7<Enter>   for version info
-	
+
 vi環境共有三種模式, 第一為命令模式, 第二為插入模式, 第三為底線模式, 分述如下:
 
 #### 命令模式 ####
@@ -1928,7 +1928,7 @@ vi環境共有三種模式, 第一為命令模式, 第二為插入模式, 第三
 	~
 	~
 	-- INSERT --                                                           0,1           All
-	
+
 按 `Esc` 鍵即可回到命令模式
 
 在輸入模式下如同一般編輯器, 可插入也可按 `Back space` 刪除, 亦可用上下左右鍵移動游標
@@ -1939,22 +1939,22 @@ vi環境共有三種模式, 第一為命令模式, 第二為插入模式, 第三
 
 在底線模式下可在冒號 `:` 輸入指令:
 
-- wq
-- w
-- w! : 強迫存擋, 如果要寫入唯讀檔, 必須是檔案的擁有者
-- wname : 另存擋名為 name 的新檔
-- q
-- q!
-- e name : 編輯名稱為 name 的檔案
-- e! : 再編輯, 捨棄原先的變更
-- n : 編輯下一個檔案。若使用「`vi file1 file2`」, 在編輯完file1後使用此指令, 即可編輯file2
-- f : 顯示目前的檔名, 游標所在的行數以及比例
-- ! : 執行外部指令
+- `wq`
+- `w`
+- `w!` : 強迫存擋, 如果要寫入唯讀檔, 必須是檔案的擁有者
+- `wname` : 另存擋名為 name 的新檔
+- `q`
+- `q!`
+- `e name` : 編輯名稱為 name 的檔案
+- `e!` : 再編輯, 捨棄原先的變更
+- `n` : 編輯下一個檔案。若使用「`vi file1 file2`」, 在編輯完file1後使用此指令, 即可編輯file2
+- `f` : 顯示目前的檔名, 游標所在的行數以及比例
+- `!` : 執行外部指令
 
 新增檔案first與內容:
 
 	ubuntu@ip-172-31-15-54:~$ vi first
-	
+
 經驗談: 如果碰到沒有寫入權限但為檔案的擁有者, 如root是/etc/shadow的擁有者但沒寫入權限, 我們就必須加上驚嘆號強制寫入
 
 經驗談: 若輸入「vi abc1 abc2 abc3」, 則會先編輯abc1這個檔案, 編輯完畢才會處理abc2, 處理完畢才會處理abc3
@@ -2019,7 +2019,7 @@ vi環境共有三種模式, 第一為命令模式, 第二為插入模式, 第三
 	~
 	~
 	test2                                                                  0,0-1          All
-	
+
 更多操作說明:
 
 1. 游標的移動以及換頁 - 【命令模式下】
@@ -2054,7 +2054,7 @@ vi環境共有三種模式, 第一為命令模式, 第二為插入模式, 第三
 4. 複製與貼上 - 【命令模式下】
 
 - `Y` : 複製游標所在的那一行並放至暫存區
-- `yy` : 複製游標左愛的那一行並放至暫存區
+- `yy` : 複製游標所在的那一行並放至暫存區
 - `nyy` : 複製游標往下算的n行並放至暫存區
 - `p` : 複製暫存區的內容到游標所在的下方
 - `P` : 複製暫存區的內容到游標所在的上方
@@ -2132,7 +2132,7 @@ pico這文書編輯器, 用法比較像早期的PE2或PE3:
 	                    [ Read 60 lines (Warning: No write permission) ]
 	^G Get Help   ^O WriteOut   ^R Read File  ^Y Prev Page  ^K Cut Text   ^C Cur Pos
 	^X Exit       ^J Justify    ^W Where Is   ^V Next Page  ^U UnCut Text ^T To Spell
-	
+
 直接使用游標即可移動, 按`Back space`鍵可刪除字元, 並可直接插入字元, 按 `Ctrl+X` 組合鍵即可儲存並離開。
 
 最下面兩排即為編輯指令的說明, 下面將說明常用的編輯指令: 下面的「^」代表Ctrl按鍵
@@ -2157,7 +2157,7 @@ nano用法類似pico, 可讓我們在遠端登入時編輯檔案, 下面介紹�
 #### 進入nano ####
 
 	nano -參數 <filename>
-	
+
 常見參數如下:
 
 - `-B`, `--backup` : 加此參數會有備份功能, 原來檔案將被存為開頭為~的檔案。
@@ -2190,7 +2190,7 @@ nano用法類似pico, 可讓我們在遠端登入時編輯檔案, 下面介紹�
 	##############################################################3
 	# Functions previously found in netbase
 	#
-	
+
 	# Uncomment the next two lines to enable Spoof protection (reverse-path filter)
 	# Turn on Source Address Verification in all interfaces to
 	# prevent some spoofing attacks
@@ -2225,7 +2225,7 @@ nano用法類似pico, 可讓我們在遠端登入時編輯檔案, 下面介紹�
 	                    [ Read 60 lines (Warning: No write permission) ]
 	^G Get Help   ^O WriteOut   ^R Read File  ^Y Prev Page  ^K Cut Text   ^C Cur Pos
 	^X Exit       ^J Justify    ^W Where Is   ^V Next Page  ^U UnCut Text ^T To Spell
-	
+
 最底下兩排即為編輯指令的說明, 但編輯指令不只這些, 底下說明常用的編輯指令(^代表Ctrl按鍵)
 
 - `^G`(F1) : 顯示help畫面
@@ -2295,3 +2295,24 @@ nano用法類似pico, 可讓我們在遠端登入時編輯檔案, 下面介紹�
 5. ? -> dd
 6. C -> B
 7. AD -> BD
+
+### 5.3.3 ###
+
+1. B
+2. ? -> C
+3. D
+4. B
+5. B
+6. B
+
+### 5.4 ###
+
+1. B -> F ?
+2. D
+3. 16dd -> 17dd
+4. B
+5. q!
+6. B -> A ?
+7. y -> yy.
+8. AD
+9. ? -> A
