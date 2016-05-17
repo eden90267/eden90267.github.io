@@ -498,3 +498,293 @@ shell script迴圈共有: case、for、while與until
 
 1. while
 
+	是十分常用的迴圈:
+	
+		while [ 條件 ];
+		do
+			指令或動作
+		done
+		
+	上面中的括弧「[]」中的條件, 不能與兩個括弧相連在一起, 必須加上空白鍵。
+	
+	範例, 計算從1加到10的總和:
+
+		ubuntu@ip-172-31-15-54:~$ cat test_while.sh
+		#!/bin/bash
+
+		x=1
+		sum=0
+		while [ $x -le 10 ];
+		do
+			sum=`expr $sum + $x`
+			x=`expr $x + 1`
+		done
+		echo $sum
+		ubuntu@ip-172-31-15-54:~$ . test_while.sh
+		55
+		
+	對於重複的數值累加, 我們常使用迴圈來計算。在shell script中, 所有變數都是文字型態, 因此要作為數值使用, 必須加上「expr」這變數
+	
+	做些修改, 讓使用者可以輸入一個數值n並計算並輸出從1加到n的結果:
+	
+		ubuntu@ip-172-31-15-54:~$ sudo vi test_while2.sh
+		ubuntu@ip-172-31-15-54:~$ cat test_while2.sh
+		#!/bin/bash
+
+		echo "Please input n to computer 1+2+...+n"
+		read -r n
+
+		x=1
+		sum=0
+		while [ $x -le $n ];
+		do
+			sum=`expr $sum + $x`
+			x=`expr $x + 1`
+		done
+		echo "Sum=" $sum
+		ubuntu@ip-172-31-15-54:~$ bash test_while2.sh
+		Please input n to computer 1+2+...+n
+		10
+		Sum= 55
+		
+	範例, 判斷用戶輸入的檔案名稱是否存在
+	
+		ubuntu@ip-172-31-15-54:~$ sudo vi test_while3.sh
+		ubuntu@ip-172-31-15-54:~$ cat test_while3.sh
+		#!/bin/bash
+
+		read -r filename
+		while [ ! -f $filename ];
+		do
+			echo "$filename does not exist"
+			read -r filename
+		done
+		echo "$filename exists"
+		ubuntu@ip-172-31-15-54:~$ bash test_while3.sh
+		test1
+		test1 exists
+		
+2. for
+
+	常用於列表中的物件判斷上, 語法如下:
+	
+		for item in list;
+		do
+			指令或動作
+		done
+		
+	範例, 判斷當前目錄下的所有物件是一般檔案或是資料夾
+	
+		ubuntu@ip-172-31-15-54:~$ sudo vi test_for1.sh
+		ubuntu@ip-172-31-15-54:~$ cat test_for1.sh
+		#!/bin/bash
+
+		for ff in *;
+		do
+			if [ -f $ff ]; then
+				echo "$ff is a file"
+			elif [ -d $ff ]; then
+				echo "$ff is a directory"
+			else
+				echo "$ff is not a file, nor a directory"
+			fi
+		done
+		ubuntu@ip-172-31-15-54:~$ bash test_for1.sh
+		aaa is a file
+		apache2.conf is a file
+		donefile is a file
+		errorfile is a file
+		file is a file
+		file1 is a file
+		file2 is a file
+		file_name is a file
+		first is a file
+		myfile.txt is a file
+		test1 is a file
+		test1.txt is a file
+		test2 is a file
+		test_for1.sh is a file
+		test.sh is a file
+		test_while2.sh is a file
+		test_while3.sh is a file
+		test_while.sh is a file
+		
+	範例, 將所有程序包含httpd的程序編號(PID)列出
+	
+		ubuntu@ip-172-31-15-54:~$ cat test_for2.sh
+		#!/bin/bash
+		for x in `ps -ef | grep "httpd" | cut -c 8-15`
+		do
+			echo $x
+		done
+		ubuntu@ip-172-31-15-54:~$ bash test_for2.sh
+		9457
+		
+	在shell script中常會搭配外部指令的結果來做判斷, 這範例中, 我們使用`ps -ef`這指令, 並透過`cut`去獲取當中的欄位來做判斷的依據
+	
+### 變數和運算 ###
+
+#### 簡單變數 ####
+
+在BASH中變數定義是不需要的, 只要沒定義過, 就可以直接用, 不賦予初值也沒關係
+
+	#!/bin/bash
+	# 初始化變數hello
+	hello="Hello World"
+	echo $hello
+	
+上面這個程式須注意下面幾點:
+
+- 定義變數時, '='兩邊都不能有空格
+- BASH中的語句結尾不需要分號(;)
+- 除**定義變數**和在**For迴圈開頭**中, BASH中的變數使用必須在變數前加「$」符號
+
+#### 運算 ####
+
+整數運算, 如下幾種:「+、-、*、/、%」, 加、減、乘、除、餘數運算, 整數運算一般透過`let`和`expr`這兩個指令執行, 如對變數a加5可以寫作: `let"a=$a+5"`或`a=expr$a+5`
+
+比較操作上, 整數變數和字串變數是不相同的:
+
+	對應操作      整數操作	      字串操作
+	相等          -eq	          =
+	不相等        -ne          !=
+	大於          -gt          >
+	小於          -lt	          <
+	大於或等於     -ge
+	小於或等於     -le
+	為空                       -z
+	不為空                     -n
+	
+BASH中變數除用於變數和字串進行操作, 還可做為檔案變數使用。BASH是Linux作業系統預設的Shell, 因此系統的檔案是BASH需要操作的重要物件, 例如`if [ -f /home/lusam/file ]`可用於判斷`/home/lusam`目錄的檔案file是否為普通檔案, 又如`if [ -x /root ]`可用於判斷`/root`目錄是否可以被當前用戶進入, 下列列出BASH中用於判斷檔案屬性的操作:
+
+- `-e file` : 判斷檔案file是否已經存在
+- `-f file` : 判斷檔案file是否是普通檔
+- `-s file` : 判斷檔案file是否大小不為零
+- `-d file` : 判斷檔案file是否是一個目錄
+- `-r file` : 判斷檔案file是否對當前用戶可讀取
+- `-w file` : 判斷檔案file是否對當前用戶可寫入
+- `-x file` : 判斷檔案file是否對當前用戶可執行
+- `-g file` : 判斷檔案file的GID標誌是否被設定
+- `-u file` : 判斷檔案file的UID標誌是否被設定
+- `-O file` : 判斷檔案file是否屬當前用戶
+- `-G file` : 判斷檔案file的組ID和當前用戶組是否相同
+- `file1 -nt file2` : 判斷檔案file1是否比file2更新
+- `file1 -ot file2` : 判斷檔案file1是否比file2更舊
+
+注意: file、file1、file2都是指某檔案或目錄的路徑
+
+#### 產生數列 ####
+
+早期要顯示數列, 會透過`seq`這指令, 例如顯示數列1到10, 會執行`seq 1 10`:
+
+	ubuntu@ip-172-31-15-54:~$ seq 1 10
+	1
+	2
+	3
+	4
+	5
+	6
+	7
+	8
+	9
+	10
+	
+如果從1開始到10, 顯示差為3的數字, 可執行seq 1 3 10, 如下所示:
+
+	ubuntu@ip-172-31-15-54:~$ seq 1 3 10
+	1
+	4
+	7
+	10
+	
+這樣顯示結果同可用括號擴展來表示, 只要在大括號中使用「..」:
+
+	ubuntu@ip-172-31-15-54:~$ echo {1..10}
+	1 2 3 4 5 6 7 8 9 10
+	
+顯示1到10, 間隔為3:
+
+	ubuntu@ip-172-31-15-54:~$ echo {1..10..3}
+	1 4 7 10
+	
+相較seq, 括號擴展還能使用數值遞減或字母混合的方式顯示:
+
+	ubuntu@ip-172-31-15-54:~$ echo {100..10..7}
+	100 93 86 79 72 65 58 51 44 37 30 23 16
+	ubuntu@ip-172-31-15-54:~$ echo {00100..10..12}
+	00100 00088 00076 00064 00052 00040 00028 00016
+	ubuntu@ip-172-31-15-54:~$ echo {c..u}
+	c d e f g h i j k l m n o p q r s t u
+	ubuntu@ip-172-31-15-54:~$ echo {c..s}01
+	c01 d01 e01 f01 g01 h01 i01 j01 k01 l01 m01 n01 o01 p01 q01 r01 s01
+	
+#### 參數用法 ####
+
+在Shell Script中的參數, 會自動變成程式內的變數。第一個參數為變數$1, 第二個$2以此類推, 而執行的Shell Script本身變數為$0, 全部的執行檔與參數則為$@。
+
+	.test1.sh arg1 arg2 arg3
+	
+在Shell Script中自動就可引用底下的變數
+
+	$1=arg1
+	$2=arg2
+	$3=arg3
+	$0=test1.sh
+	$@=test1.sh arg1 arg2 arg3
+	
+底下範例會讓使用者透過參數輸入一串數字(使用空白做區隔), 然後程式處理後首先列出參數的個數, 並將參數兩兩一組依序列出:
+
+	ubuntu@ip-172-31-15-54:~$ cat test_param1.sh
+	#!/bin/bash
+
+	echo "Number of arguments: $#"
+
+	while [ -n "$1" ] && [ -n "$2" ]; do # 變數是否為非空值
+	echo "$1 $2 "
+	shift 2 # 後移除兩個變數, 意思是$3變$1, $4變$2,...依此類推
+	done
+
+	echo $1 # 如果輸入的個數為基數個, 在while判斷無法列出, 需單獨呈現
+	ubuntu@ip-172-31-15-54:~$ . test_param1.sh 1 2 3 4 5 6 7 8
+	Number of arguments: 8
+	1 2
+	3 4
+	5 6
+	7 8
+	
+注意: &&為and語法, ||為or語法
+
+### 特殊字元 ###
+
+在指令或Shell Script的環境下, 有一些特殊並常被使用的字元。「*」(萬用字元)、「?」(單一字元)、「\」(跳脫字元)、「'」(單引號)與「"」(雙引號)
+
+#### 萬用字元「*」 ####
+
+代表任意字元, 可為空或任何字元, 例如要列出`/usr/bin`之下host開頭檔案, 可執行`ls /urs/bin/host*`:
+
+	ubuntu@ip-172-31-15-54:~$ ls /usr/bin/host*
+	/usr/bin/host  /usr/bin/hostid  /usr/bin/hostnamectl
+	ubuntu@ip-172-31-15-54:~$ ls /usr/bin/*ter
+	/usr/bin/landscape-package-reporter
+	
+#### 單一字元「?」 ####
+
+表示任意一個字元, 不能為空或其他個數。例如列出/bin下c開頭後面三個字元任意的檔案, 可執行`ls /bin/c???`
+
+	ubuntu@ip-172-31-15-54:~$ ls /bin/c???
+	/bin/chvt  /bin/cpio
+	
+#### 跳脫字元「\」 ####
+
+許多字元有特殊含意, 例如「$」會做變數的開頭符號。跳脫字元可用來去除字元特殊含意, 在$之前加上跳脫字元「\」, 就告訴Shell這個字元失去特殊含意, 僅為一個一般字元
+
+	ubuntu@ip-172-31-15-54:~$ echo $PATH
+	/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+	ubuntu@ip-172-31-15-54:~$ echo \$PATH
+	$PATH
+	ubuntu@ip-172-31-15-54:~$ echo "\"Hello\", everyone."
+	"Hello", everyone.
+	
+因此在一些系統設定或指令使用上, 就會看到許多「\」符號在其中, 例如Windows上要透過網路上的芳鄰連線, 會使用「\\10.1.1.1\dir1」這樣路徑, 在Linux的Samba Server, 會變成「\\\\10.1.1.1\\dir」
+
+除去除特殊字元含意, 跳脫字元「\」加上特定英文或數字, 會有另外含意
