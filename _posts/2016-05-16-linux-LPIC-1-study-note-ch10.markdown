@@ -848,3 +848,280 @@ BASH中變數除用於變數和字串進行操作, 還可做為檔案變數使�
 在雙引號中, 「$」和「"」保留特殊含義。「\」只有跟隨在「$」、「"」、「\」或特殊字母(如換行符號)之後才保留原來意義。在兩個雙引號中, 一個雙引號可用「\」加雙引號表示
 
 因此簡單比較單引號與雙引號, 可發現單引號是將引號內的所有字元當作一般字元處理; 而雙引號除「$」、「"」、與「\」這三者外, 會將其他字元當作一般字元處理
+
+## SQL資料庫管理 ##
+
+### 安裝MySQL ###
+
+Red Hat與Fedora下安裝:
+
+*yum install mysql-server*
+
+Debian與Ubuntu下安裝:
+
+*apt-get install mysql-server*
+
+### 認識SQL基本語法 ###
+
+#### 手動輸入指令設定密碼(同更改root密碼) ####
+
+	mysqladmin -u root -p password 123456789
+	
+#### 連線MySQL ####
+
+	mysql -u root -p
+	
+執行過程如下:
+
+	ubuntu@ip-172-31-15-54:~$ mysql -u root -p
+	Enter password:
+	Welcome to the MySQL monitor.  Commands end with ; or \g.
+	Your MySQL connection id is 44
+	Server version: 5.5.49-0ubuntu0.14.04.1 (Ubuntu)
+
+	Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+
+	Oracle is a registered trademark of Oracle Corporation and/or its
+	affiliates. Other names may be trademarks of their respective
+	owners.
+
+	Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+	mysql>
+	
+如果不使用-u指定用戶, 預設以root登入:
+
+	ubuntu@ip-172-31-15-54:~$ sudo mysql -p
+	Enter password:
+	Welcome to the MySQL monitor.  Commands end with ; or \g.
+	Your MySQL connection id is 51
+	Server version: 5.5.49-0ubuntu0.14.04.1 (Ubuntu)
+
+	Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+
+	Oracle is a registered trademark of Oracle Corporation and/or its
+	affiliates. Other names may be trademarks of their respective
+	owners.
+
+	Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+	mysql>
+	
+#### 退出MySQL ####
+
+	mysql> quit
+	Bye
+
+#### 顯示所有資料庫 ####
+
+	mysql> show databases;
+	+--------------------+
+	| Database           |
+	+--------------------+
+	| information_schema |
+	| mysql              |
+	| performance_schema |
+	+--------------------+
+	3 rows in set (0.00 sec)
+
+注意: databases是複數
+
+注意: 所有mysql指令後面必須加分號「;」
+
+#### 建立資料庫 ####
+
+「create database 資料庫名稱」
+
+	mysql> create database Nblogs;
+	Query OK, 1 row affected (0.00 sec)
+	mysql> show databases;
+	+--------------------+
+	| Database           |
+	+--------------------+
+	| information_schema |
+	| Nblogs             |
+	| mysql              |
+	| performance_schema |
+	+--------------------+
+	4 rows in set (0.00 sec)
+	
+#### 選用資料庫 ####
+
+「use 資料庫名稱」
+
+	mysql> use Nblogs;
+	Database changed
+	
+#### 建立資料表 ####
+
+「create table 資料表名稱(功能變數名稱 欄位資料型態)」, 括弧裡面, 每個欄位之間以逗號區隔, 最後一欄位不能再加逗號
+
+	mysql> create table IDTable (id int primary key auto_increment, name varchar(20));
+	Query OK, 0 rows affected (0.01 sec)
+	
+#### 顯示資料表 ####
+
+「show tables;」
+
+	mysql> show tables;
+	+------------------+
+	| Tables_in_Nblogs |
+	+------------------+
+	| IDTable          |
+	+------------------+
+	1 row in set (0.00 sec)
+
+#### 顯示資料表的欄位資料 ####
+
+「show columns from 資料表名稱」或「describe 資料表名稱」
+
+	mysql> show columns from IDTable;
+	+-------+-------------+------+-----+---------+----------------+
+	| Field | Type        | Null | Key | Default | Extra          |
+	+-------+-------------+------+-----+---------+----------------+
+	| id    | int(11)     | NO   | PRI | NULL    | auto_increment |
+	| name  | varchar(20) | YES  |     | NULL    |                |
+	+-------+-------------+------+-----+---------+----------------+
+	2 rows in set (0.00 sec)
+	
+	mysql> describe IDTable;
+	+-------+-------------+------+-----+---------+----------------+
+	| Field | Type        | Null | Key | Default | Extra          |
+	+-------+-------------+------+-----+---------+----------------+
+	| id    | int(11)     | NO   | PRI | NULL    | auto_increment |
+	| name  | varchar(20) | YES  |     | NULL    |                |
+	+-------+-------------+------+-----+---------+----------------+
+	2 rows in set (0.01 sec)
+	
+注意: 使用show顯示, 後面的databases、tables、columns這類名稱都得使用複數
+
+#### 刪除資料表 ####
+
+「drop table 資料表名稱」
+
+	mysql> drop table IDTable;
+	Query OK, 0 rows affected (0.00 sec)
+	
+注意: 當資料表被刪除, 資料表中的內容也會被刪除
+
+#### 刪除資料庫 ####
+
+「drop database 資料庫名稱」
+
+	mysql> drop database Nblogs;
+	Query OK, 0 rows affected (0.00 sec)
+	
+### 基本操作範例 ###
+
+	ubuntu@ip-172-31-15-54:~$ sudo mysql -p
+	Enter password:
+	Welcome to the MySQL monitor.  Commands end with ; or \g.
+	Your MySQL connection id is 53
+	Server version: 5.5.49-0ubuntu0.14.04.1 (Ubuntu)
+
+	Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+
+	Oracle is a registered trademark of Oracle Corporation and/or its
+	affiliates. Other names may be trademarks of their respective
+	owners.
+
+	Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+	mysql> show databases;
+	+--------------------+
+	| Database           |
+	+--------------------+
+	| information_schema |
+	| mysql              |
+	| performance_schema |
+	+--------------------+
+	3 rows in set (0.00 sec)
+
+	mysql> create database jack;
+	Query OK, 1 row affected (0.00 sec)
+
+	mysql> use jack;
+	Database changed
+	mysql> CREATE TABLE shop ( article INT(4) UNSIGNED ZEROFILL DEFAULT '0000' 	NOT NULL, dealer CHAR(20) DEFAULT '' NOT NULL, price DOUBLE(16,2) DEFAULT 	'0.00' NOT NULL, PRIMARY KEY(article,dealer));
+	Query OK, 0 rows affected (0.02 sec)
+
+	mysql> show tables;
+	+----------------+
+	| Tables_in_jack |
+	+----------------+
+	| shop           |
+	+----------------+
+	1 row in set (0.00 sec)
+
+	mysql> INSERT INTO shop VALUES (1,'A',280),(2,'B',320),(3,'A',560),(4,'B',220),(5,'C',350),(6,'D',666),(7,'D',128);
+	Query OK, 7 rows affected (0.00 sec)
+	Records: 7  Duplicates: 0  Warnings: 0
+
+	mysql> SELECT *
+	    -> FROM shop
+	    -> WHERE price>300;
+	+---------+--------+--------+
+	| article | dealer | price  |
+	+---------+--------+--------+
+	|    0002 | B      | 320.00 |
+	|    0003 | A      | 560.00 |
+	|    0005 | C      | 350.00 |
+	|    0006 | D      | 666.00 |
+	+---------+--------+--------+
+	4 rows in set (0.00 sec)
+
+	mysql> SELECT *
+	    -> FROM shop
+	    -> ORDER BY price DESC
+	    -> LIMIT 3;
+	+---------+--------+--------+
+	| article | dealer | price  |
+	+---------+--------+--------+
+	|    0006 | D      | 666.00 |
+	|    0003 | A      | 560.00 |
+	|    0005 | C      | 350.00 |
+	+---------+--------+--------+
+	3 rows in set (0.00 sec)
+
+	mysql> SELECT *
+	    -> FROM shop
+	    -> WHERE price=(SELECT MAX(price) FROM shop);
+	+---------+--------+--------+
+	| article | dealer | price  |
+	+---------+--------+--------+
+	|    0006 | D      | 666.00 |
+	+---------+--------+--------+
+	1 row in set (0.00 sec)
+	
+## 本章考題練習 ##
+
+### 10.1 ###
+
+1. A
+2. CD -> BC
+3. set
+4. B -> D
+5. A
+6. A
+7. BC -> CD
+8. E -> C
+9. bash -r或rbash
+
+### 10.2 ###
+
+1. ADE -> ACE
+2. C
+3. B -> C, a=1, b=2, c='3 4 5 6'(剩餘元素)
+4. B -> C, shift之後會往前移動一位
+5. C -> B
+6. A -> B
+7. fi
+8. do
+9. A -> B
+
+### 10.3 ###
+
+1. C
+2. C
+3. set
+4. from
