@@ -178,3 +178,209 @@ Docker執行容器前需要本地端存在的映像檔, 如果映像檔不存在
 	root@f7b6d4b6c412:/#
 
 如果沒指定`TAG`, 預設使用`latest`。
+
+# 建立映像檔 #
+
+建立映像檔有多種方法, 使用者可從Docker Hub取得已有映像檔並更新, 也可在本機建立一個。
+
+## 修改已有映像檔 ##
+
+    ubuntu@ip-172-31-15-54:~$ sudo docker run -ti training/sinatra /bin/bash
+    Unable to find image 'training/sinatra:latest' locally
+    latest: Pulling from training/sinatra
+
+    d634beec75db: Pull complete
+    27fb5491e391: Pull complete
+    8e3415728a3f: Pull complete
+    630b03963440: Pull complete
+    962115fdbb58: Pull complete
+    9ea38b02c228: Pull complete
+    e20166048ece: Pull complete
+    8b16a891bd1a: Pull complete
+    Digest: sha256:03fc0cd265cbc28723e4efd446f9f2f37b4790cf9cc12f1b9203c79fb86b6772
+    Status: Downloaded newer image for training/sinatra:latest
+    root@07f1abc83f1c:/# gem install json
+    Fetching: json-1.8.3.gem (100%)
+    Building native extensions.  This could take a while...
+    Successfully installed json-1.8.3
+    1 gem installed
+    Installing ri documentation for json-1.8.3...
+    Installing RDoc documentation for json-1.8.3...
+    root@07f1abc83f1c:/# exit
+    exit
+
+現在容器已被改變, 使用`docker commit`命令來提交更新後的副本。
+
+	ubuntu@ip-172-31-15-54:~$ sudo docker commit -m "Added json gem" -a "Docker Newbee" 07f1 ouruser/sinatra:v2
+	bf80c42c7bcfffd14b94fa7ac53c553b9eb40e56754b48aa18ee94cd46459974
+
+`-m`: 表示提交的說明信息; `-a`: 可指定更新的使用者信息; 之後是用來建立映像檔的容器ID; 最後指定新映像檔的名稱與tag。建立成功會印出新映像檔ID。
+
+使用`docker images`查看新建立的映像檔。
+
+	ubuntu@ip-172-31-15-54:~$ sudo docker images
+	REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+	ouruser/sinatra     v2                  bf80c42c7bcf        4 minutes ago       452.4 MB
+	ubuntu              latest              17b6a9e179d7        3 weeks ago         120.7 MB
+	ubuntu              14.04               f6e25e99cf98        3 weeks ago         187.9 MB
+	ubuntu              trusty              f6e25e99cf98        3 weeks ago         187.9 MB
+	ubuntu              precise             ce60cb8863fa        3 weeks ago         138.5 MB
+	ubuntu              12.04               ce60cb8863fa        3 weeks ago         138.5 MB
+	training/sinatra    latest              8b16a891bd1a        23 months ago       447 MB
+
+之後, 可使用新的映像檔來啟動容器
+
+    ubuntu@ip-172-31-15-54:~$ sudo docker run -ti ouruser/sinatra:v2 /bin/bash
+    root@61257544dd76:/#
+
+## 利用Dockerfile建立映像檔 ##
+
+使用`docker commit`擴展一個映像檔比較簡單, 但不方便在一個團隊中分享。我們可用`docker build`來建立一個新的映像檔。為此, 首先須建立一個Dockerfile, 裡面包含一些用來建立映像檔的指令。
+
+新建一個目錄和一個Dockerfile
+
+	root@61257544dd76:/# mkdir sinatra
+	root@61257544dd76:/# cd sinatra/
+	root@61257544dd76:/sinatra# touch Dockerfile
+
+Dockerfile中每一條指令都會建立一層映像檔, 例如:
+
+    ubuntu@ip-172-31-15-54:~$ mkdir sinatra
+    ubuntu@ip-172-31-15-54:~$ cd sinatra/
+    ubuntu@ip-172-31-15-54:~/sinatra$ vi Dockerfile
+    ubuntu@ip-172-31-15-54:~/sinatra$ cat Dockerfile
+    # This is a comment
+    FROM ubuntu:14.04
+    MAINTAINER Docker Newbee <newbee@docker.com>
+    RUN apt-get -qq update
+    RUN apt-get -qqy install ruby ruby-dev
+    RUN gem install sinatra
+
+Dockerfile基本語法是:
+
+- 使用`#`來註釋
+- `FROM`指令告訴Docker使用哪個映像檔作為基底
+- 接著是維護者信息
+- `RUN`開頭指令會在建立中執行, 比如安裝一個套件, 在這裡使用apt-get安裝一些套件
+
+完成Dockerfile後可使用`docker build`建立映像檔。
+
+	$ sudo docker build -t="ouruser/sinatra:v2" .
+	Uploading context  2.56 kB
+	Uploading context
+	Step 0 : FROM ubuntu:14.04
+	 ---> 99ec81b80c55
+	Step 1 : MAINTAINER Kate Smith <ksmith@example.com>
+	 ---> Running in 7c5664a8a0c1
+	 ---> 2fa8ca4e2a13
+	Removing intermediate container 7c5664a8a0c1
+	Step 2 : RUN apt-get -qq update
+	 ---> Running in b07cc3fb4256
+	 ---> 50d21070ec0c
+	Removing intermediate container b07cc3fb4256
+	Step 3 : RUN apt-get -qqy install ruby ruby-dev
+	 ---> Running in a5b038dd127e
+	Selecting previously unselected package libasan0:amd64.
+	(Reading database ... 11518 files and directories currently installed.)
+	Preparing to unpack .../libasan0_4.8.2-19ubuntu1_amd64.deb ...
+	Setting up ruby (1:1.9.3.4) ...
+	Setting up ruby1.9.1 (1.9.3.484-2ubuntu1) ...
+	Processing triggers for libc-bin (2.19-0ubuntu6) ...
+	 ---> 2acb20f17878
+	Removing intermediate container a5b038dd127e
+	Step 4 : RUN gem install sinatra
+	 ---> Running in 5e9d0065c1f7
+	. . .
+	Successfully installed rack-protection-1.5.3
+	Successfully installed sinatra-1.4.5
+	4 gems installed
+	 ---> 324104cde6ad
+	Removing intermediate container 5e9d0065c1f7
+	Successfully built 324104cde6ad
+
+其中`-t`標記添加tag, 指定新的映像檔的使用者信息。"."是Dockerfile所在路徑(當前目錄), 也可以換成具體的Dockerfile路徑。
+
+可看到build指令後執行的操作。他要做的第一件事就是上傳這個Dockerfile內容, 因所有操作都要依據Dockerfile來進行。然後, Dockerfile中的指令被一條條執行。每一步都建立了一個新的容器, 在容器中執行指令並提交修改(就跟之前的`docker commit`一樣)。當所有指令都執行完畢以後, 返回了最終的映像檔id。所有中間步驟所產生的容器都會被刪除和清理。
+
+*注意一個映像檔不能超過127層
+
+此外, 還可利用`ADD`命令複製本地檔案到映像檔; 用`EXPOSE`命令向外部開放埠號; 用`CMD`命令描述啟動後執行的程序等。例如:
+
+    # put my local web site in myApp folder to /var/www
+    ADD myApp /var/www
+    # expose httpd port
+    EXPOSE 80
+    # the command to run
+    CMD ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
+
+現可利用新建立的映像檔啟動一個容器
+
+	$ sudo docker run -ti ouruser/sinatra:v2 /bin/bash
+	root@8196968dac35:/#
+
+還可用`docker tag`命令修改映像檔標籤
+
+	$ sudo docker tag 5db5f8471261 ouruser/sinatra:devel
+	$ sudo docker images ouruser/sinatra
+	REPOSITORY          TAG     IMAGE ID      CREATED        VIRTUAL SIZE
+	ouruser/sinatra     latest  5db5f8471261  11 hours ago   446.7 MB
+	ouruser/sinatra     devel   5db5f8471261  11 hours ago   446.7 MB
+	ouruser/sinatra     v2      5db5f8471261  11 hours ago   446.7 MB
+
+## 從本機匯入 ##
+
+要從本機匯入一個映像檔, 可使用OpenVZ(容器虛擬化的先鋒技術)的模板來建立: OpenVZ模板下載位置: [https://download.openvz.org/template/precreated/](https://download.openvz.org/template/precreated/)。
+
+比如, 先下載一個ubuntu-14.04的映像檔, 之後使用以下命令匯入
+
+	ubuntu@ip-172-31-15-54:~/sinatra$ wget https://download.openvz.org/template/precreated/ubuntu-14.04-x86_64-minimal.tar.gz
+	ubuntu@ip-172-31-15-54:~/sinatra$ sudo cat ubuntu-14.04-x86_64-minimal.tar.gz | sudo docker import - ubuntu:14.04-min
+	bf799f534b271e83e63426468541dc487030e83772aad628f02533092b529eaa
+
+
+然後查看新匯入映像檔:
+
+	ubuntu@ip-172-31-15-54:~$ sudo docker images
+	REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+	ubuntu              14.04-min           bf799f534b27        3 hours ago         215.4 MB
+
+## 上傳映像檔 ##
+
+使用者可以透過`docker push`指令, 把自己建立的映像檔上傳到倉庫中來共享。例如, 使用者在Docker Hub上完成註冊後, 可推送自己的映像檔到倉庫中。
+
+    $ sudo docker push ouruser/sinatra
+
+    The push refers to a repository [ouruser/sinatra] (len: 1)
+    Sending image list
+    Pushing repository ouruser/sinatra (3 tags)
+
+# 儲存和載入映像檔 #
+
+## 儲存映像檔 ##
+
+可使用`docker save`命令
+
+	ubuntu@ip-172-31-15-54:~$ sudo docker images
+	REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+	ubuntu              14.04-min           bf799f534b27        3 hours ago         215.4 MB
+	ouruser/sinatra     devel               bf80c42c7bcf        6 hours ago         452.4 MB
+	ouruser/sinatra     v2                  bf80c42c7bcf        6 hours ago         452.4 MB
+	ubuntu              latest              17b6a9e179d7        3 weeks ago         120.7 MB
+	ubuntu              trusty              f6e25e99cf98        3 weeks ago         187.9 MB
+	ubuntu              14.04               f6e25e99cf98        3 weeks ago         187.9 MB
+	ubuntu              precise             ce60cb8863fa        3 weeks ago         138.5 MB
+	ubuntu              12.04               ce60cb8863fa        3 weeks ago         138.5 MB
+	training/sinatra    latest              8b16a891bd1a        23 months ago       447 MB
+	ubuntu@ip-172-31-15-54:~$ sudo docker save -o ubuntu_14.04.tar ubuntu:14.04
+
+## 載入映像檔 ##
+
+可使用`docker load`從建立本地檔案中再匯入到本地映像倉庫:
+
+	ubuntu@ip-172-31-15-54:~/sinatra$ sudo docker load --input ubuntu_14.04.tar
+
+or
+
+	ubuntu@ip-172-31-15-54:~/sinatra$ sudo docker load < ubuntu_14.04.tar
+
+這將匯入映像檔以及相關元資料信息(包括標籤等)。
