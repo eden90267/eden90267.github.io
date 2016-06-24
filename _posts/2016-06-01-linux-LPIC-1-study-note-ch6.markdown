@@ -782,4 +782,32 @@ stop服務:
 
 1. A
 2. E
-3. C (`dpkg -Dh`: Show help on debugging.)
+4. reconfigure
+5. AB
+6. A
+7. D
+8. B(sudo apt-cache pkgnames)
+9. B
+10. E
+
+### 6.2 ###
+
+1. C
+2. A
+3. D -> E
+4. A
+5. alien -> rpm2cpio
+6. update
+7. /etc/yum.repos.d/
+8. C
+9. A
+10. C
+11. A - > E
+
+### 6.3 ###
+
+1. AC
+2. A -> C
+3. B
+4. A
+5. make
