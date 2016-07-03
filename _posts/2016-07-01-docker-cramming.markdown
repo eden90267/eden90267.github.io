@@ -111,4 +111,99 @@ Docker執行非常簡單, 就是docker client呼叫Docker daemon, 然後daemon�
 7. 沒有, daemon到預設的Docker Registry, 根據client的參數, 下載適當的映象檔
 8. 下載回來即將此映像檔填入Container的空殼, 此時Container即啟動完成
 
-Docker Con
+上面流程可得知, Docker Container執行的調整方式就是我們下的參數。事實上, 執行Docker時的參數, 就是決定Linux核心建立Namespace以及設定網路、儲存的方法。
+
+※ 注意: Docker client可在另一台主機, 此時和Daemon的之間連線可用`https`取代`unix://`, 但十分危險, 除非你很確定安全性沒問題才要這麼做。
+
+## 看個實例 ##
+
+1. 確定這個linux環境是可執行Docker。包括安裝Docker, Linux的版本正確, 以及有連上公網。
+
+		$ sudo docker version
+		Client:
+ 		Version:      1.10.3
+ 		 API version:  1.22
+ 		 Go version:   go1.5.3
+ 		 Git commit:   20f81dd
+ 		 Built:        Thu Mar 10 15:54:52 2016
+ 		 OS/Arch:      linux/amd64
+
+		Server:
+ 		 Version:      1.10.3
+ 		 API version:  1.22
+ 		 Go version:   go1.5.3
+ 		 Git commit:   20f81dd
+ 		 Built:        Thu Mar 10 15:54:52 2016
+ 		 OS/Arch:      linux/amd64
+		$ lsb_release -r
+		Release:	14.04
+		vagrant@localhost ~ $ ifconfig eth0
+		eth0      Link encap:Ethernet  HWaddr 08:00:27:49:0d:cd
+		          inet addr:10.0.2.15  Bcast:10.0.2.255  Mask:255.255.255.0
+		          inet6 addr: fe80::a00:27ff:fe49:dcd/64 Scope:Link
+		          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+		          RX packets:659 errors:0 dropped:0 overruns:0 frame:0
+		          TX packets:448 errors:0 dropped:0 overruns:0 carrier:0
+		          collisions:0 txqueuelen:1000
+		          RX bytes:69696 (69.6 KB)  TX bytes:60008 (60.0 KB)
+		
+2. 輸入Docker的指令, 即準備呼叫docker daemon: `docker run -d --name web -m 512m -p 8080:80 joshhu/webdemo`。這邊注意的是, 全部以**參數方式表現**, 如**記憶體限制**, **名稱**, **通訊埠對應**, **映像檔名稱**等。
+
+	- `docker run`: docker client command
+	- `web`: name of the container
+	- `-m 512m`: setting system resource(512m memory)
+	- `joshhu/webdemo`: the image to fill up container
+
+3. 按下Enter之後, 即使使用`unix://var/run/unix.sock`呼叫docker daemon。由於joshhu/webdemo這個映像檔已經存在了, 因此就直接使用此映像檔。
+4. 可輸入`showmem`看一下記憶體的使用情況
+
+		# showmem
+		web 12MB 512MB
+		
+5. 如果這個`joshhu/webdemo`影像檔沒在本機, 就會先去下載, 下載回來後, 再填入空的Container web中。
+
+※ 注意: Container的ID及名稱
+
+在Docker執行時, 如果你沒使用`--name <名稱>`的參數, Docker會主動幫這個Container取一個好玩的名稱。而不管你有沒有幫這個Container命名, Docker一定會產生一個全世界獨一無二的Container id。
+
+# 全環境Docker的完整安裝 #
+
+## 在Mac及Windows下安裝Docker ##
+
+Mac及Windows無法直接原生使用Docker, 須使用Linux VM才行。使用VM方法分兩種, 一種是自行架設VM(VMWare Workstation/Fusion、VirtualBox), 再自行安裝Linux的VM, 然後再在這個VM中安裝Docker。
+
+另一個使用方式, 則使用官方的boot2docker(現已是Docker toolbox), 雖也適用VM+Linux方式, 但為一次幫你完成上面所有動作, 並使用類似Windows Shell指令及Mac OS的終端視窗操作。
+
+## boot2docker簡介 ##
+
+boot2docker是一個專門在Mac及Windows下使用Docker的套件, 包括：
+
+- 一個VirtualBox程式
+- VirtualBox格式的極小Linux VM(24MB在記憶體, 開機只要5秒)
+- 位於該VM的Docker程式
+- Boot2Docker管理工具
+
+此外, Boot2Docker管理工具本身就是一個輕量級的Linux VM, 專門用來在Mac OS中執行Docker Daemon。
+
+## Mac OS使用boot2docker ##
+
+### 使用Mac OS在VirtualBox網段的IP才行 ###
+
+在正常的Linux Docker中, 可直接存取主機的IP以及對應的埠, 就可看到Apache啟動; 但在Mac OS的boot2docker之下無法看到網頁, 這是因為boot2docker是在一個VirtualBox的VM執行的, 只能先取得Mac的VirtualBox NAT IP。輸入`boot2docker ip`獲得Container執行VM的主機IP。
+
+	$ boot2docker ip
+	192.168.59.103
+	
+此時用VM IP對應埠, 才能看到測試網站的產生。
+
+Boot2docker只是把一個VirtualBox的VM隱藏在記憶體中, 因此無法完全發揮正常Docker的功能, 這裡並不推薦。
+
+## 在Windows下使用boot2docker ##
+
+必須先確定CPU有支援VT-X, 可用CPU-Z來檢查。另外也必須到BIOS中確定VT-X有開啟。(VirtualBox必須)
+
+### 如果無法執行 ###
+
+某些64位元的Windows 7/8/10, boot2docker會一直無法啟動VirtualBox, 此時到VirtualBox的官方重新安裝最新版的VirtualBox即可。
+
+另外如果按下boot2docker start圖示一直跳出記事本或無法進去, 可到`C:\Prodram Files\Boot2Docker for windows\`, 滑鼠右鍵按`Git bash`到bash輸入`./start.sh`即可。
