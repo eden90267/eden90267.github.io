@@ -2,7 +2,7 @@
 layout: post
 title:  "Docker cramming"
 date:   2016-07-01 09:29:00 +0800
-categories: [linux, lpic]
+categories: [docker]
 ---
 
 # Docker惡補 #
