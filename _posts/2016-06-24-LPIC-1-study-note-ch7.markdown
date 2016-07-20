@@ -159,3 +159,149 @@ Command (m for help):
 
 #### 在fdisk中將分割區指定為SWAP格式 ####
 
+在fdisk新增的分割區, 預設格式為「Linux」, ID: 83, 也就是存放一般檔案的分割區。如果要將分割區指定為SWAP的格式。須將ID由83改82「Linux swap」。
+
+	$ sudo fdisk /dev/xvda1
+
+	Command (m for help): p
+
+	Disk /dev/xvda1: 10.7 GB, 10725765120 bytes
+	255 heads, 63 sectors/track, 1304 cylinders, total 20948760 sectors
+	Units = sectors of 1 * 512 = 512 bytes
+	Sector size (logical/physical): 512 bytes / 512 bytes
+	I/O size (minimum/optimal): 512 bytes / 512 bytes
+	Disk identifier: 0x1ce7644c
+
+	      Device Boot      Start         End      Blocks   Id  System
+	/dev/xvda1p1            2048    16779263     8388608   83  Linux
+	/dev/xvda1p2        16779264    20948759     2084748   83  Linux
+
+	$ sudo fdisk /dev/xvda1
+
+	Command (m for help): t
+	Partition number (1-4): 2
+	Hex code (type L to list codes): 82
+	Changed system type of partition 2 to 82 (Linux swap / Solaris)
+
+	Command (m for help): p
+
+	Disk /dev/xvda1: 10.7 GB, 10725765120 bytes
+	255 heads, 63 sectors/track, 1304 cylinders, total 20948760 sectors
+	Units = sectors of 1 * 512 = 512 bytes
+	Sector size (logical/physical): 512 bytes / 512 bytes
+	I/O size (minimum/optimal): 512 bytes / 512 bytes
+	Disk identifier: 0x1ce7644c
+
+	      Device Boot      Start         End      Blocks   Id  System
+	/dev/xvda1p1            2048    16779263     8388608   83  Linux
+	/dev/xvda1p2        16779264    20948759     2084748   82  Linux swap / Solaris
+
+- `t`: 表示要變更分割區的類型
+- `Hex code (type L to list codes): 82`: 輸入分割區類型ID, 輸入L會顯示所有分割區類型
+
+#### 使用fdisk切割延伸分割區 ####
+
+一顆硬碟如果**分割區超過四個**, **就必須使用延伸分割區**。首先我們在硬碟劃分一到三個主分割區，接下來會將所有剩餘的空間給最後一個分割區, 並且將該分割區/dev/sdb4定義為延伸分割區
+
+接著會繼續劃分分割區, 此時會在/dev/sdb4上劃分分割區/dev/sdb5、/dev/sdb6、...依此類推。
+
+※ 分割後要確認是否正確可輸入「p」, 如果沒有錯誤輸入「w」即可存檔離開(發現錯誤, 按`Ctrl+C`離開即可)。
+
+※ 劃分之後, 除了/dev/sdb4之外都可以格式化,並且掛接在某目錄之下使用
+
+※ 注意: /dev/sdb4代表的是/dev/sdb5、/dev/sdb6、...所有延伸分割區的集合概念, 因此/dev/sdb4是不能使用的!
+
+附帶一提: 當我們使用Linux安裝程式設定分割區時, 系統只會要求我們輸入掛接點、檔案系統類型、大小等訊息之後, 就會自動幫我們分割、格式化並且掛接檔案系統。那麼安裝程式如何做的?
+
+一般安裝程式會劃分一個主分割區/dev/sda1與延伸分割區/dev/sda2, 並且延伸分割區會使用所有剩餘的空間。接下來再從延伸分割區中劃分需要的分割區
+
+由於前4個數字(/dev/sda1、/dev/sda2、/dev/sda3、/dev/sda4)保留給主分割區使用, 因此延伸分割區中的分割區號碼就會由5開始。但安裝程式中會將/dev/sda2使用的所有剩餘空間, 因此/dev/sda3與/dev/sda4也無法劃分了。
+
+#### 使用fdisk刪除分割區 ####
+
+如果要刪除分割區, 只需輸入d並且輸入分割區的代號即可依序刪除:
+
+	$ sudo fdisk /dev/xvda1
+
+	Command (m for help): p
+
+	Disk /dev/xvda1: 10.7 GB, 10725765120 bytes
+	255 heads, 63 sectors/track, 1304 cylinders, total 20948760 sectors
+	Units = sectors of 1 * 512 = 512 bytes
+	Sector size (logical/physical): 512 bytes / 512 bytes
+	I/O size (minimum/optimal): 512 bytes / 512 bytes
+	Disk identifier: 0x1ce7644c
+
+	      Device Boot      Start         End      Blocks   Id  System
+	/dev/xvda1p1            2048    16779263     8388608   83  Linux
+	/dev/xvda1p2        16779264    20948759     2084748   83  Linux
+
+	Command (m for help): d
+	Partition number (1-4): 2
+
+	Command (m for help): d
+	Selected partition 1
+
+	Command (m for help): p
+
+	Disk /dev/xvda1: 10.7 GB, 10725765120 bytes
+	255 heads, 63 sectors/track, 1304 cylinders, total 20948760 sectors
+	Units = sectors of 1 * 512 = 512 bytes
+	Sector size (logical/physical): 512 bytes / 512 bytes
+	I/O size (minimum/optimal): 512 bytes / 512 bytes
+	Disk identifier: 0x1ce7644c
+
+	      Device Boot      Start         End      Blocks   Id  System
+
+	Command (m for help): w
+	The partition table has been altered!
+
+	Calling ioctl() to re-read partition table.
+
+	WARNING: Re-reading the partition table failed with error 22: Invalid argument.
+	The kernel still uses the old table. The new table will be used at
+	the next reboot or after you run partprobe(8) or kpartx(8)
+	Syncing disks.
+
+### 格式化為ext系列的檔案系統 ###
+
+檔案系統由檔案與目錄架構起來的系統, 也是作業系統最根本的部分。如果沒有檔案系統, 所有檔案與目錄都會雜亂無章的被丟在儲存裝置的各角落中。
+
+劃分了分割區後, 必須要格式化才能被使用。如同之前比喻, 未格式化之前, 就好比一塊毫無座標的區域, 即使放置了物品也難以搜尋。格式化之後就相當將這區域貼上了**定義了座標**與**其他屬性**, 讓系統可以快速的存取檔案。
+
+格式化會在分割區上切割一片片的區域(稱為**block**), 每塊區塊有固定大小(預設值為**4KB**)。如果檔案大於區塊的大小, 則會被切成多個小區塊存放; 如果小於區塊大小, 則會被放置到某一區塊中。
+
+※ 經驗談: 即使檔案很小, 也不能將多個檔案放入同一區塊中。區塊是檔案放置的最小單位, 如果將多個檔案放入同區塊, 系統無法辨識到底該選擇哪個檔案。
+
+格式化這個動作, 必須要選擇一種檔案系統。換句話說, 我們決定要將一個分割區格式化為某一種類型的檔案系統格式。在Linux中, 常用的檔案系統類型包括SWAP、ext2、ext3、ext4、reiserfs、XFS等。
+
+#### ext2 ####
+
+ext2是非日誌型的檔案系統, 屬於起源較早的檔案系統, ext2不論檔案的形式都是將檔案存在一個inode中, 裡面包含使用者資訊(UID、GID)、檔案權限、檔案大小、時間戳記(檔案最初建立與最後修改時間)等。
+
+要將分割區(如/dev/sdb1)格式化為ext2的檔案系統, 可使用以下任一指令:
+
+*mke2fs /dev/sdb1*
+
+*mke2fs -t ext2 /dev/sdb1*
+
+*mkfs.ext2 /dev/sdb1*
+
+
+#### ext3 ####
+
+ext3是ext2的改良延伸版, 可將其視為ext2檔案系統的日誌型系統。ext3記錄了磁碟所有儲存動作, 所以如果發生緊急事故, 如不正常關機, 因為已經記錄所有儲存動作, 系統便可以根據紀錄快速還原, 不需要執行磁碟掃描。
+
+要將分割區(如/dev/sdb1)格式化為ext3的檔案系統, 可使用以下任一指令:
+
+*mke2fs -j /dev/sdb1*
+
+*mke2fs -t ext3 /dev/sdb1*
+
+*mkfs.ext3 /dev/sdb1*
+
+#### ext4 ####
+
+ext4與ext3十分類似並且相容, ext4具ext3所有優點, 但不使用kjournald。
+
+對於
