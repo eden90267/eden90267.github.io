@@ -179,3 +179,157 @@ TTL是Time To Live的簡寫，也就是封包存活的時間。事實上，它�
 廣義而言，只要機器會將非本地的封包傳送到正確的目的地，就稱為路由器。但事實上，路由器多半定義了路由表，以便尋找較近的路徑，因此路由器通常是一台獨立的主機，而在Linux上，路由器的功能跟閘道是合一的。
 
 當我們有多條線路，我們會透過路由表定義多重路由，也就是定義不同目的地的路徑規則。舉例，將連網際網路的封包丟給預設閘道，而連往海外公司的封包，則丟給另一台路由器處理。
+
+#### 主機名稱、網域名稱、完整網域名稱 ####
+
+如果主機的DNS對應www.test.com.tw，那麼www為主機名稱，test.com.tw為網域名稱，而www.test.com.tw為完整網域名稱。
+
+主機名稱通常用簡單且符合該主機的功能來命名，如www、mail、ns等；而網域名稱就是我們向ISP註冊的網域名稱，每年需繳500~1500不等；而完整網域名稱就是主機名稱加上網域名稱。
+
+要注意的是，上面的三種名稱都不得以特殊符號命名，允許特殊符號包括「-」與「_」。
+
+#### 網域與子網域 ####
+
+當申請了網域後，可以將網域再往下切割成子網域，子網域的名稱會加在主網域之前，並以「.」做為區隔。e.g. 申請test.com.tw這個網域，可以再將此網域切割為sales.test.com.tw、rd.test.com.tw、account.test.com.tw，並將子網域的命名權交給其他主機。
+
+因此所謂子網域，是定義次層的名稱伺服器，在現實中最常切子網域的應該是學校。
+
+#### http與https ####
+
+一般瀏覽網頁是透過http的通訊協定，並在網址列輸入http://網址。若我們瀏覽加密的網頁時，則會輸入https開頭的網址。
+
+https是http加上ssl(security socket layer)，也就是透過ssl達到加密的效果。在Linux上的ssl套件為openssl，因此要建置含有https服務的伺服器，可透過Apache加上openssl。http使用的埠號為80，而https使用的埠號為443。
+
+#### FTP的命令埠與資料埠 ####
+
+FTP使用命令埠作為命令的傳輸與下達之用，預設值為21；而資料埠是做為資料傳遞之用，預設值為20。
+
+命令埠可讓我們順利連上主機，但要建立檔案的傳輸時，就必須開啟資料埠做資料的傳遞之用。
+
+### 網路相關指令 ###
+
+介紹網路設定與連線查詢的相關指令
+
+#### ifconfig ####
+
+ifconfig是一個查詢與設定網路位址的指令，可以設定網路位址、子網路遮罩與廣播位址。
+
+語法：ifconfig [介面名稱] [參數]
+
+參數如下：
+
+- up：啟動此介面
+- down：關閉此介面
+- [ -] arp：啟動或是停止此介面上的ARP協定
+- [ -] promisc：啟動或是停止此介面上的promisc mode
+- [ -] allmulti：啟動或是停止此介面上的all-multicast mode
+- metric N：設定介面的長度為N
+- mtu N：設定最大的傳輸單位為N
+- Netmask 子網路遮罩：設定子網路遮罩
+- broadcast廣播位址：設定廣播位址
+
+介面名稱：為網路介面的名稱，通常第一張網路卡為eth0，第二張為eth1...依此類推。
+
+若要顯示eth0裝置的狀態，執行過程如下：
+
+	$ ifconfig eth0
+	eth0      Link encap:Ethernet  HWaddr 06:6e:23:ef:45:c5
+	          inet addr:172.31.19.185  Bcast:172.31.31.255  Mask:255.255.240.0
+	          inet6 addr: fe80::46e:23ff:feef:45c5/64 Scope:Link
+	          UP BROADCAST RUNNING MULTICAST  MTU:9001  Metric:1
+	          RX packets:828131 errors:0 dropped:0 overruns:0 frame:0
+	          TX packets:330809 errors:0 dropped:0 overruns:0 carrier:0
+	          collisions:0 txqueuelen:1000
+	          RX bytes:818086950 (818.0 MB)  TX bytes:66709269 (66.7 MB)
+
+若要將eth0停用：
+
+	# ifconfig eth0 down
+
+#### ifup ####
+
+ifup是將網路介面啟用的指令，如同ifconfig ... up
+
+語法：ifup [參數] 介面名稱
+
+參數如下：
+
+- -a，--all：啟用所有網路介面
+- --force：強迫啟用
+- -h，--help
+- -V，--version
+- -v，--verbose：顯示詳細執行過程
+
+若要啟用網路介面eth0：
+
+	# ifup eth0
+
+#### ifdown ####
+
+ifdown是將網路介面停用的指令，如同ifconfig ... down
+
+語法：ifdown [參數] 介面名稱
+
+參數如下：
+
+- -a，--all：停用所有網路介面
+- --force：強迫停用
+- -h，--help
+- -V，--version
+- -v，--verbose：顯示詳細執行過程
+
+若要停用網路介面eth0：
+
+	# ifdown eth0
+
+#### route ####
+
+route是顯示與設定路由表的指令，也就是封包的傳送路徑
+
+語法：route [參數] 內部指令 [內部指令參數]
+
+參數如下：
+
+- -F：儲存核心FIB的route表
+- -C：將核心的route快取列出
+- -v：詳細顯示執行結果
+- -n：以數字顯示，而不做DNS反查
+- -e：以netstat編排方式顯示路由狀態
+
+內部指令：
+
+- del | add：刪除 | 增加 指定的路由紀錄
+- -net | -host：指定為 網段 | 主機 的位址
+- target：目的地位址或網路表示
+
+內部指令參數：
+
+- netmask NM：指定子網路遮罩為NM
+- gw IP_addr：指定閘道的IP address為`IP_addr`
+- metric M：設定路由表中的長度欄位(metric field)
+- mss M：設定TCP最大的區塊長度(Maximum Segment Size)為Mbytes
+- reject：指定拒絕的路由。他會強迫對設定位址的路由查詢失敗
+- dev IF：指定該路由僅跟特定的裝置IF(如eth0、ppp0)相關
+
+若在eth0的裝置加上一個路由到192.168.10.0(子網路遮罩255.255.255.0)這個網段：
+
+	$ sudo route add -net 192.168.10.0 netmask 255.255.255.0 dev eth0
+	$ route
+	Kernel IP routing table
+	Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+	default         ip-172-31-16-1. 0.0.0.0         UG    0      0        0 eth0
+	172.31.16.0     *               255.255.240.0   U     0      0        0 eth0
+	192.168.10.0    *               255.255.255.0   U     0      0        0 eth0
+
+若要將原有的閘道位址10.1.1.1停用，而使用新的閘道位址10.1.1.2。
+
+	# route del default gw 10.1.1.1 // 刪除舊的閘道10.1.1.1
+	# route add default gw 10.1.1.2 // 增加新的閘道10.1.1.2
+
+#### ping ####
+
+ping是傳送ICMP echo request封包的指令，常用於測試對方的位址是否有回應，使用方式如下所示：
+
+語法：ping [參數] 位址
+
+- -b：對廣播位址
