@@ -792,3 +792,133 @@ Ubuntu：
 *dhclient -r*
 
 此外，dhcpcd也是DHCP用戶端的指令(需另外安裝)，而dhcpd則是伺服器的指令。
+
+## 上網設定的疑難排解 ##
+
+如果主機無法正常連線上網，會使用指令或是檢查設定檔來排解錯誤，這節將介紹兩種操作，並列出常見的錯誤設定：
+
+### 使用指令排除錯誤 ###
+
+#### PING測試連線回應 ####
+
+Ping這指令是常用來檢查連線狀態的指令，由於許多破壞性的攻擊行為會透過ping這個方式來達成，因此許多ISP業者或是網路管理者會將此類型的封包丟棄。因此執行這指令前，必須確認網管或是ISP業者是否關閉此功能。
+
+Ping指令是透過ICMP echo request的封包來做測試
+
+*ping 168.95.1.1*
+
+    $ ping 168.95.1.1
+    PING 168.95.1.1 (168.95.1.1) 56(84) bytes of data.
+    64 bytes from 168.95.1.1: icmp_seq=1 ttl=240 time=52.6 ms
+    64 bytes from 168.95.1.1: icmp_seq=2 ttl=240 time=52.6 ms
+    64 bytes from 168.95.1.1: icmp_seq=3 ttl=240 time=53.2 ms
+    64 bytes from 168.95.1.1: icmp_seq=4 ttl=240 time=53.3 ms
+    64 bytes from 168.95.1.1: icmp_seq=5 ttl=240 time=52.7 ms
+    64 bytes from 168.95.1.1: icmp_seq=6 ttl=240 time=52.6 ms
+
+會一直重複到按下`Ctrl+C`
+
+上面資訊得知168.95.1.1對於56bytes的回應時間是53~52之間。要注意，這邊時間與實際傳送速度，並沒絕對關係。
+
+假若對方位址沒回應或遭防火牆阻隔：
+
+    $ ping 61.66.12.243
+    PING 61.66.12.243 (61.66.12.243) 56(84) bytes of data.
+
+
+
+    --- 61.66.12.243 ping statistics ---
+    6 packets transmitted, 0 received, 100% packet loss, time 5040ms
+
+按下`Ctrl+C`終止後，可看到封包100%遺失。
+
+#### TRACEROUTE測試所經閘道 ####
+
+除了ping之外，另一個常用的檢測指令為traceroute。相較ping，traceroute可以追蹤所經過的每一個router以及所花費的時間：
+
+	$ traceroute 168.95.1.1
+	traceroute to 168.95.1.1 (168.95.1.1), 30 hops max, 60 byte packets
+	 1  ec2-175-41-192-130.ap-northeast-1.compute.amazonaws.com (175.41.192.130)  1.654 ms ec2-175-41-192-134.ap-northeast-1.compute.amazonaws.com (175.41.192.134)  1.640 ms ec2-175-41-192-132.ap-northeast-1.compute.amazonaws.com (175.41.192.132)  1.634 ms
+	 2  27.0.0.210 (27.0.0.210)  2.863 ms 27.0.0.154 (27.0.0.154)  2.083 ms  2.282 ms
+	 3  52.95.30.135 (52.95.30.135)  3.015 ms 52.95.30.125 (52.95.30.125)  2.666 ms 52.95.30.131 (52.95.30.131)  3.511 ms
+	 4  52.95.30.22 (52.95.30.22)  2.509 ms 27.0.0.248 (27.0.0.248)  9.860 ms 52.95.30.10 (52.95.30.10)  3.300 ms
+	 5  54.239.52.148 (54.239.52.148)  10.031 ms 54.239.53.19 (54.239.53.19)  18.872 ms 54.239.53.23 (54.239.53.23)  12.923 ms
+	 6  54.239.53.19 (54.239.53.19)  18.915 ms 54.239.53.82 (54.239.53.82)  8.764 ms 54.239.53.98 (54.239.53.98)  8.784 ms
+	 7  ae-7.r01.osakjp02.jp.bb.gin.ntt.net (61.200.82.217)  9.483 ms ae-7.r00.osakjp02.jp.bb.gin.ntt.net (61.200.82.121)  9.362 ms 54.239.53.92 (54.239.53.92)  9.042 ms
+	 8  ae-7.r00.osakjp02.jp.bb.gin.ntt.net (61.200.82.121)  9.383 ms ae-4.r20.osakjp02.jp.bb.gin.ntt.net (129.250.2.116)  9.116 ms  9.259 ms
+	 9  p64-1.hinet.osakjp02.jp.bb.gin.ntt.net (129.250.66.118)  52.754 ms p64-0.hinet.osakjp02.jp.bb.gin.ntt.net (129.250.66.14)  49.673 ms p64-1.hinet.osakjp02.jp.bb.gin.ntt.net (129.250.66.118)  52.889 ms
+	10  p64-1.hinet.osakjp02.jp.bb.gin.ntt.net (129.250.66.118)  52.978 ms 61-221-53-30.HINET-IP.hinet.net (61.221.53.30)  55.179 ms  53.122 ms
+	11  61-221-53-30.HINET-IP.hinet.net (61.221.53.30)  52.671 ms  49.788 ms  51.962 ms
+	12  210-59-204-138.HINET-IP.hinet.net (210.59.204.138)  52.716 ms  49.761 ms  52.854 ms
+
+上面可得知從目前位址達到168.95.1.1，共經過12個點(路由器)，其中出現*代表該路由器會忽略traceroute這樣指令所丟出的封包。
+
+加上-n的參數將不會做DNS的反查來解析域名，可以增快查詢速度。
+
+#### NETSTAT檢視連線狀態 ####
+
+若上網後，想知道本機與哪些位址建立連線，可以透過netstat這樣的指令查詢所有的連線狀態。執行netstat -nt：
+
+	$ netstat -nt
+	Active Internet connections (w/o servers)
+	Proto Recv-Q Send-Q Local Address           Foreign Address         State
+	tcp        0      0 172.31.31.22:22         43.251.79.36:64720      ESTABLISHED
+
+可得知本機的位址為172.31.31.22，且另一台位址為43.251.79.36的主機透過port 64720跟本機的port 22建立連線。
+
+一台正在使用的機器應該包含port 110(POP3)、port 25(SMTP)、port 22(SSH)。
+
+若要了解本機開啟了哪些服務，可執行netstat -apt，如下所示：
+
+	$ netstat -apt
+	(No info could be read for "-p": geteuid()=1000 but you should be root.)
+	Active Internet connections (servers and established)
+	Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+	tcp        0      0 *:ssh                   *:*                     LISTEN      -
+	tcp        0      0 localhost:6010          *:*                     LISTEN      -
+	tcp        0      0 ip-172-31-31-22.ap-:ssh 43.251.79.36:64720      ESTABLISHED -
+	tcp6       0      0 [::]:ssh                [::]:*                  LISTEN      -
+	tcp6       0      0 ip6-localhost:6010      [::]:*                  LISTEN      -
+
+上面可知本機正在執行的服務，以及該服務由哪一個應用程式所執行。
+
+### 常見的錯誤設定 ###
+
+#### 設定檔格式錯誤 ####
+
+不同服務設定檔規定均不相同，有的設定檔在等號兩邊必須加上空格，有些絕對不能空格，有些設定必須在字尾加上「.」等，建議管理者參考原有範例做修改。
+
+#### 設定檔位置錯誤 ####
+
+會依據不同發行商、版本或不同伺服器有所差異。e.g. 郵件別名設定aliases檔，有的在/etc/aliases，有的在/etc/mail/aliases，看版本。
+
+#### 沒有重新啟動服務 ####
+
+部分設定檔設定完後會立即生效，如TCP wrapper(`/etc/hosts.allow`、`/etc/hosts.deny`)、`/etc/hosts`、`/etc/service`、`/etc/nsswitch`、`/etc/resolv.con`之類，但多設在設定完成後都必須重新啟動服務才生效，例如IP位址的設定檔、多數伺服器設定檔等。
+
+## 安全管理 ##
+
+這節介紹基本安全相關的內容，包括指令、設定檔以及加密連線。
+
+### 安全相關指令 ###
+
+這裡列出與系統安全有關的指令，以及使用的方式。
+
+#### su ####
+
+su是切換使用者的指令，一般使用者要切換為root可使用「su -root」或是「su -」(root可省略)
+
+語法：su [-] [帳號]
+
+- -：套用帳號的profile
+
+root切換為一般使用者，執行過程如下：
+
+	# su - fsc
+	#
+
+#### sudo ####
+
+sudo指令是讓一般使用者能以特定帳號的權限(如root)執行指令，使用者需定義在`/etc/sudoers`才能使用該指令，用法如下：
+
+語法：sudo [參數] 指令
