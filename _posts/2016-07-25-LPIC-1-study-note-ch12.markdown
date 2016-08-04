@@ -332,4 +332,463 @@ ping是傳送ICMP echo request封包的指令，常用於測試對方的位址�
 
 語法：ping [參數] 位址
 
-- -b：對廣播位址
+- -b：對廣播位址傳送ICMP echo的封包
+- -c 次數：只傳送指定次數的封包。若不指定次數則會持續傳送封包，直到使用者按`Ctrl+C`中斷為止
+- -f：大量的傳送ICMP echo封包
+- -i 秒數：每隔多少秒傳送一次封包，只有管理者可以將此數值設在0.2秒之下
+- -l 介面位址：指定傳送的介面位址
+- -n：只透過數字位址傳送，而不會做名稱反查
+- -r：直接傳送封包，而不透過閘道
+- -s 封包大小：指定傳送的封包大小，單位為bytes，預設值為56
+- -v：顯示詳細的執行過程
+- -V：顯示版本資訊
+
+對www.google.com丟出5次ICMP echo封包，並顯示統計結果
+
+    $ ping -c 5 www.google.com
+    PING www.google.com (216.58.197.228) 56(84) bytes of data.
+    64 bytes from nrt13s49-in-f4.1e100.net (216.58.197.228): icmp_seq=1 ttl=56 time=1.98 ms
+    64 bytes from nrt13s49-in-f4.1e100.net (216.58.197.228): icmp_seq=2 ttl=56 time=1.93 ms
+    64 bytes from nrt13s49-in-f4.1e100.net (216.58.197.228): icmp_seq=3 ttl=56 time=1.88 ms
+    64 bytes from nrt13s49-in-f4.1e100.net (216.58.197.228): icmp_seq=4 ttl=56 time=2.01 ms
+    64 bytes from nrt13s49-in-f4.1e100.net (216.58.197.228): icmp_seq=5 ttl=56 time=1.85 ms
+
+    --- www.google.com ping statistics ---
+    5 packets transmitted, 5 received, 0% packet loss, time 4004ms
+    rtt min/avg/max/mdev = 1.855/1.933/2.010/0.081 ms
+
+#### netstat ####
+
+netstat是一個顯示網路狀態的指令，用法如下：
+
+語法：netstat [參數]
+
+- -a：顯示所有資訊，包含一般資訊、socket資訊、路由表、網路介面等
+- -c：將網路狀態持續列出
+- -e：顯示其他相關資訊
+- -l：顯示正在listen狀態的socket
+- -M：顯示隱藏的連線，必須支援ip偽裝的功能才能用到此參數
+- -n：直接以IP位址顯示，不經過名稱伺服器
+- -p：顯示與socket相關的程式名稱及PID
+- -r：顯示系統路由表
+- -t：僅顯示TCP通訊協定的連線狀態
+- -u：僅顯示UDP通訊協定的連線狀態
+- -v：列出完整的執行過程
+- -w：僅顯示RAW通訊協定
+- --help
+
+若要顯示TCP的連線狀態：
+
+	$ netstat -nt
+	Active Internet connections (w/o servers)
+	Proto Recv-Q Send-Q Local Address           Foreign Address         State
+	tcp        0      0 172.31.31.22:22         43.251.79.36:50582      ESTABLISHED
+	tcp        0      0 172.31.31.22:22         43.251.79.36:50580      ESTABLISHED
+
+若要顯示目前TCP應用程式所使用的埠號：
+
+	$ netstat -apt
+	(No info could be read for "-p": geteuid()=1000 but you should be root.)
+	Active Internet connections (servers and established)
+	Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+	tcp        0      0 *:ssh                   *:*                     LISTEN      -
+	tcp        0      0 localhost:6010          *:*                     LISTEN      -
+	tcp        0      0 ip-172-31-31-22.ap-:ssh 43.251.79.36:50582      ESTABLISHED -
+	tcp        0      0 ip-172-31-31-22.ap-:ssh 43.251.79.36:50580      ESTABLISHED -
+	tcp6       0      0 [::]:ssh                [::]:*                  LISTEN      -
+	tcp6       0      0 ip6-localhost:6010      [::]:*                  LISTEN      -
+
+若要顯示路由列表：
+
+	$ netstat -r
+	Kernel IP routing table
+	Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+	default         ip-172-31-16-1. 0.0.0.0         UG        0 0          0 eth0
+	172.31.16.0     *               255.255.240.0   U         0 0          0 eth0
+	192.168.10.0    *               255.255.255.0   U         0 0          0 eth0
+
+使用netstat -r與route指令相同。
+
+#### traceroute ####
+
+traceroute是路由連線追蹤的指令，可查詢由本機到對方主機所經過的路由器，使用方式如下：
+
+語法：traceroute [參數] 主機位址 [封包大小(單位為bytes)]
+
+- -d：啟動偵錯模式
+- -f ttl：設定起始封包的存活時間
+- -F：設定不能分割的位元
+- -l：使用ICMP ECHO(ping指令)的封包而不使用UDP資料傳送
+- -l 介面：指定網路介面，如eth0
+- -m 次數：設定封包的最多跳躍次數。預設30次
+- -p 埠號：設定探測封包所使用的埠號，預設為33434
+- -r：不使用路由表，而以直接連線的方式連結
+- -s 來源位址：在多個位址時，使用指定的來源位址
+- -v：顯示完整的執行過程
+- -w 秒數：設定探測的間隔秒數
+- -z 秒數：設定探測間的時間，單位為毫秒，預設值為0，建議值500，也就是0.5秒
+
+顯示連線到163.14.157.13所經過的路由器：
+
+	$ traceroute 163.14.157.13
+	traceroute to 163.14.157.13 (163.14.157.13), 30 hops max, 60 byte packets
+	 1  ec2-175-41-192-130.ap-northeast-1.compute.amazonaws.com (175.41.192.130)  1.507 ms ec2-175-41-192-134.ap-northeast-1.compute.amazonaws.com (175.41.192.134)  1.496 ms  1.490 ms
+	 2  27.0.0.154 (27.0.0.154)  2.153 ms 27.0.0.172 (27.0.0.172)  2.112 ms  2.124 ms
+	 3  52.95.30.135 (52.95.30.135)  13.425 ms 52.95.30.123 (52.95.30.123)  3.596 ms 27.0.0.154 (27.0.0.154)  2.497 ms
+	 4  52.95.30.123 (52.95.30.123)  3.515 ms 52.95.30.133 (52.95.30.133)  3.064 ms 52.95.30.125 (52.95.30.125)  6.023 ms
+	 5  52.95.30.180 (52.95.30.180)  2.786 ms as9505-2.ix.jpix.ad.jp (210.171.224.89)  2.885 ms  2.946 ms
+	 6  203.78.181.241 (203.78.181.241)  33.718 ms  32.610 ms  32.667 ms
+	 7  17-60-41-175.TWGATE-IP.twgate.net (175.41.60.17)  32.603 ms 203.78.181.241 (203.78.181.241)  32.830 ms 17-60-41-175.TWGATE-IP.twgate.net (175.41.60.17)  32.806 ms
+	 8  46-61-41-175.TWGATE-IP.twgate.net (175.41.61.46)  34.876 ms 17-60-41-175.TWGATE-IP.twgate.net (175.41.60.17)  32.811 ms  32.806 ms
+	 9  46-61-41-175.TWGATE-IP.twgate.net (175.41.61.46)  35.101 ms 192.192.61.70 (192.192.61.70)  34.303 ms  34.264 ms
+	10  192.192.61.1 (192.192.61.1)  34.546 ms 192.192.61.185 (192.192.61.185)  34.616 ms 192.192.61.66 (192.192.61.66)  35.867 ms
+	11  192.192.61.198 (192.192.61.198)  33.507 ms 192.192.61.185 (192.192.61.185)  33.975 ms  34.063 ms
+	12  192.192.61.198 (192.192.61.198)  33.536 ms  33.607 ms  33.840 ms
+	13  140.111.230.30 (140.111.230.30)  34.535 ms 192.192.61.198 (192.192.61.198)  33.867 ms 163.14.10.3 (163.14.10.3)  35.173 ms
+	14  163.14.10.3 (163.14.10.3)  35.196 ms *  35.244 ms
+	15  * 163.14.10.3 (163.14.10.3)  35.296 ms *
+	16  * * *
+	17  * * *
+	18  * * *
+	19  * * *
+	20  * * *
+	21  * * *
+	22  * * *
+	23  * * *
+	24  * * *
+	25  * * *
+	26  * * *
+	27  * * *
+	28  * * *
+	29  * * *
+	30  * * *
+
+### 網路與DNS相關設定檔 ###
+
+本節介紹網路設定與域名設定相關的設定檔。
+
+#### /etc/hosts ####
+
+這是主機名稱與位址的對應設定
+
+	$ cat /etc/hosts
+	127.0.0.1 localhost
+
+	# The following lines are desirable for IPv6 capable hosts
+	::1 ip6-localhost ip6-loopback
+	fe00::0 ip6-localnet
+	ff00::0 ip6-mcastprefix
+	ff02::1 ip6-allnodes
+	ff02::2 ip6-allrouters
+	ff02::3 ip6-allhosts
+
+#### /etc/resolv.conf ####
+
+這是DNS伺服器的設定檔，重點在於nameserver後面接的是DNS伺服器的IP位址
+
+	$ cat /etc/resolv.conf
+	# Dynamic resolv.conf(5) file for glibc resolver(3) generated by resolvconf(8)
+	#     DO NOT EDIT THIS FILE BY HAND -- YOUR CHANGES WILL BE OVERWRITTEN
+	nameserver 172.31.0.2
+	search ap-northeast-1.compute.internal
+
+#### /etc/sysconfig/network-scripts/ifcfg-eth0 ####
+
+這是Red Hat系列(Red Hat Enterprise、Fedora、CentOS等)的網路位址設定檔，檔名中的eth0代表了介面的名稱(意思是如果eth1介面，檔名就必須為ifcfg-eth1)，內容包含了**網路裝置名稱**、**IP位址**、**子網路遮罩**、**廣播位址**等資訊。
+
+#### /etc/network/interfaces ####
+
+這是Debian與Ubuntu的網路位址設定檔，內容包含了**網路裝置名稱**、**IP位址**、**子網路遮罩**、**廣播位址**等資訊。
+
+    $ cat /etc/network/interfaces
+    # This file describes the network interfaces available on your system
+    # and how to activate them. For more information, see interfaces(5).
+
+    # The loopback network interface
+    auto lo
+    iface lo inet loopback
+
+    # Source interfaces
+    # Please check /etc/network/interfaces.d before changing this file
+    # as interfaces may have been defined in /etc/network/interfaces.d
+    # NOTE: the primary ethernet device is defined in
+    # /etc/network/interfaces.d/eth0
+    # See LP: #1262951
+    source /etc/network/interfaces.d/*.cfg
+
+	$ cat /etc/network/interfaces.d/eth0.cfg
+	# The primary network interface
+	auto eth0
+	iface eth0 inet dhcp
+
+#### /etc/services ####
+
+這是服務名稱、埠號與通訊協定的名稱對應檔，內容範例如下：
+
+    $ cat /etc/services
+    # Network services, Internet style
+    #
+    # Note that it is presently the policy of IANA to assign a single well-known
+    # port number for both TCP and UDP; hence, officially ports have two entries
+    # even if the protocol doesn't support UDP operations.
+    #
+    # Updated from http://www.iana.org/assignments/port-numbers and other
+    # sources like http://www.freebsd.org/cgi/cvsweb.cgi/src/etc/services .
+    # New ports will be added on request if they have been officially assigned
+    # by IANA and used in the real-world or are needed by a debian package.
+    # If you need a huge list of used numbers please install the nmap package.
+
+	tcpmux          1/tcp                           # TCP port service multiplexer
+	echo            7/tcp
+	echo            7/udp
+	discard         9/tcp           sink null
+	discard         9/udp           sink null
+	systat          11/tcp          users
+	daytime         13/tcp
+	daytime         13/udp
+	netstat         15/tcp
+	qotd            17/tcp          quote
+	msp             18/tcp                          # message send protocol
+	msp             18/udp
+	chargen         19/tcp          ttytst source
+	chargen         19/udp          ttytst source
+	...
+
+#### /etc/nsswitch.conf ####
+
+這是name service switch的設定檔，提供**與名稱相關服務的搜尋設定**，例如網路訊息服務NIS、域名服務DNS等，都會使用這設定作為名稱搜尋的依據，範例如下：
+
+    $ cat /etc/nsswitch.conf
+    # /etc/nsswitch.conf
+    #
+    # Example configuration of GNU Name Service Switch functionality.
+    # If you have the `glibc-doc-reference' and `info' packages installed, try:
+    # `info libc "Name Service Switch"' for information about this file.
+
+	passwd:         compat
+	group:          compat
+	shadow:         compat
+
+	hosts:          files dns
+	networks:       files
+
+	protocols:      db files
+	services:       db files
+	ethers:         db files
+	rpc:            db files
+
+	netgroup:       nis
+
+#### INETD伺服器與XINETD伺服器 ####
+
+INETD可拆成三段來看：I-NET-D，其中I-NET表示internet，D表示Daemon，也就是網際網路上的**常駐程式**。
+
+※Daemon：是精靈的意思，也就是介於人與神之間的一種媒介。在Linux中，Daemon的意思也接近如此，代表的是人與機器之間的媒介，通常我們稱為常駐程式。
+
+INETD是監視一些網路請求的程序，其根據網路請求相應的服務程序來處理連接請求。它可以為多種服務管理連接，當inetd接到連接請求時，它能夠確定連接所需的程式，啟動相應的程序。
+
+使用INETD不需要為每個服務都啟動獨立的服務程式，因此執行那些負載不重的服務有助於降低系統負載。一般來說，INETD主要用於啟動其他服務程式如telnet、ipop3等，但它也有能力直接處理某些簡單的服務，例如echo、daytime等。
+
+XINETD為INETD的取代品，它是由兩個詞的合併而來，INET-D，其中INET為internet，D為Daemon(常駐程式)。
+
+X在Linux或是Unix中有shadow(陰影)之意，表示更安全、功能更強的產品。XINETD延續了INETD中的所有功能與特性，並加強了安全上的防護。`/etc/xinetd.d/`底下為XINETD中伺服器的設定檔案，通用格式如下：
+
+	service <service_name>
+	{
+		<A> <B> <參數> <參數> ...
+	}
+
+其中`<B>`是給予運算符號，有三種：'='、'+='、'-='
+
+`<A>`是屬性，列一些較常用的在下面供參考：
+
+1. id
+
+	這項屬性用來確認服務的唯一性，特別是相同名稱的服務，但卻使用不同的通訊協定。
+
+2. type
+
+	包含下列三種
+
+	- RPC：Remote Procedure Call，遠程程序呼叫。
+	- INTERNAL：本身包含在XINETD中的服務。
+	- UNLISTED：此項服務未被包含在/etc/service中。
+
+3. disable
+
+	包含yes與no，yes表示停止服務，no或是沒有包含這項屬性則表示提供服務
+
+4. socket_type
+
+	包含下列三種屬性
+
+	- stream：stream-based的服務，也就是TCP service，如telnet，ftp等。
+	- dgram：datagram-based服務，也就是UDP service，如DNS等。
+	- raw：需要直接使用IP的服務。
+
+5. instance
+
+	同時間連線的數目，UNLIMITED表示不限制
+
+6. server
+
+	決定這個服務所使用的應用程式
+
+7. server_args
+
+	這個服務所需的應用程式後面所需要加的參數
+
+8. bind
+
+	這個服務所使用的IP位址
+
+9. only_from
+
+	限制某些特定來源IP位置，才提供連線服務，其他的均不得建立連線
+
+10. no_access
+
+	限制某些特定來源IP位置 不提供服務
+
+11. access_time
+
+	可提供服務的時間
+
+12. port
+
+	指定這項服務所使用的埠號
+
+
+## 上網的設定方式 ##
+
+常見的包括固定位址上網、動態位址上網與ADSL的pppoe撥號上網。
+
+### 固定位址上網 ###
+
+#### 指令設定方式 ####
+
+假設主機的IP位址為111.23.1.1，子網路遮罩為255.255.255.0，那麼我們可以通過以下的指令修改IP位址：
+
+*ifconfig eth0 111.23.1.1 netwask 255.255.255.0*
+
+此外，可通過以下指令來增加預設閘道
+
+*route add default gw 111.23.1.254*
+
+此外，要注意的是，若已經設定預設閘道，而要更換預設閘道，則必須將原有的預設閘道移除，再將新的預設閘道加入，如下；
+
+*route del default gw 10.1.1.1*
+
+*route add default gw 111.23.1.254*
+
+※使用指令修改，無法更新設定檔的資料，也就是說重啟後，通過指令的設定都會消失。因此，若是希望永久的更改設定，必須修改設定檔後重新啟動服務。
+
+#### 使用設定檔設定網路位址 ####
+
+Fedora與Red Hat：
+
+※ NetworkManager是Fedora 10之後系統上一個網路位址取得的服務，它會自動偵測目前網路上的設定，並自動修改設定檔的內容，包含無線網路的偵測等。但相對的，當它無法識別十，就會產生無法連線的狀況，因此底下範例，建議將NetworkManager停用並開啟network服務，可執行`systemctl NetworkManager.service disable`以及`systemctl network.service enable`。
+
+若電腦主機名為home.test.com，網路卡的IP位址為111.23.1.1，子網路遮罩為255.255.255.240；預設閘道(gateway)為111.23.1.14。
+
+`step 01` **修改/etc/sysconfig/network-scripts/ifcfg-eth0，如下所示：**
+
+    DEVICE=eth0
+	BOOTPROTO=static
+    IPADDR=111.23.1.1       // IP位址
+	NETMASK=255.255.255.240 // 子網路遮罩
+	GATEWAY=111.23.1.14     // 預設閘道
+    ONBOOT=yes              // 開機時啟用開設定
+
+`step 02` **修改/etc/sysconfig/network，如下所示：**
+
+    NETWORKING=yes
+    HOSTNAME=home.test.net
+
+`step 03` **如果沒有改HOSTNAME，那麼執行以下指令即可；如果有，則需重新啟動：**
+
+*systemctl network.service restart*
+
+※ 注意：若要檢查是否生效，我們可使用ifconfig看看狀況，如果出現eth0且設定正確，那IP位址與子網路遮罩的設定就沒問題了；若使用route -n，且在0.0.0.0後面跟著111.23.1.14，那gateway就沒問題了。
+
+Ubuntu：
+
+`step 01` **修改/etc/network/interfaces，如下所示：**
+
+    auto lo
+    iface lo inet loopback
+
+    auto eth0
+	iface eth0 inet static
+			address 172.20.11.123
+			netmask 255.255.255.0
+			network 172.20.11.0
+			broadcast 172.20.11.255
+			gateway 172.20.11.1
+
+`step 02` **重新啟動網路服務**
+
+*/etc/init.d/network restart*
+
+### 動態位址上網 ###
+
+動態位址的意思是由DHCP伺服器分配IP位址，因此每次取得的IP位址可能不同，故稱為動態。
+
+#### 使用設定檔獲取動態位址 ####
+
+假設我們要將這台Linux主機設為自動獲取網路位址(DHCP用戶端)，可參照以下步驟。
+
+`step 01` **修改/etc/sysconfig/network-scripts/ifcfg-eth0，如下所示：**
+
+	DEVICE=eth0
+	BOOTPROTO=dhcp
+	ONBOOT=yes
+
+`step 02` **重新啟動網路介面。**
+
+*systemctl network.service restart*
+
+如果使用的是Ubuntu：
+
+`step 01` **修改/etc/network/interfaces，如下所示：**
+
+    auto lo
+    iface lo inet loopback
+
+    auto eth0
+    iface eth0 inet dhcp
+
+`step 02` **重新啟動網路服務**
+
+*/etc/init.d/network restart*
+
+#### 使用指令獲取動態位址 ####
+
+*dhclient eth0*
+
+獲取的IP位址資訊位於`/var/lib/dhcp/dhclient.leases`之中，使用cat查看內容如下所示：
+
+    $ cat /var/lib/dhcp/dhclient.leases
+    lease {
+      interface "eth0";
+      fixed-address 172.31.31.22;
+      option subnet-mask 255.255.240.0;
+      option routers 172.31.16.1;
+      option dhcp-lease-time 3600;
+      option dhcp-message-type 5;
+      option domain-name-servers 172.31.0.2;
+      option dhcp-server-identifier 172.31.16.1;
+      option interface-mtu 9001;
+      option broadcast-address 172.31.31.255;
+      option host-name "ip-172-31-31-22";
+      option domain-name "ap-northeast-1.compute.internal";
+      renew 4 2016/08/04 09:16:35;
+      rebind 4 2016/08/04 09:43:50;
+      expire 4 2016/08/04 09:51:20;
+    }
+
+如果要釋放從DHCP伺服器獲取的IP位址，可執行以下指令：
+
+*dhclient -r*
+
+此外，dhcpcd也是DHCP用戶端的指令(需另外安裝)，而dhcpd則是伺服器的指令。
