@@ -36,7 +36,7 @@ filebeat用來在各ap主機收集指定路徑的紀錄檔，再發送到logstas
 
 以下是建置步驟:
 
-1. 新增各filebeat資料夾，並放置配置檔案：
+1. 新增各filebeat-registry資料夾(供mark用)，並於home目錄下直接新增配置檔案：
 
 	fusion_log:
 
@@ -1460,12 +1460,12 @@ filebeat用來在各ap主機收集指定路徑的紀錄檔，再發送到logstas
 
 2. create sh script && run it !
 
-	fusion_log:
+	新增run script到home目錄下：
 
-		$ cd
+		$ cd ~
 		$ vi run_filebeat.sh
 
-	run_fusion-filebeat.sh內容：
+	run_filebeat.sh內容：
 
 		#!/bin/bash
 
