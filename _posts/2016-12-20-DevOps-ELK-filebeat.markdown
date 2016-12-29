@@ -18,7 +18,7 @@ filebeat用來在各ap主機收集指定路徑的紀錄檔，再發送到logstas
 	output to logstash: 5000 port
 
 
-2. tomcat_log(catalina.log、localhost.log)
+2. tomcat_log
 
 	from: catalina.log、localhost.log
 
