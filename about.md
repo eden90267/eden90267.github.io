@@ -4,8 +4,41 @@ title: About
 permalink: /about/
 ---
 
-Hi , I'm a Full Stack developer, love to pursue software technology.
+Hi , I'm a Web Full Stack developer, love to pursue software technology.
 
-Programming technologies: HTML/CSS, Java, JavaScript, Node.js, React.js, Python, Docker, Ansible, Kubernetes, Bash Shell...
+---
+
+Programming technologies：
+
+front-end：
+
+- HTML/CSS
+- bootstrap
+- sass & compass
+- jQuery
+- React.js
+- JavaScript
+
+back-end：
+
+- Node.js
+- Python
+- java
+- MySQL
+- MariaDB
+- Oracle 10g
+- MongoDB
+- Docker
+- Jenkins
+- Ansible
+- Docker Cluster
+- Bash
+- Base OS maintain
+
+Software Engineering：
+
+- Agile Development
+
+---
 
 Welcome your interest.
