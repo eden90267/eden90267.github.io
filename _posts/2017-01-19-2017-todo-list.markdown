@@ -21,7 +21,8 @@ categories: [todoList]
     - redux
     - native
 
-8. gulp
+8. bower
+9. gulp
 
 
 ### 後端 ###
