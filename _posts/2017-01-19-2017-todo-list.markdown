@@ -1,0 +1,87 @@
+---
+layout: post
+title:  "2017 Todo List"
+date:   2017-01-19 11:51:00 +0800
+categories: [todoList]
+---
+
+# 2017 Todo List #
+
+## 未來展望技術 ##
+
+### 前端 ###
+
+1. HTML/CSS
+2. javascript
+3. bootstrap
+4. jQuery
+5. bootstrap
+6. sass & compass
+7. react.js
+
+    - flux
+    - redux
+    - native
+
+8. gulp
+
+
+### 後端 ###
+
+1. node.js
+2. mongodb
+3. python
+4. DevOps Tools
+
+    - Ansible
+    - prometheus
+    - docker cluster(swarm or kubernetes)
+
+5. AWS
+6. GCE
+7. OS maintain
+
+    - bash
+
+### 軟體工程 ###
+
+1. Agile
+
+    - Scrum
+    - LEAN
+    - XP
+    - Kanban
+
+---
+
+## 既有技術 ##
+
+### 前端 ###
+
+1. HTML/CSS
+2. JSF & Primefaces
+
+### 後端 ###
+
+1. java
+2. javaEE
+3. Spring framework
+4. Spring boot
+5. Spring cloud
+6. maven
+7. mySQL
+8. oracle 10g
+9. DevOps Tools
+
+    - docker
+    - Jenkins
+    - ELK
+
+10. OS maintain
+
+    - ubuntu 14.04, 16.04
+    - centos 7
+
+### 軟體工程 ###
+
+1. Agile
