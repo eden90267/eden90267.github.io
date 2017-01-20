@@ -22,7 +22,8 @@ categories: [todoList]
     - native
 
 8. bower
-9. gulp
+9. babel
+10. gulp
 
 
 ### 後端 ###
