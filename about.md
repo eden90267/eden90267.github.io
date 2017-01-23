@@ -6,7 +6,7 @@ permalink: /about/
 
 Hi , I'm a Web Full Stack developer, love to pursue software technology.
 
----
+---  
 
 Programming technologies：
 
@@ -28,6 +28,8 @@ back-end：
 - MariaDB
 - Oracle 10g
 - MongoDB
+- git
+- vagrant
 - Docker
 - Jenkins
 - Ansible
@@ -39,6 +41,6 @@ Software Engineering：
 
 - Agile Development
 
----
+---  
 
 Welcome your interest.

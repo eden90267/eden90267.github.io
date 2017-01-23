@@ -73,6 +73,8 @@ categories: [todoList]
 8. oracle 10g
 9. DevOps Tools
 
+    - git
+    - vagrant
     - docker
     - Jenkins
     - ELK
