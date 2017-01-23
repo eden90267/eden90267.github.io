@@ -23,7 +23,8 @@ categories: [todoList]
 
 8. bower
 9. babel
-10. gulp
+10. webpack
+11. gulp
 
 
 ### 後端 ###
@@ -73,7 +74,7 @@ categories: [todoList]
 8. oracle 10g
 9. DevOps Tools
 
-    - git
+    - git, hg
     - vagrant
     - docker
     - Jenkins

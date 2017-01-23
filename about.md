@@ -28,7 +28,7 @@ back-end：
 - MariaDB
 - Oracle 10g
 - MongoDB
-- git
+- git, hg
 - vagrant
 - Docker
 - Jenkins
